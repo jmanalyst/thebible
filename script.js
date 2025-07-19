@@ -44,6 +44,7 @@ async function getVerse() {
   document.getElementById('book').blur();
   document.getElementById('chapter').blur();
   document.getElementById('verse').blur();
+  setTimeout(() => document.activeElement.blur(), 0); // Zoom fix
 
   result.innerHTML = "Loading...";
 
@@ -184,6 +185,7 @@ function startListening() {
       document.getElementById('book').blur();
       document.getElementById('chapter').blur();
       document.getElementById('verse').blur();
+  setTimeout(() => document.activeElement.blur(), 0); // Zoom fix
 
       getVerse();
     } else {
