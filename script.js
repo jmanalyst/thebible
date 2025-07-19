@@ -1,24 +1,43 @@
-// All Bible books (KJV order)
 const bibleBooks = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
-  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther",
-  "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
-  "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah",
-  "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians",
-  "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
-  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John",
-  "3 John", "Jude", "Revelation"
+  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
+  "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes",
+  "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel",
+  "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
+  "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke",
+  "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians",
+  "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
+  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter",
+  "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
 
 let currentSuggestions = [];
 let selectedIndex = -1;
 
-// Fetch single verse or full chapter
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const book = params.get("book");
+  const chapter = params.get("chapter");
+  const verse = params.get("verse");
+
+  if (book && chapter) {
+    document.getElementById("book").value = book;
+    document.getElementById("chapter").value = chapter;
+    if (verse) document.getElementById("verse").value = verse;
+    getVerse();
+  }
+});
+
 async function getVerse() {
   const book = document.getElementById('book').value.trim();
   const chapter = document.getElementById('chapter').value.trim();
   const verse = document.getElementById('verse').value.trim();
   const result = document.getElementById('result');
+
+  // ✅ Unfocus inputs to reset zoom, without breaking autocomplete
+  document.getElementById('book').blur();
+  document.getElementById('chapter').blur();
+  document.getElementById('verse').blur();
 
   result.innerHTML = "Loading...";
 
@@ -33,88 +52,31 @@ async function getVerse() {
     const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=kjv`);
     const data = await res.json();
 
-    if (data.verses && Array.isArray(data.verses)) {
+    if (data.verses) {
       const formatted = data.verses
         .map(v => `<strong>${v.verse}.</strong> ${v.text.trim()}`)
         .join("<br><br>");
 
       result.innerHTML = `
         <h2 class="text-xl font-bold mb-4">${data.reference} (KJV)</h2>
-        <div class="text-base leading-relaxed font-sans">${formatted}</div>
+        <div class="text-[16px] leading-relaxed font-sans">${formatted}</div>
       `;
     } else {
       result.innerHTML = "Scripture not found.";
     }
   } catch (err) {
-    console.error(err);
     result.innerHTML = "Error fetching scripture.";
-  }
-}
-
-// Speech-to-text: "Book chapter 1"
-function startListening() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert("Speech recognition not supported in this browser.");
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.interimResults = false;
-
-  recognition.onresult = (event) => {
-    recognition.stop();
-    const transcript = event.results[0][0].transcript.toLowerCase();
-    console.log("You said:", transcript);
-
-    const match = transcript.match(/([a-z\s]+)\s+chapter\s+(\d+)/i);
-    if (match) {
-      const book = capitalize(match[1].trim());
-      const chapter = match[2];
-      getChapter(book, chapter);
-    } else {
-      document.getElementById('result').innerHTML = "Could not recognize. Try saying 'John chapter 3'";
-    }
-  };
-
-  recognition.onerror = (err) => {
-    recognition.stop();
-    console.error("Speech error:", err);
-    document.getElementById('result').innerHTML = "Speech recognition error.";
-  };
-
-  recognition.start();
-}
-
-// Fetch full chapter
-async function getChapter(book, chapter) {
-  const result = document.getElementById('result');
-  result.innerHTML = "Loading...";
-
-  try {
-    const res = await fetch(`https://bible-api.com/${encodeURIComponent(book + " " + chapter)}?translation=kjv`);
-    const data = await res.json();
-
-    if (data.verses && Array.isArray(data.verses)) {
-      const formatted = data.verses
-        .map(v => `<strong>${v.verse}.</strong> ${v.text.trim()}`)
-        .join("<br><br>");
-
-      result.innerHTML = `
-        <h2 class="text-xl font-bold mb-4">${data.reference} (KJV)</h2>
-        <div class="text-base leading-relaxed font-sans">${formatted}</div>
-      `;
-    } else {
-      result.innerHTML = "Chapter not found.";
-    }
-  } catch (err) {
     console.error(err);
-    result.innerHTML = "Error fetching chapter.";
   }
 }
 
-// Autocomplete logic
+function submitOnEnter(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    getVerse();
+  }
+}
+
 function showSuggestions() {
   const input = document.getElementById("book");
   const list = document.getElementById("suggestions");
@@ -150,12 +112,10 @@ function selectBook(index) {
   document.getElementById("suggestions").classList.add("hidden");
   selectedIndex = -1;
 
-  // 👇 Force focus to chapter field after autocomplete
   setTimeout(() => {
     chapterInput.focus();
   }, 0);
 }
-
 
 function autocompleteBook(event) {
   if (event.key === "Tab" && currentSuggestions.length > 0) {
@@ -188,19 +148,49 @@ function highlightSuggestion() {
   });
 }
 
-// Capitalize book names
 function capitalize(str) {
   return str.replace(/\b\w/g, l => l.toUpperCase());
 }
 
-
-
-function submitOnEnter(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    getVerse();
+function startListening() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Speech recognition not supported in this browser.");
+    return;
   }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  recognition.onresult = (event) => {
+    recognition.stop();
+    const transcript = event.results[0][0].transcript.toLowerCase();
+    const match = transcript.match(/([a-z\s]+)\s+chapter\s+(\d+)/i);
+
+    if (match) {
+      const book = capitalize(match[1].trim());
+      const chapter = match[2];
+      document.getElementById("book").value = book;
+      document.getElementById("chapter").value = chapter;
+      document.getElementById("verse").value = "";
+
+      // ✅ Blur after setting values
+      document.getElementById('book').blur();
+      document.getElementById('chapter').blur();
+      document.getElementById('verse').blur();
+
+      getVerse();
+    } else {
+      document.getElementById("result").innerHTML = "Try saying: 'John chapter 3'";
+    }
+  };
+
+  recognition.onerror = (err) => {
+    recognition.stop();
+    console.error("Speech error:", err);
+    document.getElementById("result").innerHTML = "Speech recognition error.";
+  };
+
+  recognition.start();
 }
-
-
-
