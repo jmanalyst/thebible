@@ -1,3 +1,4 @@
+
 const bibleBooks = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
   "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
@@ -15,6 +16,12 @@ let currentSuggestions = [];
 let selectedIndex = -1;
 
 window.addEventListener("DOMContentLoaded", () => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    const micBtn = document.getElementById("micBtn");
+    if (micBtn) micBtn.style.display = "none";
+  }
+
   const params = new URLSearchParams(window.location.search);
   const book = params.get("book");
   const chapter = params.get("chapter");
@@ -34,7 +41,6 @@ async function getVerse() {
   const verse = document.getElementById('verse').value.trim();
   const result = document.getElementById('result');
 
-  // ✅ Unfocus inputs to reset zoom, without breaking autocomplete
   document.getElementById('book').blur();
   document.getElementById('chapter').blur();
   document.getElementById('verse').blur();
@@ -149,7 +155,7 @@ function highlightSuggestion() {
 }
 
 function capitalize(str) {
-  return str.replace(/\b\w/g, l => l.toUpperCase());
+  return str.replace(/\w/g, l => l.toUpperCase());
 }
 
 function startListening() {
@@ -175,7 +181,6 @@ function startListening() {
       document.getElementById("chapter").value = chapter;
       document.getElementById("verse").value = "";
 
-      // ✅ Blur after setting values
       document.getElementById('book').blur();
       document.getElementById('chapter').blur();
       document.getElementById('verse').blur();
