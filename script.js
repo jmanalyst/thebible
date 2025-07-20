@@ -1,316 +1,168 @@
-// === BIBLE BOOKS ===
-const books = [ "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
-"1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah",
-"Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
-"Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah",
-"Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
-"Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians",
-"Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
-"1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
-"1 John", "2 John", "3 John", "Jude", "Revelation"
+// ===== BOOKS =====
+const books = [
+  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
+  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah",
+  "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
+  "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah",
+  "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+  "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians",
+  "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
+  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
+  "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
 
-// === ACCURATE CHAPTER COUNTS ===
+const bookAbbreviations = {
+  "Genesis": "Gen", "Exodus": "Exo", "Leviticus": "Lev", "Numbers": "Num", "Deuteronomy": "Deu",
+  "Joshua": "Jos", "Judges": "Jud", "Ruth": "Rut", "1 Samuel": "1Sa", "2 Samuel": "2Sa",
+  "1 Kings": "1Ki", "2 Kings": "2Ki", "1 Chronicles": "1Ch", "2 Chronicles": "2Ch", "Ezra": "Ezr",
+  "Nehemiah": "Neh", "Esther": "Est", "Job": "Job", "Psalms": "Psa", "Proverbs": "Pro",
+  "Ecclesiastes": "Ecc", "Song of Solomon": "Son", "Isaiah": "Isa", "Jeremiah": "Jer",
+  "Lamentations": "Lam", "Ezekiel": "Eze", "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joe",
+  "Amos": "Amo", "Obadiah": "Oba", "Jonah": "Jon", "Micah": "Mic", "Nahum": "Nah",
+  "Habakkuk": "Hab", "Zephaniah": "Zep", "Haggai": "Hag", "Zechariah": "Zec", "Malachi": "Mal",
+  "Matthew": "Mat", "Mark": "Mar", "Luke": "Luk", "John": "Joh", "Acts": "Act", "Romans": "Rom",
+  "1 Corinthians": "1Co", "2 Corinthians": "2Co", "Galatians": "Gal", "Ephesians": "Eph",
+  "Philippians": "Phi", "Colossians": "Col", "1 Thessalonians": "1Th", "2 Thessalonians": "2Th",
+  "1 Timothy": "1Ti", "2 Timothy": "2Ti", "Titus": "Tit", "Philemon": "Phm", "Hebrews": "Heb",
+  "James": "Jam", "1 Peter": "1Pe", "2 Peter": "2Pe", "1 John": "1Jo", "2 John": "2Jo",
+  "3 John": "3Jo", "Jude": "Jud", "Revelation": "Rev"
+};
+
 const chapterCounts = {
-  "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numbers": 36, "Deuteronomy": 34, "Joshua": 24, "Judges": 21,
-  "Ruth": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Kings": 22, "2 Kings": 25, "1 Chronicles": 29, "2 Chronicles": 36,
-  "Ezra": 10, "Nehemiah": 13, "Esther": 10, "Job": 42, "Psalms": 150, "Proverbs": 31, "Ecclesiastes": 12,
-  "Song of Solomon": 8, "Isaiah": 66, "Jeremiah": 52, "Lamentations": 5, "Ezekiel": 48, "Daniel": 12, "Hosea": 14,
-  "Joel": 3, "Amos": 9, "Obadiah": 1, "Jonah": 4, "Micah": 7, "Nahum": 3, "Habakkuk": 3, "Zephaniah": 3,
-  "Haggai": 2, "Zechariah": 14, "Malachi": 4, "Matthew": 28, "Mark": 16, "Luke": 24, "John": 21, "Acts": 28,
-  "Romans": 16, "1 Corinthians": 16, "2 Corinthians": 13, "Galatians": 6, "Ephesians": 6, "Philippians": 4,
-  "Colossians": 4, "1 Thessalonians": 5, "2 Thessalonians": 3, "1 Timothy": 6, "2 Timothy": 4, "Titus": 3,
-  "Philemon": 1, "Hebrews": 13, "James": 5, "1 Peter": 5, "2 Peter": 3, "1 John": 5, "2 John": 1, "3 John": 1,
-  "Jude": 1, "Revelation": 22
+  "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numbers": 36, "Deuteronomy": 34, "Joshua": 24,
+  "Judges": 21, "Ruth": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Kings": 22, "2 Kings": 25,
+  "1 Chronicles": 29, "2 Chronicles": 36, "Ezra": 10, "Nehemiah": 13, "Esther": 10, "Job": 42,
+  "Psalms": 150, "Proverbs": 31, "Ecclesiastes": 12, "Song of Solomon": 8, "Isaiah": 66,
+  "Jeremiah": 52, "Lamentations": 5, "Ezekiel": 48, "Daniel": 12, "Hosea": 14, "Joel": 3,
+  "Amos": 9, "Obadiah": 1, "Jonah": 4, "Micah": 7, "Nahum": 3, "Habakkuk": 3, "Zephaniah": 3,
+  "Haggai": 2, "Zechariah": 14, "Malachi": 4, "Matthew": 28, "Mark": 16, "Luke": 24, "John": 21,
+  "Acts": 28, "Romans": 16, "1 Corinthians": 16, "2 Corinthians": 13, "Galatians": 6,
+  "Ephesians": 6, "Philippians": 4, "Colossians": 4, "1 Thessalonians": 5, "2 Thessalonians": 3,
+  "1 Timothy": 6, "2 Timothy": 4, "Titus": 3, "Philemon": 1, "Hebrews": 13, "James": 5,
+  "1 Peter": 5, "2 Peter": 3, "1 John": 5, "2 John": 1, "3 John": 1, "Jude": 1, "Revelation": 22
 };
 
 let currentBook = "";
 let currentChapter = 0;
 let currentVerse = 0;
 
+// You already have functions: getChapter, getVerse, prevChapter, nextChapter
+// These need slight extension for nextVerse/prevVerse/fullChapter
 
-
-
-
-
-
-
-// === DROPDOWN ===
-function filterDropdown() {
-  const input = document.getElementById("book").value.toLowerCase();
-  const dropdown = document.getElementById("custom-dropdown");
-  dropdown.innerHTML = "";
-
-  const matches = books.filter(book => book.toLowerCase().startsWith(input));
-  matches.forEach(book => {
-    const li = document.createElement("li");
-    li.textContent = book;
-    li.className = "px-2 py-1 hover:bg-gray-100 cursor-pointer";
-    li.onclick = () => selectBookFromDropdown(book);
-    dropdown.appendChild(li);
-  });
-
-  if (matches.length) dropdown.classList.add("active");
-  else dropdown.classList.remove("active");
-}
-
-function showDropdown() {
-  const input = document.getElementById("book").value.trim().toLowerCase();
-  const dropdown = document.getElementById("custom-dropdown");
-  dropdown.innerHTML = "";
-
-  // Always show all books when input is empty or just focused
-  const matches = books.filter(book =>
-    input === "" || book.toLowerCase().includes(input)
-  );
-
-  matches.forEach(book => {
-    const li = document.createElement("li");
-    li.textContent = book;
-    li.className = "px-2 py-1 hover:bg-gray-100 cursor-pointer";
-    li.onclick = () => selectBookFromDropdown(book);
-    dropdown.appendChild(li);
-  });
-
-  dropdown.classList.add("active");
-}
-
-
-function handleDropdownKeys(e) {
-  if (e.key === "Tab") {
-    const input = document.getElementById("book");
-    const match = books.find(book => book.toLowerCase().startsWith(input.value.toLowerCase()));
-    if (match) {
-      e.preventDefault();
-      input.value = match;
-      toggleClearButton();
-      document.getElementById("custom-dropdown").classList.remove("active");
-      document.getElementById("chapter").focus();
-    }
-  }
-}
-
-function selectBookFromDropdown(book) {
-  const bookInput = document.getElementById("book");
-  bookInput.value = book;
-  document.getElementById("custom-dropdown").classList.remove("active");
-  toggleClearButton();
-
-  // Automatically open the chapter picker
-  setTimeout(() => {
-    openChapterPicker();
-  }, 100); // slight delay to prevent UI conflict
-}
-
-function toggleClearButton() {
-  const clearBtn = document.getElementById("clearBtn");
-  const bookInput = document.getElementById("book");
-  clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
-}
-
-function clearBook() {
-  const bookInput = document.getElementById("book");
-  const chapterInput = document.getElementById("chapter");
-  const verseInput = document.getElementById("verse");
-
-  bookInput.value = "";
-  chapterInput.value = "";
-  verseInput.value = "";
-
-  toggleClearButton();
-  showDropdown();
-  bookInput.focus();
-}
-
-document.addEventListener("click", (e) => {
-  const dropdown = document.getElementById("custom-dropdown");
-  const bookInput = document.getElementById("book");
-  if (!dropdown.contains(e.target) && e.target !== bookInput) {
-    dropdown.classList.remove("active");
-  }
-});
-
-// === MAIN VERSE FUNCTIONALITY ===
-function submitOnEnter(e) {
-  if (e.key === "Enter") getVerse();
-}
-
-async function getVerse() {
-  const book = document.getElementById("book").value.trim();
-  const chapter = document.getElementById("chapter").value.trim();
-  const verse = document.getElementById("verse").value.trim();
+function showPrevNextVerseButtons(ref) {
   const result = document.getElementById("result");
+  const btns = `
+    <div class="flex gap-2 mt-4">
+      <button onclick="prevVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">⏮️ Previous</button>
+      <button onclick="readFullChapter()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">📖 Full</button>
+      <button onclick="nextVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
+    </div>
+  `;
+  result.innerHTML += btns;
+}
 
-  result.innerHTML = "Loading...";
-  window.showResultArea?.();
+function readFullChapter() {
+  getChapter(currentBook, currentChapter);
+}
 
-  if (!book || !chapter) {
-    result.innerHTML = "Please enter both book and chapter.";
-    return;
-  }
+function nextVerse() {
+  getVerseFromRef(currentBook, currentChapter, currentVerse + 1);
+}
 
-  try {
-    if (verse === "") {
-  await getChapter(book, chapter);
-} else {
-  const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
-  const data = await res.json();
-
-  if (data.text) {
-    currentBook = book;
-    currentChapter = parseInt(chapter);
-    currentVerse = parseInt(verse);
-
-    result.innerHTML = `
-  <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
-  <p class="text-sm text-gray-500 mb-4">– ${data.reference}</p>
-  <div class="flex justify-between items-center mt-2 gap-2">
-    <button onclick="prevVerse()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentVerse <= 1 ? ' disabled' : ''}>⏮️ Previous</button>
-    <button onclick="nextVerse()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
-  </div>
-  <div class="mt-4 text-center">
-  <button onclick="getChapter('${book}', ${chapter})"
-    class="text-xs px-3 py-1 border border-black text-black rounded hover:bg-gray-100">
-    📖 Read Full Chapter
-  </button>
-</div>
-
-`;
-
-  } else {
-    result.innerHTML = "Verse not found.";
+function prevVerse() {
+  if (currentVerse > 1) {
+    getVerseFromRef(currentBook, currentChapter, currentVerse - 1);
   }
 }
 
+async function getVerseFromRef(book, chapter, verse) {
+  currentBook = book;
+  currentChapter = chapter;
+  currentVerse = verse;
+
+  const result = document.getElementById("result");
+  result.innerHTML = "Loading...";
+  try {
+    const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
+    const data = await res.json();
+    if (data.text) {
+      result.innerHTML = `
+        <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
+        <p class="text-sm text-gray-500">– ${data.reference}</p>
+      `;
+      showPrevNextVerseButtons(data.reference);
+    } else {
+      result.innerHTML = "Verse not found.";
+    }
   } catch (err) {
-    console.error(err);
     result.innerHTML = "Error fetching verse.";
   }
 }
 
-async function getChapter(book, chapter) {
-  const result = document.getElementById("result");
-  result.innerHTML = "Loading...";
-  window.showResultArea?.();
+// Book Picker Modal
+function openBookPicker() {
+  const modal = document.getElementById("book-picker");
+  const oldTestament = document.getElementById("old-testament");
+  const newTestament = document.getElementById("new-testament");
 
-  currentBook = book;
-  currentChapter = parseInt(chapter);
+  oldTestament.innerHTML = "";
+  newTestament.innerHTML = "";
 
-  try {
-    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
-    const data = await res.json();
+  const oldBooks = books.slice(0, 39);
+  const newBooks = books.slice(39);
 
-    if (data.verses) {
-      const verses = data.verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
-      result.innerHTML = `
-        <h2 class="text-xl font-bold mb-4">${data.reference}</h2>
-        <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verses}</pre>
-        <div class="flex justify-between items-center mt-4">
-          <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>⏮️ Previous</button>
-          <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
-        </div>
-      `;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      result.innerHTML = "Chapter not found.";
-    }
-  } catch (err) {
-    console.error(err);
-    result.innerHTML = "Error fetching chapter.";
-  }
-}
-
-function nextChapter() {
-  getChapter(currentBook, currentChapter + 1);
-}
-
-function prevChapter() {
-  if (currentChapter > 1) {
-    getChapter(currentBook, currentChapter - 1);
-  }
-}
-
-// === SPEECH RECOGNITION ===
-function startListening() {
-  const micBtn = document.getElementById("micBtn");
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    micBtn.style.display = "none";
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = "en-US";
-  recognition.interimResults = false;
-
-  recognition.onresult = (event) => {
-    recognition.stop();
-    const transcript = event.results[0][0].transcript.toLowerCase();
-    const match = transcript.match(/([a-z0-9 ]+) chapter (\d+)/i);
-    if (match) {
-      const book = match[1];
-      const chapter = match[2];
-      document.getElementById("book").value = book;
-      document.getElementById("chapter").value = chapter;
-      document.getElementById("verse").value = "";
-      toggleClearButton();
-      getChapter(book, chapter);
-    } else {
-      document.getElementById("result").innerHTML = "Could not understand. Try saying 'John chapter 1'";
-    }
-  };
-
-  recognition.onerror = (err) => {
-    recognition.stop();
-    console.error("Speech error:", err);
-    document.getElementById("result").innerHTML = "Error with speech recognition.";
-  };
-
-  recognition.start();
-}
-
-// === INIT ===
-document.addEventListener("DOMContentLoaded", () => {
-  const dropdown = document.getElementById("custom-dropdown");
-  books.forEach(book => {
-    const li = document.createElement("li");
-    li.textContent = book;
-    li.className = "px-2 py-1 hover:bg-gray-100 cursor-pointer";
-    li.onclick = () => selectBookFromDropdown(book);
-    dropdown.appendChild(li);
+  oldBooks.forEach(book => {
+    const btn = document.createElement("button");
+    btn.textContent = bookAbbreviations[book] || book.substring(0, 3);
+    btn.className = "border rounded px-2 py-1 text-sm hover:bg-blue-100";
+    btn.onclick = () => selectBook(book);
+    oldTestament.appendChild(btn);
   });
 
-  toggleClearButton();
-});
+  newBooks.forEach(book => {
+    const btn = document.createElement("button");
+    btn.textContent = bookAbbreviations[book] || book.substring(0, 3);
+    btn.className = "border rounded px-2 py-1 text-sm hover:bg-blue-100";
+    btn.onclick = () => selectBook(book);
+    newTestament.appendChild(btn);
+  });
 
+  modal.classList.remove("hidden");
+}
 
-// === CHAPTER PICKER ===
+function closeBookPicker() {
+  document.getElementById("book-picker").classList.add("hidden");
+}
+
+function selectBook(book) {
+  document.getElementById("book").value = book;
+  document.getElementById("chapter").value = "";
+  document.getElementById("verse").value = "";
+  closeBookPicker();
+  openChapterPicker();
+}
+
+// When chapter changes, reset verse
 function openChapterPicker() {
-  const book = document.getElementById("book").value.trim();
-  if (!book || !books.includes(book)) {
-    alert("Please select a valid book first.");
-    return;
-  }
+  const book = document.getElementById("book").value;
+  if (!book || !chapterCounts[book]) return;
 
-  const chapterCount = chapterCounts[book] || 1;
-  const chapterGrid = document.getElementById("chapter-grid");
-  const title = document.getElementById("chapter-picker-title");
-  chapterGrid.innerHTML = "";
-  title.textContent = `Select Chapter (${book})`;
+  const grid = document.getElementById("chapter-grid");
+  grid.innerHTML = "";
 
-  for (let i = 1; i <= chapterCount; i++) {
+  for (let i = 1; i <= chapterCounts[book]; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
     btn.className = "px-2 py-1 rounded hover:bg-gray-200";
     btn.onclick = () => {
-  document.getElementById("chapter").value = i;
-  document.getElementById("verse").value = ""; // ✅ Reset verse when chapter changes
-  closeChapterPicker();
-};
-
-    chapterGrid.appendChild(btn);
+      document.getElementById("chapter").value = i;
+      document.getElementById("verse").value = ""; // reset verse
+      closeChapterPicker();
+    };
+    grid.appendChild(btn);
   }
 
+  document.getElementById("chapter-picker-title").textContent = `Select Chapter (${book})`;
   document.getElementById("chapter-picker").classList.remove("hidden");
 }
 
@@ -318,129 +170,58 @@ function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
 
+
+
+
+
+
+
 // === VERSE PICKER ===
-document.getElementById("verse").addEventListener("click", () => {
+function openVersePicker() {
   const book = document.getElementById("book").value.trim();
   const chapter = document.getElementById("chapter").value.trim();
-  if (book && chapter) {
-    showVersePicker(book, chapter);
-  }
-});
-
-
-async function showVersePicker(book, chapter) {
-
-  const picker = document.getElementById("verse-picker");
-  const grid = document.getElementById("verse-grid");
-
   if (!book || !chapter) return;
 
-  picker.classList.remove("hidden");
+  const grid = document.getElementById("verse-grid");
+  const title = document.getElementById("verse-picker-title");
+  const modal = document.getElementById("verse-picker");
+
   grid.innerHTML = "Loading...";
+  title.textContent = `Select Verse (${book} ${chapter})`;
+  modal.classList.remove("hidden");
 
-  try {
-    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
-    const data = await res.json();
+  fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.verses || data.verses.length === 0) {
+        grid.innerHTML = "<div class='col-span-6 text-gray-500'>No verses found</div>";
+        return;
+      }
 
-    if (data.verses && data.verses.length > 0) {
-      const totalVerses = data.verses.length;
       grid.innerHTML = "";
-
-      for (let i = 1; i <= totalVerses; i++) {
+      data.verses.forEach((v, i) => {
         const btn = document.createElement("button");
-        btn.textContent = i;
+        btn.textContent = v.verse;
         btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
         btn.onclick = () => {
-          document.getElementById("verse").value = i;
+          document.getElementById("verse").value = v.verse;
           closeVersePicker();
+          getVerseFromRef(book, parseInt(chapter), v.verse);
         };
         grid.appendChild(btn);
-      }
-    } else {
-      grid.innerHTML = "<div class='col-span-7 text-center text-sm text-gray-500'>No verses found</div>";
-    }
-  } catch (err) {
-    console.error("Verse fetch error:", err);
-    grid.innerHTML = "<div class='col-span-7 text-center text-sm text-red-500'>Error loading verses</div>";
-  }
+      });
+    })
+    .catch(err => {
+      console.error("Error loading verses:", err);
+      grid.innerHTML = "<div class='col-span-6 text-red-500'>Error loading verses</div>";
+    });
 }
 
 function closeVersePicker() {
   document.getElementById("verse-picker").classList.add("hidden");
 }
 
-
-
-
-
-async function prevVerse() {
-  if (currentVerse > 1) {
-    document.getElementById("verse").value = currentVerse - 1;
-    await getVerse();
-  }
-}
-
-async function nextVerse() {
-  document.getElementById("verse").value = currentVerse + 1;
-  await getVerse();
-}
-
-
-
-
-
-
-
-
-const oldTestamentBooks = books.slice(0, 39);
-const newTestamentBooks = books.slice(39);
-
-function openBookPicker() {
-  const oldContainer = document.getElementById("old-testament");
-  const newContainer = document.getElementById("new-testament");
-  oldContainer.innerHTML = "";
-  newContainer.innerHTML = "";
-
-  oldTestamentBooks.forEach(book => {
-    const btn = document.createElement("button");
-    btn.textContent = abbreviateBook(book);
-    btn.title = book;
-    btn.className = "px-2 py-1 rounded hover:bg-gray-200";
-    btn.onclick = () => {
-      document.getElementById("book").value = book;
-      document.getElementById("chapter").value = "";
-      document.getElementById("verse").value = "";
-      closeBookPicker();
-      toggleClearButton();
-      openChapterPicker(); // Immediately open chapter picker
-    };
-    oldContainer.appendChild(btn);
-  });
-
-  newTestamentBooks.forEach(book => {
-    const btn = document.createElement("button");
-    btn.textContent = abbreviateBook(book);
-    btn.title = book;
-    btn.className = "px-2 py-1 rounded hover:bg-gray-200";
-    btn.onclick = () => {
-      document.getElementById("book").value = book;
-      document.getElementById("chapter").value = "";
-      document.getElementById("verse").value = "";
-      closeBookPicker();
-      toggleClearButton();
-      openChapterPicker(); // Immediately open chapter picker
-    };
-    newContainer.appendChild(btn);
-  });
-
-  document.getElementById("book-picker").classList.remove("hidden");
-}
-
-function closeBookPicker() {
-  document.getElementById("book-picker").classList.add("hidden");
-}
-
-function abbreviateBook(book) {
-  const cleaned = book.trim(); // keeps everything (numbers and spaces)
-  return cleaned.substring(0, 6);
-}
+// Attach openVersePicker on verse field click
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("verse").addEventListener("click", openVersePicker);
+});
