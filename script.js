@@ -204,10 +204,21 @@ function openVersePicker() {
         btn.textContent = v.verse;
         btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
         btn.onclick = () => {
-          document.getElementById("verse").value = v.verse;
-          closeVersePicker();
-          getVerseFromRef(book, parseInt(chapter), v.verse);
-        };
+      document.getElementById("verse").value = v.verse;
+      closeVersePicker();
+
+      const bookVal = document.getElementById("book").value.trim();
+      const chapterVal = document.getElementById("chapter").value.trim();
+      const verseVal = v.verse;
+
+      if (bookVal && chapterVal && verseVal) {
+        getVerseFromRef(bookVal, parseInt(chapterVal), verseVal);
+      }
+    };
+
+
+
+
         grid.appendChild(btn);
       });
     })
