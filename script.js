@@ -284,3 +284,55 @@ function showChapterPicker() {
 function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
+
+
+
+
+// === VERSE PICKER ===
+document.getElementById("verse").addEventListener("focus", () => {
+  if (window.innerWidth < 768) {
+    showVersePicker();
+  }
+});
+
+async function showVersePicker() {
+  const book = document.getElementById("book").value.trim();
+  const chapter = document.getElementById("chapter").value.trim();
+  const picker = document.getElementById("verse-picker");
+  const grid = document.getElementById("verse-grid");
+
+  if (!book || !chapter) return;
+
+  picker.classList.remove("hidden");
+  grid.innerHTML = "Loading...";
+
+  try {
+    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
+    const data = await res.json();
+
+    if (data.verses && data.verses.length > 0) {
+      const totalVerses = data.verses.length;
+      grid.innerHTML = "";
+
+      for (let i = 1; i <= totalVerses; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
+        btn.onclick = () => {
+          document.getElementById("verse").value = i;
+          closeVersePicker();
+        };
+        grid.appendChild(btn);
+      }
+    } else {
+      grid.innerHTML = "<div class='col-span-7 text-center text-sm text-gray-500'>No verses found</div>";
+    }
+  } catch (err) {
+    console.error("Verse fetch error:", err);
+    grid.innerHTML = "<div class='col-span-7 text-center text-sm text-red-500'>Error loading verses</div>";
+  }
+}
+
+function closeVersePicker() {
+  document.getElementById("verse-picker").classList.add("hidden");
+}
