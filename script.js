@@ -140,6 +140,8 @@ function selectBook(book) {
   document.getElementById("verse").value = "";
   closeBookPicker();
   openChapterPicker();
+
+  maybeAutoFetch();
 }
 
 // When chapter changes, reset verse
@@ -158,6 +160,7 @@ function openChapterPicker() {
       document.getElementById("chapter").value = i;
       document.getElementById("verse").value = ""; // reset verse
       closeChapterPicker();
+      maybeAutoFetch();
     };
     grid.appendChild(btn);
   }
@@ -204,17 +207,19 @@ function openVersePicker() {
         btn.textContent = v.verse;
         btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
         btn.onclick = () => {
-      document.getElementById("verse").value = v.verse;
-      closeVersePicker();
+  document.getElementById("verse").value = v.verse;
+  closeVersePicker();
+  maybeAutoFetch();
+        
 
-      const bookVal = document.getElementById("book").value.trim();
-      const chapterVal = document.getElementById("chapter").value.trim();
-      const verseVal = v.verse;
+  const bookVal = document.getElementById("book").value.trim();
+  const chapterVal = document.getElementById("chapter").value.trim();
+  const verseVal = v.verse;
 
-      if (bookVal && chapterVal && verseVal) {
-        getVerseFromRef(bookVal, parseInt(chapterVal), verseVal);
-      }
-    };
+  if (bookVal && chapterVal && verseVal) {
+    getVerseFromRef(bookVal, parseInt(chapterVal), parseInt(verseVal));
+  }
+};
 
 
 
@@ -313,5 +318,22 @@ function nextChapter() {
 function prevChapter() {
   if (currentChapter > 1) {
     getChapter(currentBook, currentChapter - 1);
+  }
+}
+
+
+
+
+
+
+function maybeAutoFetch() {
+  const book = document.getElementById("book").value.trim();
+  const chapter = document.getElementById("chapter").value.trim();
+  const verse = document.getElementById("verse").value.trim();
+
+  if (book && chapter && verse) {
+    getVerseFromRef(book, parseInt(chapter), parseInt(verse));
+  } else if (book && chapter && verse === "") {
+    getChapter(book, chapter);
   }
 }
