@@ -203,3 +203,68 @@ function startListening() {
 
   recognition.start();
 }
+
+
+function showDropdown() {
+  const list = document.getElementById("custom-dropdown");
+  list.classList.add("active");
+  populateDropdown(bibleBooks);
+}
+
+function hideDropdown() {
+  const list = document.getElementById("custom-dropdown");
+  list.classList.remove("active");
+}
+
+function populateDropdown(books) {
+  const list = document.getElementById("custom-dropdown");
+  list.innerHTML = books.map((book, i) =>
+    `<li onclick="selectBookFromDropdown('${book}')" class="px-4 py-2 hover:bg-blue-100 cursor-pointer">${book}</li>`
+  ).join("");
+}
+
+function filterDropdown() {
+  const value = document.getElementById("book").value.trim().toLowerCase();
+  const filtered = bibleBooks.filter(b => b.toLowerCase().startsWith(value));
+  populateDropdown(filtered);
+  showDropdown();
+}
+
+function selectBookFromDropdown(book) {
+  document.getElementById("book").value = book;
+  document.getElementById("custom-dropdown").classList.remove("active");
+  document.getElementById("chapter").focus();
+}
+
+document.addEventListener("click", (e) => {
+  const bookInput = document.getElementById("book");
+  const dropdown = document.getElementById("custom-dropdown");
+  if (!bookInput.contains(e.target) && !dropdown.contains(e.target)) {
+    hideDropdown();
+  }
+});
+
+function handleDropdownKeys(e) {
+  const dropdown = document.getElementById("custom-dropdown");
+  const items = dropdown.querySelectorAll("li");
+  if (!dropdown.classList.contains("active") || items.length === 0) return;
+
+  let index = Array.from(items).findIndex(i => i.classList.contains("bg-blue-100"));
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    index = (index + 1) % items.length;
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    index = (index - 1 + items.length) % items.length;
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    if (index >= 0) items[index].click();
+    return;
+  } else {
+    return;
+  }
+
+  items.forEach((item, i) => {
+    item.classList.toggle("bg-blue-100", i === index);
+  });
+}
