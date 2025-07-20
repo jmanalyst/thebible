@@ -5,7 +5,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Bible App</title>
-  <script defer src="script.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     #custom-dropdown {
@@ -22,8 +21,11 @@
     <div class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-1 items-center relative text-sm">
       <div class="relative">
         <input id="book" name="book" type="text" autocomplete="off"
-          placeholder="Book" oninput="filterDropdown()" onfocus="showDropdown()" onkeydown="handleDropdownKeys(event)"
-          class="px-2 py-1 border border-gray-300 rounded w-full text-sm" />
+          placeholder="Book" oninput="filterDropdown(); toggleClearButton();"
+          onfocus="showDropdown()" onkeydown="handleDropdownKeys(event)"
+          class="px-2 py-1 pr-8 border border-gray-300 rounded w-full text-sm" />
+        <button onclick="clearBook()" id="clearBtn" title="Clear"
+          class="absolute right-2 top-1.5 text-gray-500 text-xs hover:text-black hidden">❌</button>
         <ul id="custom-dropdown"
           class="absolute z-50 w-full border border-gray-300 bg-white rounded shadow mt-1 hidden max-h-80 overflow-y-auto text-sm"></ul>
       </div>
@@ -51,5 +53,34 @@
   <div class="max-w-4xl mx-auto px-2 py-4">
     <div id="result" class="text-base leading-relaxed whitespace-pre-wrap"></div>
   </div>
+
+  <script>
+    function clearBook() {
+      const bookInput = document.getElementById("book");
+      bookInput.value = "";
+      bookInput.focus();
+      toggleClearButton();
+      showDropdown();
+    }
+
+    function toggleClearButton() {
+      const clearBtn = document.getElementById("clearBtn");
+      const bookInput = document.getElementById("book");
+      clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
+    }
+
+    function selectBookFromDropdown(book) {
+      const bookInput = document.getElementById("book");
+      bookInput.value = book;
+      document.getElementById("custom-dropdown").classList.remove("active");
+      document.getElementById("chapter").focus();
+      toggleClearButton(); // Ensure clear button updates on select
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      toggleClearButton();
+    });
+  </script>
+  <script defer src="script.js"></script>
 </body>
 </html>

@@ -1,170 +1,129 @@
 
-const bibleBooks = [
+const books = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
-  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
-  "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes",
-  "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel",
-  "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
-  "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke",
-  "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians",
-  "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
-  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter",
-  "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
+  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah",
+  "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
+  "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah",
+  "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+  "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians",
+  "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
+  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
+  "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
 
-let currentSuggestions = [];
-let selectedIndex = -1;
+// Filter and show dropdown
+function filterDropdown() {
+  const input = document.getElementById("book").value.toLowerCase();
+  const dropdown = document.getElementById("custom-dropdown");
+  dropdown.innerHTML = "";
 
-window.addEventListener("DOMContentLoaded", () => {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    const micBtn = document.getElementById("micBtn");
-    if (micBtn) {
-      micBtn.style.display = "none"; // Reliable mic button hiding
+  if (!input) {
+    dropdown.classList.remove("active");
+    return;
+  }
+
+  const matches = books.filter(book => book.toLowerCase().startsWith(input));
+  matches.forEach(book => {
+    const li = document.createElement("li");
+    li.textContent = book;
+    li.className = "px-2 py-1 hover:bg-gray-100 cursor-pointer";
+    li.onclick = () => selectBookFromDropdown(book);
+    dropdown.appendChild(li);
+  });
+
+  if (matches.length) {
+    dropdown.classList.add("active");
+  } else {
+    dropdown.classList.remove("active");
+  }
+}
+
+// Dropdown logic
+function showDropdown() {
+  const dropdown = document.getElementById("custom-dropdown");
+  if (dropdown.children.length > 0) dropdown.classList.add("active");
+}
+
+function handleDropdownKeys(e) {
+  if (e.key === "Tab") {
+    const input = document.getElementById("book");
+    const match = books.find(book => book.toLowerCase().startsWith(input.value.toLowerCase()));
+    if (match) {
+      e.preventDefault();
+      input.value = match;
+      toggleClearButton();
+      document.getElementById("custom-dropdown").classList.remove("active");
+      document.getElementById("chapter").focus();
     }
   }
+}
 
-  const params = new URLSearchParams(window.location.search);
-  const book = params.get("book");
-  const chapter = params.get("chapter");
-  const verse = params.get("verse");
-
-  if (book && chapter) {
-    document.getElementById("book").value = book;
-    document.getElementById("chapter").value = chapter;
-    if (verse) document.getElementById("verse").value = verse;
+function submitOnEnter(e) {
+  if (e.key === "Enter") {
     getVerse();
   }
-});
+}
 
 async function getVerse() {
-  const book = document.getElementById('book').value.trim();
-  const chapter = document.getElementById('chapter').value.trim();
-  const verse = document.getElementById('verse').value.trim();
-  const result = document.getElementById('result');
-
-  document.getElementById('book').blur();
-  document.getElementById('chapter').blur();
-  document.getElementById('verse').blur();
-  setTimeout(() => document.activeElement.blur(), 0); // Zoom fix
+  const book = document.getElementById("book").value.trim();
+  const chapter = document.getElementById("chapter").value.trim();
+  const verse = document.getElementById("verse").value.trim();
+  const result = document.getElementById("result");
 
   result.innerHTML = "Loading...";
 
-  if (!book || !chapter) {
-    result.innerHTML = "Please enter both book and chapter.";
+  if (!book || !chapter || !verse) {
+    result.innerHTML = "Please fill all fields.";
     return;
   }
 
-  const query = verse ? `${book} ${chapter}:${verse}` : `${book} ${chapter}`;
+  try {
+    const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
+    const data = await res.json();
+
+    if (data.text) {
+      result.innerHTML = `
+        <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
+        <p class="text-sm text-gray-500">– ${data.reference}</p>
+      `;
+    } else {
+      result.innerHTML = "Verse not found.";
+    }
+  } catch (err) {
+    console.error(err);
+    result.innerHTML = "Error fetching verse.";
+  }
+}
+
+async function getChapter(book, chapter) {
+  const result = document.getElementById("result");
+  result.innerHTML = "Loading...";
 
   try {
-    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}?translation=kjv`);
+    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
     const data = await res.json();
 
     if (data.verses) {
-      const formatted = data.verses
-        .map(v => `<strong>${v.verse}.</strong> ${v.text.trim()}`)
-        .join("<br><br>");
-
+      const fullChapter = data.verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
       result.innerHTML = `
-        <h2 class="text-xl font-bold mb-4">${data.reference} (KJV)</h2>
-        <div class="text-[16px] leading-relaxed font-sans">${formatted}</div>
+        <h2 class="text-xl font-bold mb-4">${data.reference}</h2>
+        <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${fullChapter}</pre>
       `;
     } else {
-      result.innerHTML = "Scripture not found.";
+      result.innerHTML = "Chapter not found.";
     }
   } catch (err) {
-    result.innerHTML = "Error fetching scripture.";
     console.error(err);
+    result.innerHTML = "Error fetching chapter.";
   }
 }
 
-function submitOnEnter(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    getVerse();
-  }
-}
-
-function showSuggestions() {
-  const input = document.getElementById("book");
-  const list = document.getElementById("suggestions");
-  const value = input.value.trim().toLowerCase();
-
-  if (!value) {
-    list.classList.add("hidden");
-    return;
-  }
-
-  currentSuggestions = bibleBooks.filter(book =>
-    book.toLowerCase().startsWith(value)
-  ).slice(0, 5);
-
-  if (currentSuggestions.length === 0) {
-    list.classList.add("hidden");
-    return;
-  }
-
-  list.innerHTML = currentSuggestions.map((book, idx) =>
-    `<li class="px-4 py-2 hover:bg-blue-100 cursor-pointer" onclick="selectBook(${idx})">${book}</li>`
-  ).join("");
-
-  list.classList.remove("hidden");
-  selectedIndex = -1;
-}
-
-function selectBook(index) {
-  const bookInput = document.getElementById("book");
-  const chapterInput = document.getElementById("chapter");
-
-  bookInput.value = currentSuggestions[index];
-  document.getElementById("suggestions").classList.add("hidden");
-  selectedIndex = -1;
-
-  setTimeout(() => {
-    chapterInput.focus();
-  }, 0);
-}
-
-function autocompleteBook(event) {
-  if (event.key === "Tab" && currentSuggestions.length > 0) {
-    event.preventDefault();
-    selectBook(0);
-  }
-
-  if (event.key === "ArrowDown" && currentSuggestions.length > 0) {
-    event.preventDefault();
-    selectedIndex = (selectedIndex + 1) % currentSuggestions.length;
-    highlightSuggestion();
-  }
-
-  if (event.key === "ArrowUp" && currentSuggestions.length > 0) {
-    event.preventDefault();
-    selectedIndex = (selectedIndex - 1 + currentSuggestions.length) % currentSuggestions.length;
-    highlightSuggestion();
-  }
-
-  if (event.key === "Enter" && selectedIndex >= 0) {
-    event.preventDefault();
-    selectBook(selectedIndex);
-  }
-}
-
-function highlightSuggestion() {
-  const list = document.getElementById("suggestions").children;
-  Array.from(list).forEach((el, i) => {
-    el.classList.toggle("bg-blue-100", i === selectedIndex);
-  });
-}
-
-function capitalize(str) {
-  return str.replace(/\b\w/g, l => l.toUpperCase());
-}
-
+// Speech recognition
 function startListening() {
+  const micBtn = document.getElementById("micBtn");
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    alert("Speech recognition not supported in this browser.");
+    micBtn.style.display = "none";
     return;
   }
 
@@ -175,105 +134,64 @@ function startListening() {
   recognition.onresult = (event) => {
     recognition.stop();
     const transcript = event.results[0][0].transcript.toLowerCase();
-    const match = transcript.match(/([a-z\s]+)\s+chapter\s+(\d+)/i);
-
+    const match = transcript.match(/([a-z0-9 ]+) chapter (\d+)/i);
     if (match) {
-      const book = capitalize(match[1].trim());
+      const book = match[1];
       const chapter = match[2];
       document.getElementById("book").value = book;
       document.getElementById("chapter").value = chapter;
       document.getElementById("verse").value = "";
-
-      document.getElementById('book').blur();
-      document.getElementById('chapter').blur();
-      document.getElementById('verse').blur();
-      setTimeout(() => document.activeElement.blur(), 0);
-
-      getVerse();
+      toggleClearButton();
+      getChapter(book, chapter);
     } else {
-      document.getElementById("result").innerHTML = "Try saying: 'John chapter 3'";
+      document.getElementById("result").innerHTML = "Could not understand. Try saying 'John chapter 1'";
     }
   };
 
   recognition.onerror = (err) => {
     recognition.stop();
     console.error("Speech error:", err);
-    document.getElementById("result").innerHTML = "Speech recognition error.";
+    document.getElementById("result").innerHTML = "Error with speech recognition.";
   };
 
   recognition.start();
 }
 
-
-function showDropdown() {
-  const list = document.getElementById("custom-dropdown");
-  list.classList.add("active");
-  filterDropdown();
-}
-
-function hideDropdown() {
-  const list = document.getElementById("custom-dropdown");
-  list.classList.remove("active");
-}
-
-function populateDropdown(books) {
-  const list = document.getElementById("custom-dropdown");
-  list.innerHTML = books.map((book, i) =>
-    `<li onclick="selectBookFromDropdown('${book}')" class="px-4 py-2 hover:bg-blue-100 cursor-pointer">${book}</li>`
-  ).join("");
-}
-
-function filterDropdown() {
-  const value = document.getElementById("book").value.trim().toLowerCase();
-  const filtered = bibleBooks.filter(b => b.toLowerCase().startsWith(value));
-  populateDropdown(filtered);
-
-  const dropdown = document.getElementById("custom-dropdown");
-  if (filtered.length > 0) {
-    dropdown.classList.add("active");
-  } else {
-    dropdown.classList.remove("active");
-  }
-}
-
+// Utility used by inline script
 function selectBookFromDropdown(book) {
-  document.getElementById("book").value = book;
+  const bookInput = document.getElementById("book");
+  bookInput.value = book;
   document.getElementById("custom-dropdown").classList.remove("active");
   document.getElementById("chapter").focus();
+  toggleClearButton();
 }
 
-document.addEventListener("click", (e) => {
+function toggleClearButton() {
+  const clearBtn = document.getElementById("clearBtn");
+  const bookInput = document.getElementById("book");
+  clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
+}
+
+// Preload dropdown so it appears on first focus
+document.addEventListener("DOMContentLoaded", () => {
   const bookInput = document.getElementById("book");
   const dropdown = document.getElementById("custom-dropdown");
-  if (!bookInput.contains(e.target) && !dropdown.contains(e.target)) {
-    hideDropdown();
-  }
+
+  books.forEach(book => {
+    const li = document.createElement("li");
+    li.textContent = book;
+    li.className = "px-2 py-1 hover:bg-gray-100 cursor-pointer";
+    li.onclick = () => selectBookFromDropdown(book);
+    dropdown.appendChild(li);
+  });
 });
 
-function handleDropdownKeys(e) {
+
+// Hide dropdown when clicking outside
+document.addEventListener("click", (e) => {
   const dropdown = document.getElementById("custom-dropdown");
-  const items = dropdown.querySelectorAll("li");
-  if (!dropdown.classList.contains("active") || items.length === 0) {
-    filterDropdown(); // Ensure dropdown shows when typing
-    return;
+  const bookInput = document.getElementById("book");
+  if (!dropdown.contains(e.target) && e.target !== bookInput) {
+    dropdown.classList.remove("active");
   }
-
-  let index = Array.from(items).findIndex(i => i.classList.contains("bg-blue-100"));
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    index = (index + 1) % items.length;
-  } else if (e.key === "ArrowUp") {
-    e.preventDefault();
-    index = (index - 1 + items.length) % items.length;
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    if (index >= 0) items[index].click();
-    return;
-  } else {
-    return;
-  }
-
-  items.forEach((item, i) => {
-    item.classList.toggle("bg-blue-100", i === index);
-  });
-}
+});
