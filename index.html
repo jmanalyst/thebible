@@ -23,16 +23,10 @@
   <!-- 📘 Sticky Header Search Bar -->
   <div id="search" class="sticky top-0 bg-white z-10 px-2 py-1 border-b shadow-sm">
     <div class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-1 items-center relative text-sm">
-      <div class="relative">
-        <input id="book" name="book" type="text" autocomplete="off"
-          placeholder="Book" oninput="filterDropdown(); toggleClearButton();"
-          onfocus="showDropdown()" onkeydown="handleDropdownKeys(event)"
-          class="px-2 py-1 pr-8 border border-gray-300 rounded w-full text-sm" />
-        <button onclick="clearBook()" id="clearBtn" title="Clear"
-          class="absolute right-2 top-1.5 text-gray-500 text-xs hover:text-black hidden">❌</button>
-        <ul id="custom-dropdown"
-          class="absolute z-50 w-full border border-gray-300 bg-white rounded shadow mt-1 hidden max-h-80 overflow-y-auto text-sm"></ul>
-      </div>
+      <!-- Book Picker Button -->
+<input id="book" readonly placeholder="Book" onclick="openBookPicker()"
+  class="px-2 py-1 border border-gray-300 rounded w-full text-sm cursor-pointer bg-white" />
+
 
       <!-- Chapter field (non-editable, opens grid) -->
       <input id="chapter" readonly placeholder="Chapter"
@@ -103,6 +97,29 @@
     <button onclick="closeVersePicker()" class="mt-4 w-full text-sm text-gray-700 py-1 border rounded hover:bg-gray-100">Cancel</button>
   </div>
 </div>
+
+
+
+
+<!-- Book Picker Modal -->
+<div id="book-picker" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
+  <div class="bg-white rounded-lg p-4 max-w-md w-full shadow-lg max-h-[90vh] overflow-y-auto">
+    <div class="text-center mb-2 font-semibold text-lg">Select Book</div>
+
+    <div class="mb-4">
+      <div class="text-sm font-semibold mb-1">Old Testament</div>
+      <div id="old-testament" class="grid grid-cols-6 gap-2 text-center text-sm"></div>
+    </div>
+
+    <div>
+      <div class="text-sm font-semibold mb-1">New Testament</div>
+      <div id="new-testament" class="grid grid-cols-6 gap-2 text-center text-sm"></div>
+    </div>
+
+    <button onclick="closeBookPicker()" class="mt-4 w-full text-sm text-gray-700 py-1 border rounded hover:bg-gray-100">Cancel</button>
+  </div>
+</div>
+
 
 
 

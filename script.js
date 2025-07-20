@@ -384,3 +384,63 @@ async function nextVerse() {
   document.getElementById("verse").value = currentVerse + 1;
   await getVerse();
 }
+
+
+
+
+
+
+
+
+const oldTestamentBooks = books.slice(0, 39);
+const newTestamentBooks = books.slice(39);
+
+function openBookPicker() {
+  const oldContainer = document.getElementById("old-testament");
+  const newContainer = document.getElementById("new-testament");
+  oldContainer.innerHTML = "";
+  newContainer.innerHTML = "";
+
+  oldTestamentBooks.forEach(book => {
+    const btn = document.createElement("button");
+    btn.textContent = abbreviateBook(book);
+    btn.title = book;
+    btn.className = "px-2 py-1 rounded hover:bg-gray-200";
+    btn.onclick = () => {
+      document.getElementById("book").value = book;
+      document.getElementById("chapter").value = "";
+      document.getElementById("verse").value = "";
+      closeBookPicker();
+      toggleClearButton();
+      openChapterPicker(); // Immediately open chapter picker
+    };
+    oldContainer.appendChild(btn);
+  });
+
+  newTestamentBooks.forEach(book => {
+    const btn = document.createElement("button");
+    btn.textContent = abbreviateBook(book);
+    btn.title = book;
+    btn.className = "px-2 py-1 rounded hover:bg-gray-200";
+    btn.onclick = () => {
+      document.getElementById("book").value = book;
+      document.getElementById("chapter").value = "";
+      document.getElementById("verse").value = "";
+      closeBookPicker();
+      toggleClearButton();
+      openChapterPicker(); // Immediately open chapter picker
+    };
+    newContainer.appendChild(btn);
+  });
+
+  document.getElementById("book-picker").classList.remove("hidden");
+}
+
+function closeBookPicker() {
+  document.getElementById("book-picker").classList.add("hidden");
+}
+
+function abbreviateBook(book) {
+  const cleaned = book.trim(); // keeps everything (numbers and spaces)
+  return cleaned.substring(0, 6);
+}
