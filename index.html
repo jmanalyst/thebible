@@ -34,9 +34,11 @@
           class="absolute z-50 w-full border border-gray-300 bg-white rounded shadow mt-1 hidden max-h-80 overflow-y-auto text-sm"></ul>
       </div>
 
-      <input id="chapter" type="number" min="1" placeholder="Chapter"
-        onkeydown="submitOnEnter(event)"
-        class="px-2 py-1 border border-gray-300 rounded w-full text-sm" />
+      <!-- Chapter field (non-editable, opens grid) -->
+      <input id="chapter" readonly placeholder="Chapter"
+        onclick="openChapterPicker()"
+        class="px-2 py-1 border border-gray-300 rounded w-full text-sm cursor-pointer bg-white" />
+
 
       <input id="verse" type="number" min="1" placeholder="Verse (Optional)"
         onkeydown="submitOnEnter(event)"

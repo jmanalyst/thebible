@@ -336,3 +336,41 @@ async function showVersePicker() {
 function closeVersePicker() {
   document.getElementById("verse-picker").classList.add("hidden");
 }
+
+
+
+
+
+function openChapterPicker() {
+  const book = document.getElementById("book").value.trim();
+  if (!book || !books.includes(book)) {
+    alert("Please select a valid book first.");
+    return;
+  }
+
+  const chapterGrid = document.getElementById("chapter-grid");
+  const title = document.getElementById("chapter-picker-title");
+  chapterGrid.innerHTML = "";
+  title.textContent = `Select Chapter (${book})`;
+
+  // Temporary: default to 50 chapters unless using JSON later
+  const chapterCount = book === "Psalms" ? 150 : 50;
+
+  for (let i = 1; i <= chapterCount; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.className = "px-2 py-1 rounded hover:bg-gray-200";
+    btn.onclick = () => {
+      document.getElementById("chapter").value = i;
+      closeChapterPicker();
+    };
+    chapterGrid.appendChild(btn);
+  }
+
+  document.getElementById("chapter-picker").classList.remove("hidden");
+}
+
+function closeChapterPicker() {
+  document.getElementById("chapter-picker").classList.add("hidden");
+}
+
