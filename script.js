@@ -38,7 +38,6 @@ function filterDropdown() {
   }
 }
 
-// Dropdown logic
 function showDropdown() {
   const dropdown = document.getElementById("custom-dropdown");
   if (dropdown.children.length > 0) dropdown.classList.add("active");
@@ -72,23 +71,40 @@ async function getVerse() {
 
   result.innerHTML = "Loading...";
 
-  if (!book || !chapter || !verse) {
-    result.innerHTML = "Please fill all fields.";
+  if (!book || !chapter) {
+    result.innerHTML = "Please enter both book and chapter.";
     return;
   }
 
   try {
-    const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
-    const data = await res.json();
+    if (verse === "") {
+      const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
+      const data = await res.json();
 
-    if (data.text) {
-      result.innerHTML = `
-        <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
-        <p class="text-sm text-gray-500">– ${data.reference}</p>
-      `;
+      if (data.verses) {
+        const fullChapter = data.verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
+        result.innerHTML = `
+          <h2 class="text-xl font-bold mb-4">${data.reference}</h2>
+          <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${fullChapter}</pre>
+        `;
+      } else {
+        result.innerHTML = "Chapter not found.";
+      }
+
     } else {
-      result.innerHTML = "Verse not found.";
+      const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
+      const data = await res.json();
+
+      if (data.text) {
+        result.innerHTML = `
+          <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
+          <p class="text-sm text-gray-500">– ${data.reference}</p>
+        `;
+      } else {
+        result.innerHTML = "Verse not found.";
+      }
     }
+
   } catch (err) {
     console.error(err);
     result.innerHTML = "Error fetching verse.";
@@ -118,7 +134,6 @@ async function getChapter(book, chapter) {
   }
 }
 
-// Speech recognition
 function startListening() {
   const micBtn = document.getElementById("micBtn");
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -157,7 +172,6 @@ function startListening() {
   recognition.start();
 }
 
-// Utility used by inline script
 function selectBookFromDropdown(book) {
   const bookInput = document.getElementById("book");
   bookInput.value = book;
@@ -172,10 +186,9 @@ function toggleClearButton() {
   clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
 }
 
-// Preload dropdown so it appears on first focus
 document.addEventListener("DOMContentLoaded", () => {
-  const bookInput = document.getElementById("book");
   const dropdown = document.getElementById("custom-dropdown");
+  const bookInput = document.getElementById("book");
 
   books.forEach(book => {
     const li = document.createElement("li");
@@ -184,10 +197,11 @@ document.addEventListener("DOMContentLoaded", () => {
     li.onclick = () => selectBookFromDropdown(book);
     dropdown.appendChild(li);
   });
+
+  toggleClearButton();
 });
 
-
-// Hide dropdown when clicking outside
+// Close dropdown when clicking outside
 document.addEventListener("click", (e) => {
   const dropdown = document.getElementById("custom-dropdown");
   const bookInput = document.getElementById("book");
