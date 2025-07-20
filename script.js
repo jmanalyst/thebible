@@ -1,17 +1,38 @@
-const books = [
-  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
-  "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah",
-  "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
-  "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah",
-  "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
-  "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians",
-  "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
-  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
-  "1 John", "2 John", "3 John", "Jude", "Revelation"
+// === BIBLE BOOKS ===
+const books = [ "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
+"1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah",
+"Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah",
+"Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah",
+"Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+"Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians",
+"Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
+"1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
+"1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
+
+// === ACCURATE CHAPTER COUNTS ===
+const chapterCounts = {
+  "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numbers": 36, "Deuteronomy": 34, "Joshua": 24, "Judges": 21,
+  "Ruth": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Kings": 22, "2 Kings": 25, "1 Chronicles": 29, "2 Chronicles": 36,
+  "Ezra": 10, "Nehemiah": 13, "Esther": 10, "Job": 42, "Psalms": 150, "Proverbs": 31, "Ecclesiastes": 12,
+  "Song of Solomon": 8, "Isaiah": 66, "Jeremiah": 52, "Lamentations": 5, "Ezekiel": 48, "Daniel": 12, "Hosea": 14,
+  "Joel": 3, "Amos": 9, "Obadiah": 1, "Jonah": 4, "Micah": 7, "Nahum": 3, "Habakkuk": 3, "Zephaniah": 3,
+  "Haggai": 2, "Zechariah": 14, "Malachi": 4, "Matthew": 28, "Mark": 16, "Luke": 24, "John": 21, "Acts": 28,
+  "Romans": 16, "1 Corinthians": 16, "2 Corinthians": 13, "Galatians": 6, "Ephesians": 6, "Philippians": 4,
+  "Colossians": 4, "1 Thessalonians": 5, "2 Thessalonians": 3, "1 Timothy": 6, "2 Timothy": 4, "Titus": 3,
+  "Philemon": 1, "Hebrews": 13, "James": 5, "1 Peter": 5, "2 Peter": 3, "1 John": 5, "2 John": 1, "3 John": 1,
+  "Jude": 1, "Revelation": 22
+};
 
 let currentBook = "";
 let currentChapter = 0;
+
+
+
+
+
+
+
 
 // === DROPDOWN ===
 function filterDropdown() {
@@ -245,18 +266,11 @@ function openChapterPicker() {
     return;
   }
 
+  const chapterCount = chapterCounts[book] || 1;
   const chapterGrid = document.getElementById("chapter-grid");
   const title = document.getElementById("chapter-picker-title");
   chapterGrid.innerHTML = "";
   title.textContent = `Select Chapter (${book})`;
-
-  const chapterCounts = {
-    "Genesis": 50, "Exodus": 40, "Matthew": 28, "Psalms": 150,
-    "John": 21, "Mark": 16, "Luke": 24, "Romans": 16,
-    "1 Corinthians": 16, "2 Corinthians": 13, "Revelation": 22,
-    // Add more as needed
-  };
-  const chapterCount = chapterCounts[book] || 50;
 
   for (let i = 1; i <= chapterCount; i++) {
     const btn = document.createElement("button");
@@ -276,46 +290,50 @@ function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
 
-
 // === VERSE PICKER ===
 document.getElementById("verse").addEventListener("click", () => {
   const book = document.getElementById("book").value.trim();
   const chapter = document.getElementById("chapter").value.trim();
   if (book && chapter) {
-    openVersePicker(book, chapter);
+    showVersePicker(book, chapter);
   }
 });
 
-async function openVersePicker(book, chapter) {
-  const grid = document.getElementById("verse-grid");
-  const title = document.getElementById("verse-picker-title");
-  title.textContent = `Select Verse (${book} ${chapter})`;
-  grid.innerHTML = "";
 
-  document.getElementById("verse-picker").classList.remove("hidden");
+async function showVersePicker(book, chapter) {
+
+  const picker = document.getElementById("verse-picker");
+  const grid = document.getElementById("verse-grid");
+
+  if (!book || !chapter) return;
+
+  picker.classList.remove("hidden");
+  grid.innerHTML = "Loading...";
 
   try {
     const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
     const data = await res.json();
 
-    const total = data.verses?.length || 0;
-    for (let i = 1; i <= total; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      btn.className = "px-2 py-1 rounded hover:bg-gray-200";
-      btn.onclick = () => {
-        document.getElementById("verse").value = i;
-        closeVersePicker();
-      };
-      grid.appendChild(btn);
-    }
+    if (data.verses && data.verses.length > 0) {
+      const totalVerses = data.verses.length;
+      grid.innerHTML = "";
 
-    if (total === 0) {
-      grid.innerHTML = "<div class='col-span-6 text-gray-500'>No verses found</div>";
+      for (let i = 1; i <= totalVerses; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
+        btn.onclick = () => {
+          document.getElementById("verse").value = i;
+          closeVersePicker();
+        };
+        grid.appendChild(btn);
+      }
+    } else {
+      grid.innerHTML = "<div class='col-span-7 text-center text-sm text-gray-500'>No verses found</div>";
     }
   } catch (err) {
-    console.error("Error loading verses", err);
-    grid.innerHTML = "<div class='col-span-6 text-red-500'>Error loading verses</div>";
+    console.error("Verse fetch error:", err);
+    grid.innerHTML = "<div class='col-span-7 text-center text-sm text-red-500'>Error loading verses</div>";
   }
 }
 
