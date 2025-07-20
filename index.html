@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,13 +73,14 @@
       bookInput.value = book;
       document.getElementById("custom-dropdown").classList.remove("active");
       document.getElementById("chapter").focus();
-      toggleClearButton(); // Ensure clear button updates on select
+      toggleClearButton();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       toggleClearButton();
     });
   </script>
+
   <script defer src="script.js"></script>
 </body>
 </html>
