@@ -112,7 +112,7 @@ async function getVerse() {
   const result = document.getElementById("result");
 
   result.innerHTML = "Loading...";
-  window.showResultArea?.(); // Show scripture, hide welcome
+  window.showResultArea?.();
 
   if (!book || !chapter) {
     result.innerHTML = "Please enter both book and chapter.";
@@ -144,7 +144,7 @@ async function getVerse() {
 async function getChapter(book, chapter) {
   const result = document.getElementById("result");
   result.innerHTML = "Loading...";
-  window.showResultArea?.(); // Show scripture, hide welcome
+  window.showResultArea?.();
 
   currentBook = book;
   currentChapter = parseInt(chapter);
@@ -237,110 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-
-
-
-
 // === CHAPTER PICKER ===
-document.getElementById("chapter").addEventListener("focus", () => {
-  if (window.innerWidth < 768) {
-    showChapterPicker();
-  }
-});
-
-function showChapterPicker() {
-  const book = document.getElementById("book").value.trim();
-  const picker = document.getElementById("chapter-picker");
-  const grid = document.getElementById("chapter-grid");
-
-  grid.innerHTML = "";
-
-  let totalChapters = 28; // fallback default
-  if (book) {
-    // Approximate chapter counts by book (add more accurate values if needed)
-    const chapterCounts = {
-      "Genesis": 50, "Exodus": 40, "Matthew": 28, "Psalms": 150,
-      "John": 21, "Mark": 16, "Luke": 24, "Romans": 16,
-      "1 Corinthians": 16, "2 Corinthians": 13, "Revelation": 22,
-      // Add more as needed
-    };
-    totalChapters = chapterCounts[book] || 28;
-  }
-
-  for (let i = 1; i <= totalChapters; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
-    btn.onclick = () => {
-      document.getElementById("chapter").value = i;
-      closeChapterPicker();
-    };
-    grid.appendChild(btn);
-  }
-
-  picker.classList.remove("hidden");
-}
-
-function closeChapterPicker() {
-  document.getElementById("chapter-picker").classList.add("hidden");
-}
-
-
-
-
-// === VERSE PICKER ===
-document.getElementById("verse").addEventListener("focus", () => {
-  if (window.innerWidth < 768) {
-    showVersePicker();
-  }
-});
-
-async function showVersePicker() {
-  const book = document.getElementById("book").value.trim();
-  const chapter = document.getElementById("chapter").value.trim();
-  const picker = document.getElementById("verse-picker");
-  const grid = document.getElementById("verse-grid");
-
-  if (!book || !chapter) return;
-
-  picker.classList.remove("hidden");
-  grid.innerHTML = "Loading...";
-
-  try {
-    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
-    const data = await res.json();
-
-    if (data.verses && data.verses.length > 0) {
-      const totalVerses = data.verses.length;
-      grid.innerHTML = "";
-
-      for (let i = 1; i <= totalVerses; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
-        btn.onclick = () => {
-          document.getElementById("verse").value = i;
-          closeVersePicker();
-        };
-        grid.appendChild(btn);
-      }
-    } else {
-      grid.innerHTML = "<div class='col-span-7 text-center text-sm text-gray-500'>No verses found</div>";
-    }
-  } catch (err) {
-    console.error("Verse fetch error:", err);
-    grid.innerHTML = "<div class='col-span-7 text-center text-sm text-red-500'>Error loading verses</div>";
-  }
-}
-
-function closeVersePicker() {
-  document.getElementById("verse-picker").classList.add("hidden");
-}
-
-
-
-
-
 function openChapterPicker() {
   const book = document.getElementById("book").value.trim();
   if (!book || !books.includes(book)) {
@@ -353,8 +250,13 @@ function openChapterPicker() {
   chapterGrid.innerHTML = "";
   title.textContent = `Select Chapter (${book})`;
 
-  // Temporary: default to 50 chapters unless using JSON later
-  const chapterCount = book === "Psalms" ? 150 : 50;
+  const chapterCounts = {
+    "Genesis": 50, "Exodus": 40, "Matthew": 28, "Psalms": 150,
+    "John": 21, "Mark": 16, "Luke": 24, "Romans": 16,
+    "1 Corinthians": 16, "2 Corinthians": 13, "Revelation": 22,
+    // Add more as needed
+  };
+  const chapterCount = chapterCounts[book] || 50;
 
   for (let i = 1; i <= chapterCount; i++) {
     const btn = document.createElement("button");
@@ -374,3 +276,49 @@ function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
 
+
+// === VERSE PICKER ===
+document.getElementById("verse").addEventListener("click", () => {
+  const book = document.getElementById("book").value.trim();
+  const chapter = document.getElementById("chapter").value.trim();
+  if (book && chapter) {
+    openVersePicker(book, chapter);
+  }
+});
+
+async function openVersePicker(book, chapter) {
+  const grid = document.getElementById("verse-grid");
+  const title = document.getElementById("verse-picker-title");
+  title.textContent = `Select Verse (${book} ${chapter})`;
+  grid.innerHTML = "";
+
+  document.getElementById("verse-picker").classList.remove("hidden");
+
+  try {
+    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
+    const data = await res.json();
+
+    const total = data.verses?.length || 0;
+    for (let i = 1; i <= total; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.className = "px-2 py-1 rounded hover:bg-gray-200";
+      btn.onclick = () => {
+        document.getElementById("verse").value = i;
+        closeVersePicker();
+      };
+      grid.appendChild(btn);
+    }
+
+    if (total === 0) {
+      grid.innerHTML = "<div class='col-span-6 text-gray-500'>No verses found</div>";
+    }
+  } catch (err) {
+    console.error("Error loading verses", err);
+    grid.innerHTML = "<div class='col-span-6 text-red-500'>Error loading verses</div>";
+  }
+}
+
+function closeVersePicker() {
+  document.getElementById("verse-picker").classList.add("hidden");
+}
