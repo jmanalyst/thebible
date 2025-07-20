@@ -80,11 +80,18 @@ function toggleClearButton() {
 
 function clearBook() {
   const bookInput = document.getElementById("book");
+  const chapterInput = document.getElementById("chapter");
+  const verseInput = document.getElementById("verse");
+
   bookInput.value = "";
+  chapterInput.value = "";
+  verseInput.value = "";
+
   toggleClearButton();
   showDropdown();
   bookInput.focus();
 }
+
 
 document.addEventListener("click", (e) => {
   const dropdown = document.getElementById("custom-dropdown");

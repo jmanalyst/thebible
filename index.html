@@ -54,32 +54,40 @@
   </div>
 
   <script>
-    function clearBook() {
-      const bookInput = document.getElementById("book");
-      bookInput.value = "";
-      bookInput.focus();
-      toggleClearButton();
-      showDropdown();
-    }
+  function clearBook() {
+  const bookInput = document.getElementById("book");
+  const chapterInput = document.getElementById("chapter");
+  const verseInput = document.getElementById("verse");
 
-    function toggleClearButton() {
-      const clearBtn = document.getElementById("clearBtn");
-      const bookInput = document.getElementById("book");
-      clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
-    }
+  bookInput.value = "";
+  chapterInput.value = "";
+  verseInput.value = "";
 
-    function selectBookFromDropdown(book) {
-      const bookInput = document.getElementById("book");
-      bookInput.value = book;
-      document.getElementById("custom-dropdown").classList.remove("active");
-      document.getElementById("chapter").focus();
-      toggleClearButton();
-    }
+  toggleClearButton();
+  showDropdown();
+  bookInput.focus();
+}
 
-    document.addEventListener("DOMContentLoaded", () => {
-      toggleClearButton();
-    });
-  </script>
+
+  function toggleClearButton() {
+    const clearBtn = document.getElementById("clearBtn");
+    const bookInput = document.getElementById("book");
+    clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
+  }
+
+  function selectBookFromDropdown(book) {
+    const bookInput = document.getElementById("book");
+    bookInput.value = book;
+    document.getElementById("custom-dropdown").classList.remove("active");
+    document.getElementById("chapter").focus();
+    toggleClearButton();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    toggleClearButton();
+  });
+</script>
+
 
   <script defer src="script.js"></script>
 </body>
