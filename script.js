@@ -89,8 +89,12 @@ function selectBookFromDropdown(book) {
   const bookInput = document.getElementById("book");
   bookInput.value = book;
   document.getElementById("custom-dropdown").classList.remove("active");
-  document.getElementById("chapter").focus();
   toggleClearButton();
+
+  // Automatically open the chapter picker
+  setTimeout(() => {
+    openChapterPicker();
+  }, 100); // slight delay to prevent UI conflict
 }
 
 function toggleClearButton() {
