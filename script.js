@@ -208,7 +208,7 @@ function startListening() {
 function showDropdown() {
   const list = document.getElementById("custom-dropdown");
   list.classList.add("active");
-  populateDropdown(bibleBooks);
+  filterDropdown();
 }
 
 function hideDropdown() {
@@ -227,7 +227,13 @@ function filterDropdown() {
   const value = document.getElementById("book").value.trim().toLowerCase();
   const filtered = bibleBooks.filter(b => b.toLowerCase().startsWith(value));
   populateDropdown(filtered);
-  showDropdown();
+
+  const dropdown = document.getElementById("custom-dropdown");
+  if (filtered.length > 0) {
+    dropdown.classList.add("active");
+  } else {
+    dropdown.classList.remove("active");
+  }
 }
 
 function selectBookFromDropdown(book) {
@@ -247,7 +253,10 @@ document.addEventListener("click", (e) => {
 function handleDropdownKeys(e) {
   const dropdown = document.getElementById("custom-dropdown");
   const items = dropdown.querySelectorAll("li");
-  if (!dropdown.classList.contains("active") || items.length === 0) return;
+  if (!dropdown.classList.contains("active") || items.length === 0) {
+    filterDropdown(); // Ensure dropdown shows when typing
+    return;
+  }
 
   let index = Array.from(items).findIndex(i => i.classList.contains("bg-blue-100"));
   if (e.key === "ArrowDown") {
