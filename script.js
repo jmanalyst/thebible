@@ -219,9 +219,88 @@ function openVersePicker() {
 
 function closeVersePicker() {
   document.getElementById("verse-picker").classList.add("hidden");
+  
 }
 
 // Attach openVersePicker on verse field click
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("verse").addEventListener("click", openVersePicker);
 });
+
+
+
+
+
+function getVerse() {
+  const book = document.getElementById("book").value.trim();
+  const chapter = document.getElementById("chapter").value.trim();
+  const verse = document.getElementById("verse").value.trim();
+  const result = document.getElementById("result");
+
+  if (!book || !chapter) {
+    result.innerHTML = "Please select both a book and chapter.";
+    return;
+  }
+
+  // Set current state
+  currentBook = book;
+  currentChapter = parseInt(chapter);
+  currentVerse = verse ? parseInt(verse) : 0;
+
+  result.innerHTML = "Loading...";
+  showResultArea();
+
+  if (verse === "") {
+    getChapter(book, chapter);
+  } else {
+    getVerseFromRef(book, parseInt(chapter), parseInt(verse));
+  }
+}
+
+
+
+
+async function getChapter(book, chapter) {
+  const result = document.getElementById("result");
+  result.innerHTML = "Loading...";
+  showResultArea();
+
+  currentBook = book;
+  currentChapter = parseInt(chapter);
+  currentVerse = 0; // reset verse
+
+  try {
+    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
+    const data = await res.json();
+
+    if (data.verses && data.verses.length > 0) {
+      const verses = data.verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
+
+      result.innerHTML = `
+        <h2 class="text-xl font-bold mb-4">${data.reference}</h2>
+        <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verses}</pre>
+        <div class="flex justify-between items-center mt-4">
+          <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>⏮️ Previous</button>
+          <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
+        </div>
+      `;
+    } else {
+      result.innerHTML = "Chapter not found.";
+    }
+  } catch (err) {
+    console.error(err);
+    result.innerHTML = "Error fetching chapter.";
+  }
+}
+
+
+
+function nextChapter() {
+  getChapter(currentBook, currentChapter + 1);
+}
+
+function prevChapter() {
+  if (currentChapter > 1) {
+    getChapter(currentBook, currentChapter - 1);
+  }
+}
