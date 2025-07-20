@@ -13,10 +13,15 @@
     #custom-dropdown.active {
       display: block;
     }
+    html {
+      scroll-behavior: smooth;
+    }
   </style>
 </head>
 <body class="bg-white text-black font-sans">
-  <div class="sticky top-0 bg-white z-10 px-2 py-1 border-b shadow-sm">
+
+  <!-- 📘 Sticky Header Search Bar -->
+  <div id="search" class="sticky top-0 bg-white z-10 px-2 py-1 border-b shadow-sm">
     <div class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-1 items-center relative text-sm">
       <div class="relative">
         <input id="book" name="book" type="text" autocomplete="off"
@@ -49,46 +54,67 @@
     </div>
   </div>
 
-  <div class="max-w-4xl mx-auto px-2 py-4">
+  <!-- 🌟 Welcome Section -->
+  <section id="welcome-section" class="min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-b from-white to-blue-100 px-4">
+    <h1 class="text-4xl sm:text-5xl font-bold mb-4 text-gray-900">Welcome to the Bible App</h1>
+    <p class="text-lg sm:text-xl text-gray-700 mb-6 max-w-xl">
+      Search, read, and reflect on verses from the King James Bible.
+    </p>
+    <a href="#search" class="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition text-sm">
+      Start Reading 📖
+    </a>
+  </section>
+
+  <!-- 📖 Results -->
+  <div id="result-section" class="max-w-4xl mx-auto px-2 py-4 hidden">
     <div id="result" class="text-base leading-relaxed whitespace-pre-wrap"></div>
   </div>
 
+  <!-- 🔧 Utility Script -->
   <script>
-  function clearBook() {
-  const bookInput = document.getElementById("book");
-  const chapterInput = document.getElementById("chapter");
-  const verseInput = document.getElementById("verse");
+    function clearBook() {
+      const bookInput = document.getElementById("book");
+      const chapterInput = document.getElementById("chapter");
+      const verseInput = document.getElementById("verse");
 
-  bookInput.value = "";
-  chapterInput.value = "";
-  verseInput.value = "";
+      bookInput.value = "";
+      chapterInput.value = "";
+      verseInput.value = "";
 
-  toggleClearButton();
-  showDropdown();
-  bookInput.focus();
-}
+      toggleClearButton();
+      showDropdown();
+      bookInput.focus();
+    }
 
+    function toggleClearButton() {
+      const clearBtn = document.getElementById("clearBtn");
+      const bookInput = document.getElementById("book");
+      clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
+    }
 
-  function toggleClearButton() {
-    const clearBtn = document.getElementById("clearBtn");
-    const bookInput = document.getElementById("book");
-    clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
-  }
+    function selectBookFromDropdown(book) {
+      const bookInput = document.getElementById("book");
+      bookInput.value = book;
+      document.getElementById("custom-dropdown").classList.remove("active");
+      document.getElementById("chapter").focus();
+      toggleClearButton();
+    }
 
-  function selectBookFromDropdown(book) {
-    const bookInput = document.getElementById("book");
-    bookInput.value = book;
-    document.getElementById("custom-dropdown").classList.remove("active");
-    document.getElementById("chapter").focus();
-    toggleClearButton();
-  }
+    document.addEventListener("DOMContentLoaded", () => {
+      toggleClearButton();
+    });
 
-  document.addEventListener("DOMContentLoaded", () => {
-    toggleClearButton();
-  });
-</script>
+    // Show result section, hide welcome
+    function showResultArea() {
+      document.getElementById("welcome-section").classList.add("hidden");
+      document.getElementById("result-section").classList.remove("hidden");
+    }
 
+    // Patch global to make available for script.js
+    window.showResultArea = showResultArea;
+  </script>
 
+  <!-- 🔌 App Logic -->
   <script defer src="script.js"></script>
 </body>
 </html>

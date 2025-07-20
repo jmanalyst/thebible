@@ -92,7 +92,6 @@ function clearBook() {
   bookInput.focus();
 }
 
-
 document.addEventListener("click", (e) => {
   const dropdown = document.getElementById("custom-dropdown");
   const bookInput = document.getElementById("book");
@@ -113,6 +112,7 @@ async function getVerse() {
   const result = document.getElementById("result");
 
   result.innerHTML = "Loading...";
+  window.showResultArea?.(); // Show scripture, hide welcome
 
   if (!book || !chapter) {
     result.innerHTML = "Please enter both book and chapter.";
@@ -144,6 +144,8 @@ async function getVerse() {
 async function getChapter(book, chapter) {
   const result = document.getElementById("result");
   result.innerHTML = "Loading...";
+  window.showResultArea?.(); // Show scripture, hide welcome
+
   currentBook = book;
   currentChapter = parseInt(chapter);
 
