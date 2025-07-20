@@ -26,6 +26,7 @@ const chapterCounts = {
 
 let currentBook = "";
 let currentChapter = 0;
+let currentVerse = 0;
 
 
 
@@ -58,7 +59,11 @@ function showDropdown() {
   const dropdown = document.getElementById("custom-dropdown");
   dropdown.innerHTML = "";
 
-  const matches = books.filter(book => input ? book.toLowerCase().startsWith(input) : true);
+  // Always show all books when input is empty or just focused
+  const matches = books.filter(book =>
+    input === "" || book.toLowerCase().includes(input)
+  );
+
   matches.forEach(book => {
     const li = document.createElement("li");
     li.textContent = book;
@@ -67,9 +72,9 @@ function showDropdown() {
     dropdown.appendChild(li);
   });
 
-  if (matches.length) dropdown.classList.add("active");
-  else dropdown.classList.remove("active");
+  dropdown.classList.add("active");
 }
+
 
 function handleDropdownKeys(e) {
   if (e.key === "Tab") {
@@ -146,20 +151,37 @@ async function getVerse() {
 
   try {
     if (verse === "") {
-      await getChapter(book, chapter);
-    } else {
-      const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
-      const data = await res.json();
+  await getChapter(book, chapter);
+} else {
+  const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
+  const data = await res.json();
 
-      if (data.text) {
-        result.innerHTML = `
-          <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
-          <p class="text-sm text-gray-500">– ${data.reference}</p>
-        `;
-      } else {
-        result.innerHTML = "Verse not found.";
-      }
-    }
+  if (data.text) {
+    currentBook = book;
+    currentChapter = parseInt(chapter);
+    currentVerse = parseInt(verse);
+
+    result.innerHTML = `
+  <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
+  <p class="text-sm text-gray-500 mb-4">– ${data.reference}</p>
+  <div class="flex justify-between items-center mt-2 gap-2">
+    <button onclick="prevVerse()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentVerse <= 1 ? ' disabled' : ''}>⏮️ Previous</button>
+    <button onclick="nextVerse()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
+  </div>
+  <div class="mt-4 text-center">
+  <button onclick="getChapter('${book}', ${chapter})"
+    class="text-xs px-3 py-1 border border-black text-black rounded hover:bg-gray-100">
+    📖 Read Full Chapter
+  </button>
+</div>
+
+`;
+
+  } else {
+    result.innerHTML = "Verse not found.";
+  }
+}
+
   } catch (err) {
     console.error(err);
     result.innerHTML = "Error fetching verse.";
@@ -281,9 +303,11 @@ function openChapterPicker() {
     btn.textContent = i;
     btn.className = "px-2 py-1 rounded hover:bg-gray-200";
     btn.onclick = () => {
-      document.getElementById("chapter").value = i;
-      closeChapterPicker();
-    };
+  document.getElementById("chapter").value = i;
+  document.getElementById("verse").value = ""; // ✅ Reset verse when chapter changes
+  closeChapterPicker();
+};
+
     chapterGrid.appendChild(btn);
   }
 
@@ -343,4 +367,20 @@ async function showVersePicker(book, chapter) {
 
 function closeVersePicker() {
   document.getElementById("verse-picker").classList.add("hidden");
+}
+
+
+
+
+
+async function prevVerse() {
+  if (currentVerse > 1) {
+    document.getElementById("verse").value = currentVerse - 1;
+    await getVerse();
+  }
+}
+
+async function nextVerse() {
+  document.getElementById("verse").value = currentVerse + 1;
+  await getVerse();
 }
