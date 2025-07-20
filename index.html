@@ -10,7 +10,6 @@
   <style>
     #custom-dropdown {
       display: none;
-      max-height: 200px;
       overflow-y: auto;
     }
     #custom-dropdown.active {
@@ -26,7 +25,7 @@
           placeholder="Book" oninput="filterDropdown()" onfocus="showDropdown()" onkeydown="handleDropdownKeys(event)"
           class="px-2 py-1 border border-gray-300 rounded w-full text-sm" />
         <ul id="custom-dropdown"
-          class="absolute z-50 w-full border border-gray-300 bg-white rounded shadow mt-1 hidden max-h-52 overflow-y-auto text-sm"></ul>
+          class="absolute z-50 w-full border border-gray-300 bg-white rounded shadow mt-1 hidden max-h-80 overflow-y-auto text-sm"></ul>
       </div>
 
       <input id="chapter" type="number" min="1" placeholder="Chapter"
