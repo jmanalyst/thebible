@@ -235,3 +235,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
   toggleClearButton();
 });
+
+
+
+
+
+
+// === CHAPTER PICKER ===
+document.getElementById("chapter").addEventListener("focus", () => {
+  if (window.innerWidth < 768) {
+    showChapterPicker();
+  }
+});
+
+function showChapterPicker() {
+  const book = document.getElementById("book").value.trim();
+  const picker = document.getElementById("chapter-picker");
+  const grid = document.getElementById("chapter-grid");
+
+  grid.innerHTML = "";
+
+  let totalChapters = 28; // fallback default
+  if (book) {
+    // Approximate chapter counts by book (add more accurate values if needed)
+    const chapterCounts = {
+      "Genesis": 50, "Exodus": 40, "Matthew": 28, "Psalms": 150,
+      "John": 21, "Mark": 16, "Luke": 24, "Romans": 16,
+      "1 Corinthians": 16, "2 Corinthians": 13, "Revelation": 22,
+      // Add more as needed
+    };
+    totalChapters = chapterCounts[book] || 28;
+  }
+
+  for (let i = 1; i <= totalChapters; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
+    btn.onclick = () => {
+      document.getElementById("chapter").value = i;
+      closeChapterPicker();
+    };
+    grid.appendChild(btn);
+  }
+
+  picker.classList.remove("hidden");
+}
+
+function closeChapterPicker() {
+  document.getElementById("chapter-picker").classList.add("hidden");
+}
