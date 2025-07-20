@@ -19,7 +19,9 @@ window.addEventListener("DOMContentLoaded", () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     const micBtn = document.getElementById("micBtn");
-    if (micBtn) micBtn.style.display = "none";
+    if (micBtn) {
+      micBtn.style.display = "none"; // Reliable mic button hiding
+    }
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -156,7 +158,7 @@ function highlightSuggestion() {
 }
 
 function capitalize(str) {
-  return str.replace(/\w/g, l => l.toUpperCase());
+  return str.replace(/\b\w/g, l => l.toUpperCase());
 }
 
 function startListening() {
@@ -185,7 +187,7 @@ function startListening() {
       document.getElementById('book').blur();
       document.getElementById('chapter').blur();
       document.getElementById('verse').blur();
-  setTimeout(() => document.activeElement.blur(), 0); // Zoom fix
+      setTimeout(() => document.activeElement.blur(), 0);
 
       getVerse();
     } else {
