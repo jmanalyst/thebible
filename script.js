@@ -342,7 +342,7 @@ async function getChapter(book, chapter) {
       <h2 class="text-xl font-bold mb-4">${book} ${chapter}</h2>
       <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verseList}</pre>
       <div class="flex justify-between items-center mt-4">
-        <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>Previous Chapter</button>
+        <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Previous Chapter</button>
         <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next Chapter</button>
       </div>
     `;
@@ -354,16 +354,69 @@ async function getChapter(book, chapter) {
 
 
 
+
+
 function nextChapter() {
-  getChapter(currentBook, currentChapter + 1);
-  window.scrollTo({ top: 0, behavior: "smooth" }); // ← Add this line
+  const currentIndex = books.indexOf(currentBook);
+  const chapterCount = chapterCounts[currentBook];
+
+  if (currentChapter < chapterCount) {
+    getChapter(currentBook, currentChapter + 1);
+  } else if (currentIndex < books.length - 1) {
+    const nextBook = books[currentIndex + 1];
+    getChapter(nextBook, 1);
+  } else {
+    alert("You are at the end of the Bible.");
+    return;
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+
+
+
+
 function prevChapter() {
+  const currentIndex = books.indexOf(currentBook);
+
+ 
+
   if (currentChapter > 1) {
-    getChapter(currentBook, currentChapter - 1);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // ← Add this line
+    const newChapter = currentChapter - 1;
+
+    // Update state and DOM
+    currentChapter = newChapter;
+    currentVerse = 0;
+    document.getElementById("chapter").value = newChapter;
+    document.getElementById("verse").value = "";
+    updatePillLabels();
+
+    getChapter(currentBook, newChapter);
+  } else if (currentIndex > 0) {
+    const prevBook = books[currentIndex - 1];
+    const lastChapter = chapterCounts[prevBook];
+
+ 
+
+    // 🔧 FIX: Update state and DOM BEFORE calling getChapter
+    currentBook = prevBook;
+    currentChapter = lastChapter;
+    currentVerse = 0;
+
+    document.getElementById("book").value = prevBook;
+    document.getElementById("chapter").value = lastChapter;
+    document.getElementById("verse").value = "";
+    updatePillLabels();
+
+    getChapter(prevBook, lastChapter);
+  } else {
+    alert("You are at the beginning of the Bible.");
+    return;
   }
+
+  // 🔄 Scroll to top
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 
