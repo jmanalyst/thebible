@@ -17,7 +17,7 @@ const bookAbbreviations = {
   "1 Kings": "1Ki", "2 Kings": "2Ki", "1 Chronicles": "1Ch", "2 Chronicles": "2Ch", "Ezra": "Ezr",
   "Nehemiah": "Neh", "Esther": "Est", "Job": "Job", "Psalms": "Psa", "Proverbs": "Pro",
   "Ecclesiastes": "Ecc", "Song of Solomon": "Son", "Isaiah": "Isa", "Jeremiah": "Jer",
-  "Lamentations": "Lam", "Ezekiel": "Eze", "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joe",
+  "Lamentations": "Lam", "Ezekiel": "Eze", "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joel",
   "Amos": "Amo", "Obadiah": "Oba", "Jonah": "Jon", "Micah": "Mic", "Nahum": "Nah",
   "Habakkuk": "Hab", "Zephaniah": "Zep", "Haggai": "Hag", "Zechariah": "Zec", "Malachi": "Mal",
   "Matthew": "Mat", "Mark": "Mar", "Luke": "Luk", "John": "Joh", "Acts": "Act", "Romans": "Rom",
@@ -53,9 +53,9 @@ function showPrevNextVerseButtons(ref) {
   const result = document.getElementById("result");
   const btns = `
     <div class="flex gap-2 mt-4">
-      <button onclick="prevVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">⏮️ Previous</button>
-      <button onclick="readFullChapter()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">📖 Full</button>
-      <button onclick="nextVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
+      <button onclick="prevVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Previous Verse</button> 
+      <button onclick="readFullChapter()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Full Chapter</button>
+      <button onclick="nextVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Next Verse</button>
     </div>
   `;
   result.innerHTML += btns;
@@ -74,6 +74,9 @@ function prevVerse() {
     getVerseFromRef(currentBook, currentChapter, currentVerse - 1);
   }
 }
+
+
+
 
 async function getVerseFromRef(book, chapter, verse) {
   currentBook = book;
@@ -98,6 +101,9 @@ async function getVerseFromRef(book, chapter, verse) {
     result.innerHTML = "Error fetching verse.";
   }
 }
+
+
+
 
 // Book Picker Modal
 function openBookPicker() {
@@ -130,9 +136,13 @@ function openBookPicker() {
   modal.classList.remove("hidden");
 }
 
+
+
 function closeBookPicker() {
   document.getElementById("book-picker").classList.add("hidden");
 }
+
+
 
 function selectBook(book) {
   document.getElementById("book").value = book;
@@ -143,6 +153,7 @@ function selectBook(book) {
 
   maybeAutoFetch();
 }
+
 
 // When chapter changes, reset verse
 function openChapterPicker() {
@@ -169,11 +180,11 @@ function openChapterPicker() {
   document.getElementById("chapter-picker").classList.remove("hidden");
 }
 
+
+
 function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
-
-
 
 
 
@@ -221,9 +232,6 @@ function openVersePicker() {
   }
 };
 
-
-
-
         grid.appendChild(btn);
       });
     })
@@ -233,16 +241,18 @@ function openVersePicker() {
     });
 }
 
+
 function closeVersePicker() {
   document.getElementById("verse-picker").classList.add("hidden");
   
 }
 
+
+
 // Attach openVersePicker on verse field click
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("verse").addEventListener("click", openVersePicker);
 });
-
 
 
 
@@ -276,6 +286,7 @@ function getVerse() {
 
 
 
+
 async function getChapter(book, chapter) {
   const result = document.getElementById("result");
   result.innerHTML = "Loading...";
@@ -296,8 +307,8 @@ async function getChapter(book, chapter) {
         <h2 class="text-xl font-bold mb-4">${data.reference}</h2>
         <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verses}</pre>
         <div class="flex justify-between items-center mt-4">
-          <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>⏮️ Previous</button>
-          <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next ⏭️</button>
+          <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>Previous Chapter</button>
+          <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next Chapter</button>
         </div>
       `;
     } else {
@@ -308,6 +319,7 @@ async function getChapter(book, chapter) {
     result.innerHTML = "Error fetching chapter.";
   }
 }
+
 
 
 
