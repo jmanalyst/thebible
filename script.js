@@ -1,7 +1,7 @@
 let bibleData = [];
 let lastSearchQuery = "";
 
-fetch('/public/kjv.json')
+fetch('public/kjv.json')
   .then(res => res.json())
   .then(data => {
     // Check and load the actual verses
