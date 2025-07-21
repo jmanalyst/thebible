@@ -1,7 +1,7 @@
 let bibleData = [];
 let lastSearchQuery = "";
 
-fetch('http://127.0.0.1:5500/public/kjv.json')
+fetch('public/kjv.json')
   .then(res => res.json())
   .then(data => {
     // Check and load the actual verses
