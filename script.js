@@ -531,3 +531,9 @@ function searchBible(query) {
     <div>${rendered}</div>
   `;
 }
+
+
+function toggleSearch() {
+  const panel = document.getElementById("search-panel");
+  panel.classList.toggle("hidden");
+}

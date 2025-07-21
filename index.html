@@ -26,7 +26,7 @@
 
 <!-- 📘 Sticky Header Styled Bar -->
 <div id="search" class="sticky top-0 bg-white z-10 px-4 py-2 border-b shadow-sm">
-  <div class="max-w-4xl mx-auto flex items-center justify-between">
+  <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 
     <!-- Left: Book Chapter Verse Pill -->
     <div class="flex space-x-2">
@@ -45,18 +45,21 @@
     <div class="flex items-center space-x-4 text-xl">
       <!-- <button onclick="speakText()" title="Read Aloud">🔊</button> -->
       <button onclick="startListening()" title="Voice Input">🎙️</button>
+      <!-- 🔍 Search Toggle Button -->
+      <button onclick="toggleSearch()" title="Search" class="sm:hidden text-xl">🔍</button>   
+      
       <!-- <button onclick="alert('More options coming soon')" title="More">⋯</button> -->
 
 
-      <!-- 🔍 Keyword Search -->
-<div class="max-w-4xl mx-auto px-4 py-4">
-  <form id="search-form" class="flex gap-2">
-  <input id="searchQuery" type="text" placeholder="Search keywords or phrases..."
-    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400" />
-  <button type="submit" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800">Search</button>
-</form>
+<!-- 🔍 Hidden Search Panel (shown on toggle) -->
+<div id="search-panel" class="sm:block hidden px-4 py-3 bg-white border-t">
+  <form id="search-form" class="flex gap-2 flex-col sm:flex-row">
+    <input id="searchQuery" type="text" placeholder="Search keywords or phrases..."
+      class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400" />
+    <button type="submit" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800 w-full sm:w-auto">Search</button>
+  </form>
 
-    <div class="mb-2 flex gap-4 text-sm">
+  <div class="mt-2 flex flex-wrap gap-4 text-sm">
     <label><input type="radio" name="filter" value="all" checked> All</label>
     <label><input type="radio" name="filter" value="ot"> Old Testament</label>
     <label><input type="radio" name="filter" value="nt"> New Testament</label>
