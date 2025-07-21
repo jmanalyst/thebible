@@ -1,7 +1,7 @@
 let bibleData = [];
 let lastSearchQuery = "";
 
-fetch('public/kjv.json')
+fetch('http://127.0.0.1:5500/public/kjv.json')
   .then(res => res.json())
   .then(data => {
     // Check and load the actual verses
@@ -537,3 +537,5 @@ function toggleSearch() {
   const panel = document.getElementById("search-panel");
   panel.classList.toggle("hidden");
 }
+
+

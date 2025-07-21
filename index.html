@@ -41,29 +41,34 @@
       </button>
     </div>
 
-    <!-- Right: Icons -->
-    <div class="flex items-center space-x-4 text-xl">
-       <div class="flex justify-end items-center space-x-4">
-      <!-- <button onclick="startListening()" title="Voice Input">🎙️</button> -->
-      <button onclick="toggleSearch()" title="Search" class="sm:hidden">🔍</button>
-      </div>  
-      
-      <!-- <button onclick="alert('More options coming soon')" title="More">⋯</button> -->
+   <!-- Right: Icons + Hidden Search -->
+<div class="relative flex items-center space-x-4 text-xl">
+  <!-- 🎙️ Voice -->
+  <!-- <button onclick="startListening()" title="Voice Input">🎙️</button> -->
 
+  <!-- 🔍 Search Icon -->
+  <button onclick="toggleSearchDropdown()" title="Search">
+    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
+         viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  </button>
 
-<!-- 🔍 Hidden Search Panel (shown on toggle) -->
-<div id="search-panel" class="sm:block hidden px-4 py-3 bg-white border-t">
-  <form id="search-form" class="flex gap-2 flex-col sm:flex-row">
-    <input id="searchQuery" type="text" placeholder="Search keywords or phrases..."
-      class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400" />
-    <button type="submit" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800 w-full sm:w-auto">Search</button>
-  </form>
+  <!-- 🔽 Hidden Search Dropdown -->
+  <div id="search-dropdown" class="absolute top-10 right-0 w-72 bg-white shadow-lg rounded-lg p-4 hidden z-50">
+    <form id="search-form" class="flex gap-2 mb-2">
+      <input id="searchQuery" type="text" placeholder="Search keywords or phrases..."
+        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400" />
+      <button type="submit" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800">Search</button>
+    </form>
 
-  <div class="mt-2 flex flex-wrap gap-4 text-sm">
-    <label><input type="radio" name="filter" value="all" checked> All</label>
-    <label><input type="radio" name="filter" value="ot"> Old Testament</label>
-    <label><input type="radio" name="filter" value="nt"> New Testament</label>
-    <label><input type="radio" name="filter" value="book"> Current Book</label>
+    <div class="flex flex-col gap-1 text-sm">
+      <label><input type="radio" name="filter" value="all" checked> All</label>
+      <label><input type="radio" name="filter" value="ot"> Old Testament</label>
+      <label><input type="radio" name="filter" value="nt"> New Testament</label>
+      <label><input type="radio" name="filter" value="book"> Current Book</label>
+    </div>
   </div>
 </div>
 
@@ -195,6 +200,15 @@
 
     // Patch global to make available for script.js
     window.showResultArea = showResultArea;
+
+    
+  function toggleSearchDropdown() {
+    const dropdown = document.getElementById("search-dropdown");
+    dropdown.classList.toggle("hidden");
+  }
+
+
+
   </script>
 
   <!-- 🔌 App Logic -->
