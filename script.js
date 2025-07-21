@@ -356,11 +356,13 @@ async function getChapter(book, chapter) {
 
 function nextChapter() {
   getChapter(currentBook, currentChapter + 1);
+  window.scrollTo({ top: 0, behavior: "smooth" }); // ← Add this line
 }
 
 function prevChapter() {
   if (currentChapter > 1) {
     getChapter(currentBook, currentChapter - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // ← Add this line
   }
 }
 
