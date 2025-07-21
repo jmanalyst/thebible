@@ -26,7 +26,7 @@
 
 <!-- 📘 Sticky Header Styled Bar -->
 <div id="search" class="sticky top-0 bg-white z-10 px-4 py-2 border-b shadow-sm">
-  <div class="max-w-4xl mx-auto flex justify-between items-center px-4 py-2 gap-2 sm:flex-row flex-col">
+  <div class="max-w-4xl mx-auto flex justify-between items-center px-2 sm:px-4 py-2">
 
     <!-- Left: Book Chapter Verse Pill -->
     <div class="flex space-x-2">
@@ -41,7 +41,7 @@
       </button>
     </div>
 
-<!-- Right: Icons + Hidden Search -->
+   <!-- Right: Icons + Hidden Search -->
 <div class="relative flex items-center space-x-4 text-xl" id="search-container">
   <!-- 🎙️ Voice -->
   <button onclick="startListening()" title="Voice Input">🎙️</button>
@@ -210,9 +210,7 @@
 
 
 
-
-
-  function toggleSearchDropdown() {
+    function toggleSearchDropdown() {
     const dropdown = document.getElementById("search-dropdown");
     dropdown.classList.toggle("hidden");
   }
@@ -227,8 +225,6 @@
       dropdown.classList.add("hidden");
     }
   });
-
-
 
 
   </script>
