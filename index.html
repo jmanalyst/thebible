@@ -87,9 +87,10 @@
     <p class="text-lg sm:text-xl text-gray-700 mb-6 max-w-xl">
       Search, read, and reflect on verses from the King James Bible.
     </p>
-    <a href="#search" class="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition text-sm">
-      Start Reading 📖
-    </a>
+    <a href="#search" onclick="loadGenesis1()"
+   class="inline-block bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition text-sm">
+  Start Reading 📖
+</a>
   </section>
 
   <!-- 📖 Results -->
@@ -225,6 +226,32 @@
       dropdown.classList.add("hidden");
     }
   });
+
+
+
+
+    function loadGenesis1() {
+    // Set Book, Chapter, Verse inputs
+    document.getElementById("book").value = "Genesis";
+    document.getElementById("chapter").value = "1";
+    document.getElementById("verse").value = ""; // optional: leave blank to load full chapter
+
+    // Update pill display text
+    document.getElementById("pill-book").textContent = "Genesis";
+    document.getElementById("pill-chapter").textContent = "1";
+    document.getElementById("pill-verse").textContent = "Verse"; // reset
+
+    // Call your fetch/display logic (assuming you have maybeAutoFetch or similar)
+    if (typeof maybeAutoFetch === "function") {
+      maybeAutoFetch();
+    }
+
+    // Show result area
+    showResultArea();
+  }
+
+
+
 
 
   </script>
