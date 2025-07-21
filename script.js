@@ -149,6 +149,7 @@ function selectBook(book) {
   document.getElementById("chapter").value = "";
   document.getElementById("verse").value = "";
   closeBookPicker();
+  updatePillLabels(); 
   openChapterPicker();
 
   maybeAutoFetch();
@@ -171,6 +172,7 @@ function openChapterPicker() {
       document.getElementById("chapter").value = i;
       document.getElementById("verse").value = ""; // reset verse
       closeChapterPicker();
+      updatePillLabels(); 
       maybeAutoFetch();
     };
     grid.appendChild(btn);
@@ -220,16 +222,9 @@ function openVersePicker() {
         btn.onclick = () => {
   document.getElementById("verse").value = v.verse;
   closeVersePicker();
+  updatePillLabels();
   maybeAutoFetch();
-        
-
-  const bookVal = document.getElementById("book").value.trim();
-  const chapterVal = document.getElementById("chapter").value.trim();
-  const verseVal = v.verse;
-
-  if (bookVal && chapterVal && verseVal) {
-    getVerseFromRef(bookVal, parseInt(chapterVal), parseInt(verseVal));
-  }
+ 
 };
 
         grid.appendChild(btn);
@@ -348,4 +343,99 @@ function maybeAutoFetch() {
   } else if (book && chapter && verse === "") {
     getChapter(book, chapter);
   }
+}
+
+
+
+
+
+function updatePillLabels() {
+  document.getElementById("pill-book").textContent = document.getElementById("book").value || "Book";
+  document.getElementById("pill-chapter").textContent = document.getElementById("chapter").value || "Chapter";
+  document.getElementById("pill-verse").textContent = document.getElementById("verse").value || "Verse";
+}
+
+
+
+let recognition; // global so we can stop it later
+
+function startListening() {
+  if (!('webkitSpeechRecognition' in window)) {
+    alert("Speech recognition not supported.");
+    return;
+  }
+
+  if (recognition) {
+    recognition.stop(); // Stop any ongoing recognition
+  }
+
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    parseSpeechInput(transcript);
+    recognition.stop(); // Automatically stop after result
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+    recognition.stop();
+  };
+
+  recognition.onend = () => {
+    recognition = null; // clear it so it's ready next time
+  };
+
+  recognition.start();
+}
+
+function parseSpeechInput(input) {
+  input = input.trim().toLowerCase();
+
+  // Convert numbers like "three nineteen" to "3 19" if needed
+  // Optional: You can add a number word-to-digit converter if you want
+
+  // Try to match known book names
+  const matchedBook = books.find(book => input.startsWith(book.toLowerCase()));
+  if (!matchedBook) {
+    alert("Could not recognize book name.");
+    return;
+  }
+
+  const rest = input.replace(matchedBook.toLowerCase(), "").trim(); // e.g. "319" or "3 19"
+
+  // Match patterns like "3 19" or "319"
+  let chapter = "", verse = "";
+
+  if (/^\d{1,3}\s\d{1,3}$/.test(rest)) {
+    [chapter, verse] = rest.split(" ");
+  } else if (/^\d{2,4}$/.test(rest)) {
+    // e.g. "319" → 3:19, "113" → 1:13
+    if (rest.length === 3) {
+      chapter = rest[0];
+      verse = rest.slice(1);
+    } else if (rest.length === 4) {
+      chapter = rest.slice(0, 2);
+      verse = rest.slice(2);
+    } else {
+      alert("Couldn't parse chapter and verse.");
+      return;
+    }
+  } else {
+    alert("Please speak clearly: e.g., 'John 3 16' or 'Matthew 3 19'");
+    return;
+  }
+
+  // Set values in inputs
+   // Set values in inputs
+  document.getElementById("book").value = matchedBook;
+  document.getElementById("chapter").value = chapter;
+  document.getElementById("verse").value = verse;
+
+  updatePillLabels();
+  showResultArea(); // Show results section
+  getVerseFromRef(matchedBook, parseInt(chapter), parseInt(verse)); // ← FETCH the scripture!
 }

@@ -20,36 +20,37 @@
 </head>
 <body class="bg-white text-black font-sans">
 
-  <!-- 📘 Sticky Header Search Bar -->
-  <div id="search" class="sticky top-0 bg-white z-10 px-2 py-1 border-b shadow-sm">
-    <div class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-1 items-center relative text-sm">
-      <!-- Book Picker Button -->
-<input id="book" readonly placeholder="Book" onclick="openBookPicker()"
-  class="px-2 py-1 border border-gray-300 rounded w-full text-sm cursor-pointer bg-white" />
+<input type="hidden" id="book">
+<input type="hidden" id="chapter">
+<input type="hidden" id="verse">
 
+<!-- 📘 Sticky Header Styled Bar -->
+<div id="search" class="sticky top-0 bg-white z-10 px-4 py-2 border-b shadow-sm">
+  <div class="max-w-4xl mx-auto flex items-center justify-between">
 
-      <!-- Chapter field (non-editable, opens grid) -->
-      <input id="chapter" readonly placeholder="Chapter"
-        onclick="openChapterPicker()"
-        class="px-2 py-1 border border-gray-300 rounded w-full text-sm cursor-pointer bg-white" />
-
-
-      <input id="verse" placeholder="Verse (Optional)" readonly
-  class="px-2 py-1 border border-gray-300 rounded w-full text-sm cursor-pointer" />
-
-
-
-      <div class="flex gap-1">
-        <button onclick="getVerse()" class="bg-white text-black border border-black px-2 py-1 text-sm rounded hover:bg-gray-100 transition w-full">
-          Get
-        </button>
-        <button onclick="startListening()" id="micBtn"
-          class="bg-white text-black border border-black px-2 py-1 text-sm rounded hover:bg-gray-100 transition hidden md:inline-block">
-          Speak
-        </button>
-      </div>
+    <!-- Left: Book Chapter Verse Pill -->
+    <div class="flex space-x-2">
+      <button onclick="openBookPicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
+        <span id="pill-book">Book</span>
+      </button>
+      <button onclick="openChapterPicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
+        <span id="pill-chapter">Chapter</span>
+      </button>
+      <button onclick="openVersePicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
+        <span id="pill-verse">Verse</span>
+      </button>
     </div>
+
+    <!-- Right: Icons -->
+    <div class="flex items-center space-x-4 text-xl">
+      <!-- <button onclick="speakText()" title="Read Aloud">🔊</button> -->
+      <button onclick="startListening()" title="Voice Input">🎙️</button>
+      <!-- <button onclick="alert('More options coming soon')" title="More">⋯</button> -->
+</div>
   </div>
+</div>
+
+
 
   <!-- 🌟 Welcome Section -->
   <section id="welcome-section" class="min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-b from-white to-blue-100 px-4">
@@ -130,33 +131,33 @@
 
   <!-- 🔧 Utility Script -->
   <script>
-    function clearBook() {
-      const bookInput = document.getElementById("book");
-      const chapterInput = document.getElementById("chapter");
-      const verseInput = document.getElementById("verse");
+    // function clearBook() {
+    //   const bookInput = document.getElementById("book");
+    //   const chapterInput = document.getElementById("chapter");
+    //   const verseInput = document.getElementById("verse");
 
-      bookInput.value = "";
-      chapterInput.value = "";
-      verseInput.value = "";
+    //   bookInput.value = "";
+    //   chapterInput.value = "";
+    //   verseInput.value = "";
 
-      toggleClearButton();
-      showDropdown();
-      bookInput.focus();
-    }
+    //   toggleClearButton();
+    //   showDropdown();
+    //   bookInput.focus();
+    // }
 
-    function toggleClearButton() {
-      const clearBtn = document.getElementById("clearBtn");
-      const bookInput = document.getElementById("book");
-      clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
-    }
+    // function toggleClearButton() {
+    //   const clearBtn = document.getElementById("clearBtn");
+    //   const bookInput = document.getElementById("book");
+    //   clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
+    // }
 
-    function selectBookFromDropdown(book) {
-      const bookInput = document.getElementById("book");
-      bookInput.value = book;
-      document.getElementById("custom-dropdown").classList.remove("active");
-      document.getElementById("chapter").focus();
-      toggleClearButton();
-    }
+    // function selectBookFromDropdown(book) {
+    //   const bookInput = document.getElementById("book");
+    //   bookInput.value = book;
+    //   document.getElementById("custom-dropdown").classList.remove("active");
+    //   document.getElementById("chapter").focus();
+    //   toggleClearButton();
+    // }
 
     document.addEventListener("DOMContentLoaded", () => {
       toggleClearButton();
