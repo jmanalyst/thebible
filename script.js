@@ -1,3 +1,17 @@
+let bibleData = [];
+
+fetch('/kjv.json')
+  .then(res => res.json())
+  .then(data => {
+    bibleData = data;
+    console.log("Bible data loaded:", bibleData.length, "verses");
+  })
+  .catch(err => {
+    console.error("Failed to load kjv.json:", err);
+  });
+
+
+
 // ===== BOOKS =====
 const books = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
@@ -78,27 +92,29 @@ function prevVerse() {
 
 
 
-async function getVerseFromRef(book, chapter, verse) {
+function getVerseFromRef(book, chapter, verse) {
   currentBook = book;
   currentChapter = chapter;
   currentVerse = verse;
 
   const result = document.getElementById("result");
   result.innerHTML = "Loading...";
-  try {
-    const res = await fetch(`https://bible-api.com/${book}+${chapter}:${verse}?translation=kjv`);
-    const data = await res.json();
-    if (data.text) {
-      result.innerHTML = `
-        <p class="font-semibold text-xl mb-2">"${data.text.trim()}"</p>
-        <p class="text-sm text-gray-500">– ${data.reference}</p>
-      `;
-      showPrevNextVerseButtons(data.reference);
-    } else {
-      result.innerHTML = "Verse not found.";
-    }
-  } catch (err) {
-    result.innerHTML = "Error fetching verse.";
+  showResultArea();
+
+  const verseObj = bibleData.find(v =>
+    v.book.toLowerCase() === book.toLowerCase() &&
+    v.chapter === parseInt(chapter) &&
+    v.verse === parseInt(verse)
+  );
+
+  if (verseObj) {
+    result.innerHTML = `
+      <p class="font-semibold text-xl mb-2">"${verseObj.text.trim()}"</p>
+      <p class="text-sm text-gray-500">– ${book} ${chapter}:${verse}</p>
+    `;
+    showPrevNextVerseButtons(`${book} ${chapter}:${verse}`);
+  } else {
+    result.innerHTML = "Verse not found.";
   }
 }
 
