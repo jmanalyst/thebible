@@ -29,7 +29,7 @@
   <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 
     <!-- Left: Book Chapter Verse Pill -->
-    <div class="flex space-x-2">
+    <div class="flex space-x-2 justify-center sm:justify-start">
       <button onclick="openBookPicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
         <span id="pill-book">Book</span>
       </button>
@@ -43,10 +43,12 @@
 
     <!-- Right: Icons -->
     <div class="flex items-center space-x-4 text-xl">
-      <!-- <button onclick="speakText()" title="Read Aloud">🔊</button> -->
+       <div class="flex justify-end items-center space-x-4">
       <button onclick="startListening()" title="Voice Input">🎙️</button>
-      <!-- 🔍 Search Toggle Button -->
-      <button onclick="toggleSearch()" title="Search" class="sm:hidden text-xl">🔍</button>   
+      <button onclick="toggleSearch()" title="Search" class="sm:hidden">🔍</button>
+       </div>
+  </div>
+</div>  
       
       <!-- <button onclick="alert('More options coming soon')" title="More">⋯</button> -->
 
