@@ -1,10 +1,19 @@
 let bibleData = [];
+let lastSearchQuery = "";
 
 fetch('/kjv.json')
   .then(res => res.json())
   .then(data => {
-    bibleData = data;
-    console.log("Bible data loaded:", bibleData.length, "verses");
+    // Check and load the actual verses
+    if (Array.isArray(data)) {
+      bibleData = data;
+      console.log("Bible data loaded:", bibleData.length, "verses (raw array)");
+    } else if (Array.isArray(data.verses)) {
+      bibleData = data.verses;
+      console.log("Bible data loaded:", bibleData.length, "verses (from .verses key)");
+    } else {
+      console.error("Unexpected data format in kjv.json:", data);
+    }
   })
   .catch(err => {
     console.error("Failed to load kjv.json:", err);
@@ -102,7 +111,7 @@ function getVerseFromRef(book, chapter, verse) {
   showResultArea();
 
   const verseObj = bibleData.find(v =>
-    v.book.toLowerCase() === book.toLowerCase() &&
+    v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
     v.chapter === parseInt(chapter) &&
     v.verse === parseInt(verse)
   );
@@ -222,34 +231,30 @@ function openVersePicker() {
   title.textContent = `Select Verse (${book} ${chapter})`;
   modal.classList.remove("hidden");
 
-  fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`)
-    .then(res => res.json())
-    .then(data => {
-      if (!data.verses || data.verses.length === 0) {
-        grid.innerHTML = "<div class='col-span-6 text-gray-500'>No verses found</div>";
-        return;
-      }
+  // Get verses from local data
+  const verses = bibleData.filter(v =>
+    v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
+    v.chapter === parseInt(chapter)
+  );
 
-      grid.innerHTML = "";
-      data.verses.forEach((v, i) => {
-        const btn = document.createElement("button");
-        btn.textContent = v.verse;
-        btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
-        btn.onclick = () => {
-  document.getElementById("verse").value = v.verse;
-  closeVersePicker();
-  updatePillLabels();
-  maybeAutoFetch();
- 
-};
+  if (verses.length === 0) {
+    grid.innerHTML = "<div class='col-span-6 text-gray-500'>No verses found</div>";
+    return;
+  }
 
-        grid.appendChild(btn);
-      });
-    })
-    .catch(err => {
-      console.error("Error loading verses:", err);
-      grid.innerHTML = "<div class='col-span-6 text-red-500'>Error loading verses</div>";
-    });
+  grid.innerHTML = "";
+  verses.forEach(v => {
+    const btn = document.createElement("button");
+    btn.textContent = v.verse;
+    btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
+    btn.onclick = () => {
+      document.getElementById("verse").value = v.verse;
+      closeVersePicker();
+      updatePillLabels();
+      maybeAutoFetch();
+    };
+    grid.appendChild(btn);
+  });
 }
 
 
@@ -260,9 +265,26 @@ function closeVersePicker() {
 
 
 
-// Attach openVersePicker on verse field click
 document.addEventListener("DOMContentLoaded", () => {
+  // Already present:
   document.getElementById("verse").addEventListener("click", openVersePicker);
+
+  // ✅ New: Listen for form submit
+  document.getElementById("search-form").addEventListener("submit", function (e) {
+    e.preventDefault(); // Prevent page reload
+    const query = document.getElementById("searchQuery").value;
+    searchBible(query);
+
+      // ✅ Listen for radio filter change
+  document.querySelectorAll('input[name="filter"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      if (lastSearchQuery) {
+        searchBible(lastSearchQuery);
+      }
+    });
+  });
+    
+  });
 });
 
 
@@ -307,27 +329,25 @@ async function getChapter(book, chapter) {
   currentChapter = parseInt(chapter);
   currentVerse = 0; // reset verse
 
-  try {
-    const res = await fetch(`https://bible-api.com/${book}+${chapter}?translation=kjv`);
-    const data = await res.json();
+  // Filter verses from local JSON
+  const verses = bibleData.filter(v =>
+    v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
+    v.chapter === parseInt(chapter)
+  );
 
-    if (data.verses && data.verses.length > 0) {
-      const verses = data.verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
+  if (verses.length > 0) {
+    const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
 
-      result.innerHTML = `
-        <h2 class="text-xl font-bold mb-4">${data.reference}</h2>
-        <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verses}</pre>
-        <div class="flex justify-between items-center mt-4">
-          <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>Previous Chapter</button>
-          <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next Chapter</button>
-        </div>
-      `;
-    } else {
-      result.innerHTML = "Chapter not found.";
-    }
-  } catch (err) {
-    console.error(err);
-    result.innerHTML = "Error fetching chapter.";
+    result.innerHTML = `
+      <h2 class="text-xl font-bold mb-4">${book} ${chapter}</h2>
+      <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verseList}</pre>
+      <div class="flex justify-between items-center mt-4">
+        <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100"${currentChapter === 1 ? ' disabled' : ''}>Previous Chapter</button>
+        <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next Chapter</button>
+      </div>
+    `;
+  } else {
+    result.innerHTML = "Chapter not found.";
   }
 }
 
@@ -454,4 +474,60 @@ function parseSpeechInput(input) {
   updatePillLabels();
   showResultArea(); // Show results section
   getVerseFromRef(matchedBook, parseInt(chapter), parseInt(verse)); // ← FETCH the scripture!
+}
+
+
+
+
+function searchBible(query) {
+  const result = document.getElementById("result");
+  showResultArea();
+
+  query = query.trim().toLowerCase();
+  if (!query) return;
+
+  lastSearchQuery = query;
+
+  const filter = document.querySelector('input[name="filter"]:checked').value;
+  const currentBook = document.getElementById("book").value;
+
+  let filteredData = [...bibleData];
+
+  if (filter === "ot") {
+  filteredData = filteredData.filter(v => {
+    const index = books.findIndex(b => b.toLowerCase() === v.book_name.toLowerCase());
+    return index > -1 && index < 39;
+  });
+} else if (filter === "nt") {
+  filteredData = filteredData.filter(v => {
+    const index = books.findIndex(b => b.toLowerCase() === v.book_name.toLowerCase());
+    return index >= 39;
+  });
+} else if (filter === "book" && currentBook) {
+  filteredData = filteredData.filter(v => v.book_name.toLowerCase() === currentBook.toLowerCase());
+}
+
+  const matches = filteredData.filter(v =>
+    v.text.toLowerCase().includes(query)
+  );
+
+  if (matches.length === 0) {
+    result.innerHTML = `No verses found for "${query}".`;
+    return;
+  }
+
+  const rendered = matches.map(v => {
+    const regex = new RegExp(`(${query})`, 'gi');
+    const highlighted = v.text.replace(regex, '<mark>$1</mark>');
+
+    return `<div class="mb-3">
+      <p class="text-sm text-gray-500">${v.book_name} ${v.chapter}:${v.verse}</p>
+      <p class="text-base leading-relaxed">${highlighted}</p>
+    </div>`;
+  }).join("");
+
+  result.innerHTML = `
+    <h2 class="text-lg font-semibold mb-4">Results for "${query}" (${matches.length} found):</h2>
+    <div>${rendered}</div>
+  `;
 }

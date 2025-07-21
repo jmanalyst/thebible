@@ -46,6 +46,27 @@
       <!-- <button onclick="speakText()" title="Read Aloud">🔊</button> -->
       <button onclick="startListening()" title="Voice Input">🎙️</button>
       <!-- <button onclick="alert('More options coming soon')" title="More">⋯</button> -->
+
+
+      <!-- 🔍 Keyword Search -->
+<div class="max-w-4xl mx-auto px-4 py-4">
+  <form id="search-form" class="flex gap-2">
+  <input id="searchQuery" type="text" placeholder="Search keywords or phrases..."
+    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400" />
+  <button type="submit" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800">Search</button>
+</form>
+
+    <div class="mb-2 flex gap-4 text-sm">
+    <label><input type="radio" name="filter" value="all" checked> All</label>
+    <label><input type="radio" name="filter" value="ot"> Old Testament</label>
+    <label><input type="radio" name="filter" value="nt"> New Testament</label>
+    <label><input type="radio" name="filter" value="book"> Current Book</label>
+  </div>
+</div>
+
+
+
+    
 </div>
   </div>
 </div>
