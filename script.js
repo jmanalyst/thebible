@@ -16,6 +16,17 @@ function cleanVerseText(text) {
     .trim();
 }
 
+
+
+
+
+
+
+
+
+
+
+
 fetch('public/kjv.json')
   .then(res => res.json())
   .then(data => {
@@ -33,6 +44,87 @@ fetch('public/kjv.json')
   .catch(err => {
     console.error("Failed to load kjv.json:", err);
   });
+
+
+
+
+
+  const archaicWords = {
+  "thee": "you",
+  "thou": "you",
+  "thy": "your",
+  "thine": "yours",
+  "ye": "you (plural)",
+  "hath": "has",
+  "doeth": "does",
+  "didst": "did",
+  "art": "are",
+  "unto": "to",
+  "wherefore": "why",
+  "whence": "from where",
+  "wilt": "will",
+  "shalt": "shall",
+  "hast": "have",
+  "saith": "says",
+  "cometh": "comes",
+  "goeth": "goes",
+  "behold": "look / see",
+  "verily": "truly",
+  "peradventure": "perhaps",
+  "begat": "fathered / had children",
+  "hearken": "listen",
+  "fain": "gladly / eagerly",
+  "anon": "soon / shortly",
+  "abase": "humble / bring low",
+  "abide": "remain / live",
+  "aforetime": "formerly",
+  "alway": "always",
+  "bewray": "betray",
+  "beseech": "beg / urgently request",
+  "bosom": "chest / heart",
+  "concupiscence": "lust / strong desire",
+  "countenance": "face / expression",
+  "divers": "various / different",
+  "draught": "toilet / waste place",
+  "ensample": "example",
+  "eschew": "avoid",
+  "haply": "perhaps / by chance",
+  "holpen": "helped",
+  "janitor": "doorkeeper",
+  "kinsman": "relative",
+  "letteth": "restrains / holds back",
+  "meat": "food (not just meat)",
+  "nay": "no",
+  "nigh": "near",
+  "quickened": "made alive",
+  "raiment": "clothing",
+  "rent": "tore",
+  "shewed": "showed",
+  "shew": "show",
+  "sojourn": "stay temporarily",
+  "sore": "greatly / severely",
+  "staves": "staffs / sticks",
+  "suffer": "allow",
+  "sundry": "various",
+  "tarry": "stay / wait",
+  "wist": "knew",
+  "wot": "know",
+  "woe": "sorrow / distress",
+  "wouldest": "would",
+  "yonder": "over there"
+};
+
+
+
+function addTooltipsToVerseText(text) {
+  return text.replace(/\b(\w+)\b/g, (match) => {
+    const lower = match.toLowerCase();
+    if (archaicWords[lower]) {
+      return `<span class="relative group inline-block whitespace-nowrap align-baseline">${match}<span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 z-50">${archaicWords[lower]}</span></span>`;
+    }
+    return match;
+  });
+}
 
 
 
@@ -133,7 +225,7 @@ function getVerseFromRef(book, chapter, verse) {
 
   if (verseObj) {
     result.innerHTML = `
-      <p class="font-semibold text-xl mb-2">"${cleanVerseText(verseObj.text)}"</p>
+      <p class="font-semibold text-xl mb-2 leading-relaxed">${addTooltipsToVerseText(cleanVerseText(verseObj.text))}</p>
       <p class="text-sm text-gray-500">– ${book} ${chapter}:${verse}</p>
     `;
     showPrevNextVerseButtons(`${book} ${chapter}:${verse}`);
@@ -351,14 +443,15 @@ async function getChapter(book, chapter) {
   );
 
   if (verses.length > 0) {
-    const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${cleanVerseText(v.text)}`).join("\n\n");
+    const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${addTooltipsToVerseText(cleanVerseText(v.text))}`).join("\n\n");
 
     result.innerHTML = `
   <div class="max-w-prose mx-auto px-4 text-center">
     <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
   </div>
   <div class="max-w-prose mx-auto px-4 text-left text-lg leading-relaxed font-serif whitespace-pre-wrap">
-    ${verses.map(v => `<strong>${v.verse}</strong>. ${cleanVerseText(v.text)}`).join("\n\n")}
+  ${verses.map(v => `<strong>${v.verse}</strong>. ${addTooltipsToVerseText(cleanVerseText(v.text))}`).join("\n\n")}
+</div>
   </div>
   <div class="fixed inset-y-0 left-0 flex items-center z-50">
   <button onclick="prevChapter()" class="ml-1 bg-transparent bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100 transition duration-200">
