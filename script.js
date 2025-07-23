@@ -111,7 +111,8 @@ fetch('public/kjv.json')
   "wot": "know",
   "woe": "sorrow / distress",
   "wouldest": "would",
-  "yonder": "over there"
+  "yonder": "over there",
+  "thereof": "of it / from it (depending on context)"
 };
 
 
