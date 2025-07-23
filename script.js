@@ -362,13 +362,13 @@ async function getChapter(book, chapter) {
   </div>
   <div class="fixed inset-y-0 left-0 flex items-center z-50">
   <button onclick="prevChapter()" class="ml-2 bg-white border shadow rounded-full px-4 py-2 text-sm hover:bg-gray-100">
-    ← Previous
+    ← 
   </button>
 </div>
 
 <div class="fixed inset-y-0 right-0 flex items-center z-50">
   <button onclick="nextChapter()" class="mr-2 bg-white border shadow rounded-full px-4 py-2 text-sm hover:bg-gray-100">
-    Next →
+     →
   </button>
 </div>
 `;
