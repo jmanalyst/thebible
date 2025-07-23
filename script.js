@@ -361,13 +361,13 @@ async function getChapter(book, chapter) {
     ${verses.map(v => `<strong>${v.verse}</strong>. ${cleanVerseText(v.text)}`).join("\n\n")}
   </div>
   <div class="fixed inset-y-0 left-0 flex items-center z-50">
-  <button onclick="prevChapter()" class="ml-1 bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100">
+  <button onclick="prevChapter()" class="ml-1 bg-transparent bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100 transition duration-200">
     ← 
   </button>
 </div>
 
 <div class="fixed inset-y-0 right-0 flex items-center z-50">
-  <button onclick="nextChapter()" class="mr-1 bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100">
+  <button onclick="nextChapter()" class="mr-1 bg-transparent bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100 transition duration-200">
      →
   </button>
 </div>
