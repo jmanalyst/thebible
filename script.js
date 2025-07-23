@@ -797,26 +797,59 @@ const verseList = Object.entries(grouped).map(([subtopic, verses]) => {
 
 
 
-    container.innerHTML += `
-      <div class="border border-gray-200 rounded p-4 bg-white">
-        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-gray-800 hover:text-sky-500">
-          ${topic.title}
-        </button>
-        <ul id="topic-${topic.id}" class="ml-4 mt-2 list-disc text-sm hidden">
-          ${verseList}
-        </ul>
-      </div>
-    `;
+container.innerHTML += `
+  <div class="border border-gray-200 rounded p-4 bg-white">
+    <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-gray-800 hover:text-sky-500 flex justify-between items-center">
+      <span>${topic.title}</span>
+      <span id="toggle-icon-${topic.id}" class="text-xl">+</span>
+    </button>
+<ul id="topic-${topic.id}" class="ml-4 mt-2 list-disc text-sm hidden overflow-hidden transition-all duration-300 ease-in-out">
+  ${verseList}
+</ul>
+  </div>
+`;
   });
 }
 
 
 
-// Toggle topic visibility
+
+
 window.toggleTopic = function(id) {
   const el = document.getElementById("topic-" + id);
-  el.classList.toggle("hidden");
+  const icon = document.getElementById("toggle-icon-" + id);
+
+  const isOpen = !el.classList.contains("hidden");
+
+  if (isOpen) {
+    // Slide up
+    el.style.maxHeight = el.scrollHeight + "px"; // set to full height first
+    requestAnimationFrame(() => {
+      el.style.transition = "max-height 0.3s ease";
+      el.style.maxHeight = "0";
+    });
+    icon.textContent = "+";
+    setTimeout(() => {
+      el.classList.add("hidden");
+    }, 300);
+  } else {
+    // Slide down
+    el.classList.remove("hidden");
+    el.style.maxHeight = "0";
+    requestAnimationFrame(() => {
+      el.style.transition = "max-height 0.3s ease";
+      el.style.maxHeight = el.scrollHeight + "px";
+    });
+    icon.textContent = "−";
+    setTimeout(() => {
+      el.style.maxHeight = ""; // clear maxHeight to allow natural resizing
+    }, 300);
+  }
 };
+
+
+
+
 
 // Call this on DOM load
 document.addEventListener("DOMContentLoaded", () => {
