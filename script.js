@@ -1,7 +1,22 @@
+// script.js
+
+
+
+
+
 let bibleData = [];
 let lastSearchQuery = "";
 
-fetch('public/kjv.json')
+function cleanVerseText(text) {
+  return text
+    .replace(/\[|\]/g, '')       // remove square brackets [ ]
+    .replace(/<|>/g, '')         // remove angle brackets < >
+    .replace(/‹|›/g, '')         // remove single angle brackets ‹ ›
+    .replace(/\s+/g, ' ')        // normalize whitespace
+    .trim();
+}
+
+fetch('http://127.0.0.1:5500/public/kjv.json')
   .then(res => res.json())
   .then(data => {
     // Check and load the actual verses
@@ -118,7 +133,7 @@ function getVerseFromRef(book, chapter, verse) {
 
   if (verseObj) {
     result.innerHTML = `
-      <p class="font-semibold text-xl mb-2">"${verseObj.text.trim()}"</p>
+      <p class="font-semibold text-xl mb-2">"${cleanVerseText(verseObj.text)}"</p>
       <p class="text-sm text-gray-500">– ${book} ${chapter}:${verse}</p>
     `;
     showPrevNextVerseButtons(`${book} ${chapter}:${verse}`);
@@ -336,16 +351,27 @@ async function getChapter(book, chapter) {
   );
 
   if (verses.length > 0) {
-    const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${v.text.trim()}`).join("\n\n");
+    const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${cleanVerseText(v.text)}`).join("\n\n");
 
     result.innerHTML = `
-      <h2 class="text-xl font-bold mb-4">${book} ${chapter}</h2>
-      <pre class="whitespace-pre-wrap font-sans text-base leading-relaxed">${verseList}</pre>
-      <div class="flex justify-between items-center mt-4">
-        <button onclick="prevChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Previous Chapter</button>
-        <button onclick="nextChapter()" class="text-sm border border-black px-3 py-1 rounded hover:bg-gray-100">Next Chapter</button>
-      </div>
-    `;
+  <div class="max-w-prose mx-auto px-4 text-center">
+    <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
+  </div>
+  <div class="max-w-prose mx-auto px-4 text-left text-lg leading-relaxed font-serif whitespace-pre-wrap">
+    ${verses.map(v => `<strong>${v.verse}</strong>. ${cleanVerseText(v.text)}`).join("\n\n")}
+  </div>
+  <div class="fixed inset-y-0 left-0 flex items-center z-50">
+  <button onclick="prevChapter()" class="ml-2 bg-white border shadow rounded-full px-4 py-2 text-sm hover:bg-gray-100">
+    ← Previous
+  </button>
+</div>
+
+<div class="fixed inset-y-0 right-0 flex items-center z-50">
+  <button onclick="nextChapter()" class="mr-2 bg-white border shadow rounded-full px-4 py-2 text-sm hover:bg-gray-100">
+    Next →
+  </button>
+</div>
+`;
   } else {
     result.innerHTML = "Chapter not found.";
   }
@@ -418,6 +444,40 @@ function prevChapter() {
   // 🔄 Scroll to top
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+
+
+
+function showResultArea() {
+  document.getElementById("welcome-section").classList.add("hidden");
+  document.getElementById("result-section").classList.remove("hidden");
+  document.getElementById("topics-wrapper").classList.add("hidden"); // 👈 HIDE topics
+}
+
+
+
+
+
+function goHome() {
+  document.getElementById("welcome-section").classList.remove("hidden");
+  document.getElementById("result-section").classList.add("hidden");
+  document.getElementById("topics-wrapper").classList.remove("hidden"); // 👈 SHOW topics
+
+  // Optional: Reset input fields
+  document.getElementById("book").value = "";
+  document.getElementById("chapter").value = "";
+  document.getElementById("verse").value = "";
+  updatePillLabels();
+  document.getElementById("result").innerHTML = "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+
+
+
+
+
 
 
 
@@ -594,3 +654,77 @@ function toggleSearch() {
 }
 
 
+
+
+
+
+
+const supabase = window.supabase.createClient(
+    'https://zotjqpwgsrswaakhwtzl.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvdGpxcHdnc3Jzd2Fha2h3dHpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwOTM1NjgsImV4cCI6MjA2ODY2OTU2OH0.z2B4Uss7ar1ccRxXOO0oZ3bqpW7Nka5xwbAZh_RRo7s'
+  );
+
+
+
+async function loadPublicTopics() {
+  const { data: topics } = await supabase.from('topics').select('*');
+  const { data: verses } = await supabase.from('topic_verses').select('*');
+
+  const container = document.getElementById("topics-display");
+  container.innerHTML = "";
+
+  topics.forEach(topic => {
+    const topicVerses = verses.filter(v => v.topic_id === topic.id);
+const grouped = topicVerses.reduce((acc, v) => {
+  const key = v.subtopic || "Misc";
+  if (!acc[key]) acc[key] = [];
+  acc[key].push(v);
+  return acc;
+}, {});
+
+const verseList = Object.entries(grouped).map(([subtopic, verses]) => {
+  const items = verses.map(v => {
+    const match = bibleData.find(b =>
+      b.book_name.toLowerCase() === v.book.toLowerCase() &&
+      b.chapter === parseInt(v.chapter) &&
+      b.verse === parseInt(v.verse)
+    );
+    const verseText = match ? cleanVerseText(match.text) : "(verse not found)";
+    return `<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${verseText}</li>`;
+  }).join("");
+
+  // 🧼 Normalize "Misc" to hide the heading if it was stored literally
+  const isPlaceholder = !subtopic || subtopic.trim().toLowerCase() === "misc";
+
+  return isPlaceholder
+    ? `<ul class="list-disc pl-5">${items}</ul>`
+    : `<h4 class="mt-4 font-semibold text-lg">${subtopic}</h4><ul class="list-disc pl-5">${items}</ul>`;
+}).join("");
+
+
+
+    container.innerHTML += `
+      <div class="border border-gray-200 rounded p-4 bg-white">
+        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-blue-700 hover:underline">
+          ${topic.title}
+        </button>
+        <ul id="topic-${topic.id}" class="ml-4 mt-2 list-disc text-sm hidden">
+          ${verseList}
+        </ul>
+      </div>
+    `;
+  });
+}
+
+
+
+// Toggle topic visibility
+window.toggleTopic = function(id) {
+  const el = document.getElementById("topic-" + id);
+  el.classList.toggle("hidden");
+};
+
+// Call this on DOM load
+document.addEventListener("DOMContentLoaded", () => {
+  loadPublicTopics();
+});

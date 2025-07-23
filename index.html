@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Bible App</title>
+  <title>The Living Word Online</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     #custom-dropdown {
@@ -44,7 +44,7 @@
     <!-- Center: Bible App Title -->
     <div class="absolute md:left-1/2 md:-translate-x-1/2 right-10 md:right-auto z-10 whitespace-nowrap">
       <button onclick="goHome()" class="text-base sm:text-lg font-bold text-black hover:text-blue-600 transition">
-        📖 Bible App
+        📖 The Living Word
       </button>
     </div>
 
@@ -84,7 +84,7 @@
 
   <!-- 🌟 Welcome Section -->
   <section id="welcome-section" class="min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-b from-white to-blue-100 px-4">
-    <h1 class="text-4xl sm:text-5xl font-bold mb-4 text-gray-900">Welcome to the Bible App</h1>
+    <h1 class="text-4xl sm:text-5xl font-bold mb-4 text-gray-900">The Living Word Online</h1>
     <p class="text-lg sm:text-xl text-gray-700 mb-6 max-w-xl">
       Search, read, and reflect on verses from the Bible.
     </p>
@@ -95,8 +95,8 @@
   </section>
 
   <!-- 📖 Results -->
-  <div id="result-section" class="max-w-4xl mx-auto px-2 py-4 hidden">
-    <div id="result" class="text-base leading-relaxed whitespace-pre-wrap"></div>
+  <div id="result-section" class="max-w-prose mx-auto px-4 py-6 hidden">
+    <div id="result" class="text-base leading-relaxed whitespace-pre-wrap pb-24"></div>
   </div>
 
 <!-- Chapter Picker Modal -->
@@ -156,39 +156,27 @@
 
 
 
+<div id="topics-wrapper" class="block">
+  <section id="topics-section" class="max-w-4xl mx-auto px-4 py-8">
+    <h2 class="text-2xl font-bold mb-4"> Bible Topics</h2>
+    <div id="topics-display" class="space-y-4">
+      <!-- Topics will be injected here -->
+    </div>
+  </section>
+</div>
 
 
 
 
-  <!-- 🔧 Utility Script -->
+
+
+
+
+
+
+
   <script>
-    // function clearBook() {
-    //   const bookInput = document.getElementById("book");
-    //   const chapterInput = document.getElementById("chapter");
-    //   const verseInput = document.getElementById("verse");
-
-    //   bookInput.value = "";
-    //   chapterInput.value = "";
-    //   verseInput.value = "";
-
-    //   toggleClearButton();
-    //   showDropdown();
-    //   bookInput.focus();
-    // }
-
-    // function toggleClearButton() {
-    //   const clearBtn = document.getElementById("clearBtn");
-    //   const bookInput = document.getElementById("book");
-    //   clearBtn.classList.toggle("hidden", bookInput.value.trim() === "");
-    // }
-
-    // function selectBookFromDropdown(book) {
-    //   const bookInput = document.getElementById("book");
-    //   bookInput.value = book;
-    //   document.getElementById("custom-dropdown").classList.remove("active");
-    //   document.getElementById("chapter").focus();
-    //   toggleClearButton();
-    // }
+ 
 
     document.addEventListener("DOMContentLoaded", () => {
       // toggleClearButton();
@@ -270,14 +258,16 @@
   // Optional: scroll to top
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+</script>
 
 
 
 
+  <!-- ✅ Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.3/dist/umd/supabase.js"></script>
 
-  </script>
+<!-- ✅ Your App Logic -->
+<script src="script.js"></script>
 
-  <!-- 🔌 App Logic -->
-  <script defer src="script.js"></script>
 </body>
 </html>
