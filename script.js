@@ -121,7 +121,7 @@ function addTooltipsToVerseText(text) {
   return text.replace(/\b(\w+)\b/g, (match) => {
     const lower = match.toLowerCase();
     if (archaicWords[lower]) {
-      return `<span class="relative group inline-block whitespace-nowrap align-baseline">${match}<span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 z-50">${archaicWords[lower]}</span></span>`;
+      return `<span class="relative group inline-block whitespace-nowrap align-baseline tooltip-wrapper">${match}<span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 tooltip hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 z-50">${archaicWords[lower]}</span></span>`;
     }
     return match;
   });
@@ -821,4 +821,28 @@ window.toggleTopic = function(id) {
 // Call this on DOM load
 document.addEventListener("DOMContentLoaded", () => {
   loadPublicTopics();
+});
+
+
+
+
+
+
+let tooltipVisible = false;
+
+document.addEventListener("keydown", function (e) {
+  if (e.key.toLowerCase() === "t") {
+    tooltipVisible = !tooltipVisible;
+
+    const tooltips = document.querySelectorAll(".tooltip");
+    tooltips.forEach(tip => {
+      if (tooltipVisible) {
+        tip.classList.remove("hidden");
+        tip.classList.add("block");
+      } else {
+        tip.classList.remove("block");
+        tip.classList.add("hidden");
+      }
+    });
+  }
 });
