@@ -705,7 +705,7 @@ const verseList = Object.entries(grouped).map(([subtopic, verses]) => {
 
     container.innerHTML += `
       <div class="border border-gray-200 rounded p-4 bg-white">
-        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-blue-700 hover:underline">
+        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-gray-800 hover:text-sky-500">
           ${topic.title}
         </button>
         <ul id="topic-${topic.id}" class="ml-4 mt-2 list-disc text-sm hidden">
