@@ -803,14 +803,31 @@ function setupSelectionMenu() {
     // Show menu on verse click
     resultArea.addEventListener('click', (e) => {
         const clickedVerse = e.target.closest('.verse-line');
+        
         if (clickedVerse) {
             lastClickedVerseElement = clickedVerse;
             const rect = clickedVerse.getBoundingClientRect();
-            selectionMenu.style.top = `${window.scrollY + rect.bottom + 5}px`;
-            selectionMenu.style.left = `${window.scrollX + rect.left + (rect.width / 2) - (selectionMenu.offsetWidth / 2)}px`;
+            
+            // --- MODIFIED: Responsive Positioning Logic ---
             selectionMenu.classList.remove('hidden');
-            selectedRef.textContent = clickedVerse.dataset.verseRef;
+            
+            // On mobile, center the menu on the screen
+            if (window.innerWidth < 640) { 
+                selectionMenu.style.width = '90%'; // Use most of the screen width
+                selectionMenu.style.left = '50%';
+                selectionMenu.style.transform = 'translateX(-50%)';
+            } 
+            // On desktop, position it relative to the verse
+            else { 
+                selectionMenu.style.width = ''; // Let Tailwind's w-64 class apply
+                selectionMenu.style.left = `${window.scrollX + rect.left + (rect.width / 2) - (selectionMenu.offsetWidth / 2)}px`;
+                selectionMenu.style.transform = ''; // Reset transform
+            }
 
+            // Set top position for both
+            selectionMenu.style.top = `${window.scrollY + rect.bottom + 5}px`;
+            
+            selectedRef.textContent = clickedVerse.dataset.verseRef;
             const textSpan = clickedVerse.querySelector('.verse-text');
             const isHighlighted = textSpan && Array.from(textSpan.classList).some(c => c.startsWith('highlight-'));
             removeHighlightButton.classList.toggle('hidden', !isHighlighted);
@@ -823,6 +840,7 @@ function setupSelectionMenu() {
             selectionMenu.classList.add('hidden');
         }
     });
+    
 
     // --- Button Actions ---
 
