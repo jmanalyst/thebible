@@ -5,7 +5,7 @@ let lastSearchQuery = "";
 
 
 
-// ADD THIS NEW, CONSOLIDATED BLOCK
+// DOM Content
 
 document.addEventListener("DOMContentLoaded", () => {
     // Fetch Bible data first
@@ -45,8 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (lastSearchQuery) {
                 searchBible(lastSearchQuery);
             }
+
+            
         });
     });
+
+
+    setupSelectionMenu();
+    
 });
 
 // --- STATE MANAGEMENT (NEW) ---
@@ -290,7 +296,7 @@ function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
 
-// In script.js, replace the old openVersePicker function with this one.
+// openVersePicker function
 
 function openVersePicker() {
   const book = document.getElementById("book").value.trim();
@@ -366,9 +372,9 @@ function getVerse() {
   }
 }
 
-// In script.js, replace your existing getChapter function with this one
 
-// In script.js, replace your existing getChapter function with this one
+
+//  getChapter function 
 
 async function getChapter(book, chapter) {
   const result = document.getElementById("result");
@@ -385,7 +391,9 @@ async function getChapter(book, chapter) {
   );
 
   if (verses.length > 0) {
-    const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${addTooltipsToVerseText(cleanVerseText(v.text))}`).join("\n\n");
+    const verseList = verses.map(v => 
+      `<p class="verse-line p-2 -m-2 rounded-md" data-verse-ref="${book} ${chapter}:${v.verse}"><strong>${v.verse}</strong>. <span class="verse-text">${addTooltipsToVerseText(cleanVerseText(v.text))}</span></p>`
+    ).join("");
 
     result.innerHTML = `
     
@@ -393,7 +401,7 @@ async function getChapter(book, chapter) {
         <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
       </div>
       <div class="max-w-prose mx-auto px-4 text-left text-lg leading-relaxed font-serif whitespace-pre-wrap">
-      ${verses.map(v => `<strong>${v.verse}</strong>. ${addTooltipsToVerseText(cleanVerseText(v.text))}`).join("\n\n")}
+      ${verseList}
       </div>
       
       <div class="fixed inset-y-0 left-0 flex items-center z-50">
@@ -407,7 +415,11 @@ async function getChapter(book, chapter) {
            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </div>
+      
     `;
+
+    applySavedHighlights();
+    
   } else {
     result.innerHTML = "Chapter not found.";
   }
@@ -623,7 +635,7 @@ const supabase = window.supabase.createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvdGpxcHdnc3Jzd2Fha2h3dHpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwOTM1NjgsImV4cCI6MjA2ODY2OTU2OH0.z2B4Uss7ar1ccRxXOO0oZ3bqpW7Nka5xwbAZh_RRo7s'
   );
 
-// In script.js
+// Load Public Topics
 
 async function loadPublicTopics() {
   const { data: topics } = await supabase.from('topics').select('*');
@@ -728,7 +740,7 @@ document.addEventListener("keydown", function (e) {
 
 
 
-// In script.js, you can add this anywhere
+// DARK MODE
 
 function toggleDarkMode() {
     // toggle icons inside button
@@ -757,4 +769,168 @@ function toggleDarkMode() {
             localStorage.setItem('color-theme', 'dark');
         }
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// --- TEXT SELECTION MENU LOGIC ---
+
+
+
+function setupSelectionMenu() {
+    const resultArea = document.getElementById('result');
+    const selectionMenu = document.getElementById('selection-menu');
+    const copyButton = document.getElementById('copy-button');
+    const shareButton = document.getElementById('share-button');
+    const highlightColorButtons = document.getElementById('highlight-colors');
+    const removeHighlightButton = document.getElementById('remove-highlight-button');
+    const closeMenuButton = document.getElementById('close-menu-button');
+    const selectedRef = document.getElementById('selected-ref');
+
+    if (!resultArea || !selectionMenu) return;
+
+    let lastClickedVerseElement = null;
+
+    // Show menu on verse click
+    resultArea.addEventListener('click', (e) => {
+        const clickedVerse = e.target.closest('.verse-line');
+        if (clickedVerse) {
+            lastClickedVerseElement = clickedVerse;
+            const rect = clickedVerse.getBoundingClientRect();
+            selectionMenu.style.top = `${window.scrollY + rect.bottom + 5}px`;
+            selectionMenu.style.left = `${window.scrollX + rect.left + (rect.width / 2) - (selectionMenu.offsetWidth / 2)}px`;
+            selectionMenu.classList.remove('hidden');
+            selectedRef.textContent = clickedVerse.dataset.verseRef;
+
+            const textSpan = clickedVerse.querySelector('.verse-text');
+            const isHighlighted = textSpan && Array.from(textSpan.classList).some(c => c.startsWith('highlight-'));
+            removeHighlightButton.classList.toggle('hidden', !isHighlighted);
+        }
+    });
+
+    // Hide menu when clicking away
+    document.addEventListener('click', (e) => {
+        if (!selectionMenu.contains(e.target) && !e.target.closest('.verse-line')) {
+            selectionMenu.classList.add('hidden');
+        }
+    });
+
+    // --- Button Actions ---
+
+    // HIGHLIGHT BUTTONS
+    highlightColorButtons.addEventListener('click', (e) => {
+        if (e.target.dataset.color && lastClickedVerseElement) {
+            const color = e.target.dataset.color;
+            const textSpan = lastClickedVerseElement.querySelector('.verse-text');
+            if (!textSpan) return;
+            textSpan.classList.remove('highlight-yellow', 'highlight-blue', 'highlight-green', 'highlight-pink');
+            textSpan.classList.add(`highlight-${color}`);
+            const verseRef = lastClickedVerseElement.dataset.verseRef;
+            const highlights = getSavedHighlights();
+            highlights[verseRef] = color;
+            saveHighlights(highlights);
+            selectionMenu.classList.add('hidden');
+        }
+    });
+
+    // REMOVE HIGHLIGHT BUTTON
+    removeHighlightButton.addEventListener('click', () => {
+        if (lastClickedVerseElement) {
+            const textSpan = lastClickedVerseElement.querySelector('.verse-text');
+            if (textSpan) {
+                textSpan.classList.remove('highlight-yellow', 'highlight-blue', 'highlight-green', 'highlight-pink');
+                const verseRef = lastClickedVerseElement.dataset.verseRef;
+                const highlights = getSavedHighlights();
+                delete highlights[verseRef];
+                saveHighlights(highlights);
+            }
+            selectionMenu.classList.add('hidden');
+        }
+    });
+
+    
+
+    // COPY BUTTON
+    copyButton.addEventListener('click', () => {
+        if (!lastClickedVerseElement) return;
+        const verseText = lastClickedVerseElement.querySelector('.verse-text').textContent;
+        const verseRef = lastClickedVerseElement.dataset.verseRef;
+        const textToCopy = `"${verseText}" - ${verseRef}`;
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            alert("Copied to clipboard!");
+            selectionMenu.classList.add('hidden');
+        });
+    });
+
+    // SHARE BUTTON
+    shareButton.addEventListener('click', () => {
+        if (!lastClickedVerseElement) return;
+        const verseText = lastClickedVerseElement.querySelector('.verse-text').textContent;
+        const verseRef = lastClickedVerseElement.dataset.verseRef;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: `Verse from The Living Word`,
+                text: `"${verseText}" - ${verseRef}`,
+            });
+        } else {
+            alert("Web Share API not supported by your browser.");
+        }
+        selectionMenu.classList.add('hidden');
+    });
+    
+    // CLOSE BUTTON
+    closeMenuButton.addEventListener('click', () => {
+        selectionMenu.classList.add('hidden');
+    });
+}
+
+
+
+
+
+// Add these two functions to script.js
+
+function getSavedHighlights() {
+    // Gets the highlights from localStorage, or returns an empty object if none exist.
+    const highlightsJSON = localStorage.getItem('bibleAppHighlights');
+    return highlightsJSON ? JSON.parse(highlightsJSON) : {};
+}
+
+function saveHighlights(highlights) {
+    // Saves the updated highlights object back to localStorage.
+    localStorage.setItem('bibleAppHighlights', JSON.stringify(highlights));
+}
+
+
+
+
+
+// Add this new function to script.js
+
+function applySavedHighlights() {
+    const highlights = getSavedHighlights();
+    if (Object.keys(highlights).length === 0) return; // No highlights to apply
+
+    const verseElements = document.querySelectorAll('.verse-line');
+    verseElements.forEach(verseEl => {
+        const verseRef = verseEl.dataset.verseRef;
+        if (highlights[verseRef]) {
+            const color = highlights[verseRef];
+            const textSpan = verseEl.querySelector('.verse-text');
+            if (textSpan) {
+                textSpan.classList.add(`highlight-${color}`);
+            }
+        }
+    });
 }
