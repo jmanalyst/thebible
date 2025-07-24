@@ -7,6 +7,12 @@
 let bibleData = [];
 let lastSearchQuery = "";
 
+
+
+let savedBook = localStorage.getItem("currentBook");
+let savedChapter = localStorage.getItem("currentChapter");
+let savedVerse = localStorage.getItem("currentVerse");
+
 function cleanVerseText(text) {
   return text
     .replace(/\[|\]/g, '')       // remove square brackets [ ]
@@ -30,16 +36,37 @@ function cleanVerseText(text) {
 fetch('public/kjv.json')
   .then(res => res.json())
   .then(data => {
-    // Check and load the actual verses
+    // ✅ Load Bible data
     if (Array.isArray(data)) {
       bibleData = data;
-      console.log("Bible data loaded:", bibleData.length, "verses (raw array)");
     } else if (Array.isArray(data.verses)) {
       bibleData = data.verses;
-      console.log("Bible data loaded:", bibleData.length, "verses (from .verses key)");
     } else {
       console.error("Unexpected data format in kjv.json:", data);
     }
+
+    // ✅ Restore state ONLY after data is loaded
+    const savedBook = localStorage.getItem("currentBook");
+    const savedChapter = localStorage.getItem("currentChapter");
+    const savedVerse = localStorage.getItem("currentVerse");
+
+   const lastView = localStorage.getItem("lastView");
+
+if (lastView === "scripture" && savedBook && savedChapter) {
+  document.getElementById("book").value = savedBook;
+  document.getElementById("chapter").value = savedChapter;
+  document.getElementById("verse").value = savedVerse || "";
+  updatePillLabels();
+  showResultArea();
+
+  if (savedVerse) {
+    getVerseFromRef(savedBook, parseInt(savedChapter), parseInt(savedVerse));
+  } else {
+    getChapter(savedBook, parseInt(savedChapter));
+  }
+} else {
+  goHome(); // default to home view
+}
   })
   .catch(err => {
     console.error("Failed to load kjv.json:", err);
@@ -213,6 +240,10 @@ function getVerseFromRef(book, chapter, verse) {
   currentBook = book;
   currentChapter = chapter;
   currentVerse = verse;
+  
+  localStorage.setItem("currentBook", book);
+localStorage.setItem("currentChapter", chapter);
+localStorage.setItem("currentVerse", verse);
 
   const result = document.getElementById("result");
   result.innerHTML = "Loading...";
@@ -442,6 +473,10 @@ async function getChapter(book, chapter) {
   currentChapter = parseInt(chapter);
   currentVerse = 0; // reset verse
 
+  localStorage.setItem("currentBook", book);
+localStorage.setItem("currentChapter", chapter);
+localStorage.removeItem("currentVerse"); // reset if showing full chapter
+
   // Filter verses from local JSON
   const verses = bibleData.filter(v =>
     v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
@@ -548,9 +583,11 @@ function prevChapter() {
 
 
 function showResultArea() {
+  localStorage.setItem("lastView", "scripture");
+
   document.getElementById("welcome-section").classList.add("hidden");
   document.getElementById("result-section").classList.remove("hidden");
-  document.getElementById("topics-wrapper").classList.add("hidden"); // 👈 HIDE topics
+  document.getElementById("topics-wrapper").classList.add("hidden");
 }
 
 
@@ -558,11 +595,12 @@ function showResultArea() {
 
 
 function goHome() {
+  localStorage.setItem("lastView", "home");
+
   document.getElementById("welcome-section").classList.remove("hidden");
   document.getElementById("result-section").classList.add("hidden");
-  document.getElementById("topics-wrapper").classList.remove("hidden"); // 👈 SHOW topics
+  document.getElementById("topics-wrapper").classList.remove("hidden");
 
-  // Optional: Reset input fields
   document.getElementById("book").value = "";
   document.getElementById("chapter").value = "";
   document.getElementById("verse").value = "";
@@ -859,6 +897,25 @@ window.toggleTopic = function(id) {
 // Call this on DOM load
 document.addEventListener("DOMContentLoaded", () => {
   loadPublicTopics();
+
+  const lastView = localStorage.getItem("lastView");
+
+  if (lastView === "scripture" && savedBook && savedChapter) {
+    document.getElementById("book").value = savedBook;
+    document.getElementById("chapter").value = savedChapter;
+    document.getElementById("verse").value = savedVerse || "";
+
+    updatePillLabels();
+    showResultArea();
+
+    if (savedVerse) {
+      getVerseFromRef(savedBook, parseInt(savedChapter), parseInt(savedVerse));
+    } else {
+      getChapter(savedBook, parseInt(savedChapter));
+    }
+  } else {
+    goHome(); // default to homepage
+  }
 });
 
 
