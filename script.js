@@ -397,13 +397,13 @@ async function getChapter(book, chapter) {
       </div>
       
       <div class="fixed inset-y-0 left-0 flex items-center z-50">
-        <button onclick="prevChapter()" class="ml-1 lg:ml-4 bg-theme-surface border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+        <button onclick="prevChapter()" class="ml-1 lg:ml-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
       </div>
 
       <div class="fixed inset-y-0 right-0 flex items-center z-50">
-        <button onclick="nextChapter()" class="mr-1 lg:mr-4 bg-theme-surface border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+        <button onclick="nextChapter()" class="mr-1 lg:mr-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </div>
