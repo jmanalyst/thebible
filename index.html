@@ -26,6 +26,32 @@
 </head>
 <body class="bg-white text-black font-sans">
 
+
+ <script>
+  (function() {
+    try {
+      const savedState = JSON.parse(localStorage.getItem('bibleAppState'));
+      if (savedState && savedState.isResultVisible) {
+        const style = document.createElement('style');
+        style.id = 'flicker-fix-style'; // <-- ADD THIS LINE
+        style.textContent = `
+          #welcome-section, #topics-wrapper, footer {
+            display: none;
+          }
+          #result-section {
+            display: block;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    } catch (e) {
+      console.warn('Could not parse saved state on initial load:', e);
+    }
+  })();
+</script>
+
+
+
 <input type="hidden" id="book">
 <input type="hidden" id="chapter">
 <input type="hidden" id="verse">
@@ -107,10 +133,10 @@
     <p class="text-base sm:text-1xl lg:text-2xl text-gray-100 mb-6 max-w-xl mx-auto text-center">
       Search, read, and reflect on verses from the Bible.
     </p>
-    <a href="#search" onclick="loadGenesis1()"
-      class="inline-block bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition text-sm">
-      Start Reading 
-    </a>
+<a href="javascript:void(0);" onclick="loadGenesis1()"
+  class="inline-block bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition text-sm">
+  Start Reading 
+</a>
   </div>
 </section>
 
@@ -289,6 +315,7 @@
     document.getElementById("book").value = "Genesis";
     document.getElementById("chapter").value = "1";
     document.getElementById("verse").value = ""; // optional: leave blank to load full chapter
+    window.scrollTo({ top: 0, behavior: "smooth"})
 
     // Update pill display text
     document.getElementById("pill-book").textContent = "Genesis";
