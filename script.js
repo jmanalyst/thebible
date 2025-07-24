@@ -3,6 +3,52 @@
 let bibleData = [];
 let lastSearchQuery = "";
 
+
+
+// ADD THIS NEW, CONSOLIDATED BLOCK
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Fetch Bible data first
+    fetch('public/kjv.json')
+      .then(res => res.json())
+      .then(data => {
+        // Step 1: Check and load the Bible data
+        if (Array.isArray(data)) {
+          bibleData = data;
+        } else if (Array.isArray(data.verses)) {
+          bibleData = data.verses;
+        } else {
+          console.error("Unexpected data format in kjv.json:", data);
+          return; // Stop if data is bad
+        }
+        console.log("Bible data loaded:", bibleData.length, "verses.");
+
+        // Step 2: Now that data is ready, run other functions
+        restoreState();
+        loadPublicTopics(); // <-- Moved here to run after bibleData is loaded
+      })
+      .catch(err => {
+        console.error("Failed to load kjv.json:", err);
+      });
+
+    // Setup other event listeners
+    document.getElementById("verse").addEventListener("click", openVersePicker);
+
+    document.getElementById("search-form").addEventListener("submit", function (e) {
+        e.preventDefault(); 
+        const query = document.getElementById("searchQuery").value;
+        searchBible(query);
+    });
+
+    document.querySelectorAll('input[name="filter"]').forEach(radio => {
+        radio.addEventListener("change", () => {
+            if (lastSearchQuery) {
+                searchBible(lastSearchQuery);
+            }
+        });
+    });
+});
+
 // --- STATE MANAGEMENT (NEW) ---
 // Saves the current view (book, chapter, verse, results) to localStorage.
 function saveState() {
@@ -84,25 +130,7 @@ function cleanVerseText(text) {
     .trim();
 }
 
-fetch('public/kjv.json')
-  .then(res => res.json())
-  .then(data => {
-    // Check and load the actual verses
-    if (Array.isArray(data)) {
-      bibleData = data;
-      console.log("Bible data loaded:", bibleData.length, "verses (raw array)");
-    } else if (Array.isArray(data.verses)) {
-      bibleData = data.verses;
-      console.log("Bible data loaded:", bibleData.length, "verses (from .verses key)");
-    } else {
-      console.error("Unexpected data format in kjv.json:", data);
-    }
-    // MODIFIED: Call restoreState() after the bible data is loaded.
-    restoreState();
-  })
-  .catch(err => {
-    console.error("Failed to load kjv.json:", err);
-  });
+
 
 const archaicWords = {
   "thee": "you", "thou": "you", "thy": "your", "thine": "yours", "ye": "you (plural)", "hath": "has", "doeth": "does", "didst": "did", "art": "are", "unto": "to", "wherefore": "why", "whence": "from where", "wilt": "will", "shalt": "shall", "hast": "have", "saith": "says", "cometh": "comes", "goeth": "goes", "behold": "look / see", "verily": "truly", "peradventure": "perhaps", "begat": "fathered / had children", "hearken": "listen", "fain": "gladly / eagerly", "anon": "soon / shortly", "abase": "humble / bring low", "abide": "remain / live", "aforetime": "formerly", "alway": "always", "bewray": "betray", "beseech": "beg / urgently request", "bosom": "chest / heart", "concupiscence": "lust / strong desire", "countenance": "face / expression", "divers": "various / different", "draught": "toilet / waste place", "ensample": "example", "eschew": "avoid", "haply": "perhaps / by chance", "holpen": "helped", "janitor": "doorkeeper", "kinsman": "relative", "letteth": "restrains / holds back", "meat": "food (not just meat)", "nay": "no", "nigh": "near", "quickened": "made alive", "raiment": "clothing", "rent": "tore", "shewed": "showed", "shew": "show", "sojourn": "stay temporarily", "sore": "greatly / severely", "staves": "staffs / sticks", "suffer": "allow", "sundry": "various", "tarry": "stay / wait", "wist": "knew", "wot": "know", "woe": "sorrow / distress", "wouldest": "would", "yonder": "over there", "thereof": "of it / from it (depending on context)"
@@ -311,23 +339,7 @@ function closeVersePicker() {
   document.getElementById("verse-picker").classList.add("hidden");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("verse").addEventListener("click", openVersePicker);
 
-  document.getElementById("search-form").addEventListener("submit", function (e) {
-    e.preventDefault(); 
-    const query = document.getElementById("searchQuery").value;
-    searchBible(query);
-  });
-
-  document.querySelectorAll('input[name="filter"]').forEach(radio => {
-    radio.addEventListener("change", () => {
-      if (lastSearchQuery) {
-        searchBible(lastSearchQuery);
-      }
-    });
-  });
-});
 
 function getVerse() {
   const book = document.getElementById("book").value.trim();
