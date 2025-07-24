@@ -307,6 +307,8 @@ function openChapterPicker() {
       closeChapterPicker();
       updatePillLabels(); 
       maybeAutoFetch();
+      // scroll back to the top
+      window.scrollTo({ top: 0, behavior: "smooth" });
     };
     grid.appendChild(btn);
   }
@@ -360,6 +362,9 @@ function openVersePicker() {
       closeVersePicker();
       updatePillLabels();
       maybeAutoFetch();
+     window.scrollTo({ top: 0, behavior: "smooth" });
+      
+      
     };
     grid.appendChild(btn);
   });
