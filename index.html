@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>The Living Word Online</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
   <script src="https://cdn.tailwindcss.com"></script>
 
   <script>
@@ -29,22 +34,27 @@
     :root {
       --color-bg: #ffffff;
       --color-surface: #f9fafb; /* Gray 50 */
-      --color-text: #1f2937;
-      --color-subtle-text: #6b7280;
+      --color-text: #000000;
+      --color-subtle-text: #000000;
       --color-accent: #3b82f6;
       --color-accent-hover: #2563eb;
       --color-border: #e5e7eb;
     }
     .dark {
       --color-bg: #000000;
-      --color-surface: #212121;
+      --color-surface: #000000;
       --color-text: #f9fafb;
       --color-subtle-text: #e0e0e0;
       --color-accent: #60a5fa;
       --color-accent-hover: #3b82f6;
-      --color-border: #464646;
+      --color-border: #303030;
     }
     html { scroll-behavior: smooth; }
+
+     /* Add this new rule to apply the Inter font */
+    #result {
+      font-family: 'Inter', sans-serif;
+    }
   </style>
 
   <script>
