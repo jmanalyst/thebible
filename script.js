@@ -57,6 +57,15 @@ function restoreState() {
     document.getElementById("result").innerHTML = savedState.resultHTML;
     showResultArea();
   }
+
+
+
+  
+
+
+
+
+
 }
 
 // --- STATE MANAGEMENT (NEW) ---
@@ -253,6 +262,8 @@ function closeChapterPicker() {
   document.getElementById("chapter-picker").classList.add("hidden");
 }
 
+// In script.js, replace the old openVersePicker function with this one.
+
 function openVersePicker() {
   const book = document.getElementById("book").value.trim();
   const chapter = document.getElementById("chapter").value.trim();
@@ -266,13 +277,14 @@ function openVersePicker() {
   title.textContent = `Select Verse (${book} ${chapter})`;
   modal.classList.remove("hidden");
 
+  // Get verses from local data
   const verses = bibleData.filter(v =>
     v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
     v.chapter === parseInt(chapter)
   );
 
   if (verses.length === 0) {
-    grid.innerHTML = "<div class='col-span-6 text-gray-500'>No verses found</div>";
+    grid.innerHTML = "<div class='col-span-7 text-theme-subtle-text'>No verses found</div>";
     return;
   }
 
@@ -280,7 +292,10 @@ function openVersePicker() {
   verses.forEach(v => {
     const btn = document.createElement("button");
     btn.textContent = v.verse;
-    btn.className = "bg-gray-100 hover:bg-green-200 rounded px-2 py-1";
+    
+    // MODIFIED: Replaced old classes with new theme-aware classes
+    btn.className = "bg-theme-surface hover:bg-theme-accent hover:text-white rounded px-2 py-1";
+    
     btn.onclick = () => {
       document.getElementById("verse").value = v.verse;
       closeVersePicker();
@@ -339,6 +354,10 @@ function getVerse() {
   }
 }
 
+// In script.js, replace your existing getChapter function with this one
+
+// In script.js, replace your existing getChapter function with this one
+
 async function getChapter(book, chapter) {
   const result = document.getElementById("result");
   result.innerHTML = "Loading...";
@@ -346,7 +365,7 @@ async function getChapter(book, chapter) {
 
   currentBook = book;
   currentChapter = parseInt(chapter);
-  currentVerse = 0;
+  currentVerse = 0; // reset verse
 
   const verses = bibleData.filter(v =>
     v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
@@ -357,27 +376,30 @@ async function getChapter(book, chapter) {
     const verseList = verses.map(v => `<strong>${v.verse}</strong>. ${addTooltipsToVerseText(cleanVerseText(v.text))}`).join("\n\n");
 
     result.innerHTML = `
-      <div class="max-w-prose mx-auto px-4 text-center">
+    
+      <div class="max-w-sm mx-auto px-4 text-center">
         <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
       </div>
       <div class="max-w-prose mx-auto px-4 text-left text-lg leading-relaxed font-serif whitespace-pre-wrap">
       ${verses.map(v => `<strong>${v.verse}</strong>. ${addTooltipsToVerseText(cleanVerseText(v.text))}`).join("\n\n")}
       </div>
+      
       <div class="fixed inset-y-0 left-0 flex items-center z-50">
-      <button onclick="prevChapter()" class="ml-1 bg-transparent bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100 transition duration-200">
-        ← 
-      </button>
+        <button onclick="prevChapter()" class="ml-1 lg:ml-4 bg-theme-surface border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
       </div>
+
       <div class="fixed inset-y-0 right-0 flex items-center z-50">
-      <button onclick="nextChapter()" class="mr-1 bg-transparent bg-white border shadow rounded-full px-2 py-1 text-sm hover:bg-gray-100 transition duration-200">
-         →
-      </button>
+        <button onclick="nextChapter()" class="mr-1 lg:mr-4 bg-theme-surface border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
       </div>
     `;
   } else {
     result.innerHTML = "Chapter not found.";
   }
-  // MODIFIED: Save state after rendering the chapter.
+  
   saveState();
 }
 
@@ -589,11 +611,16 @@ const supabase = window.supabase.createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvdGpxcHdnc3Jzd2Fha2h3dHpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwOTM1NjgsImV4cCI6MjA2ODY2OTU2OH0.z2B4Uss7ar1ccRxXOO0oZ3bqpW7Nka5xwbAZh_RRo7s'
   );
 
+// In script.js
+
 async function loadPublicTopics() {
   const { data: topics } = await supabase.from('topics').select('*');
   const { data: verses } = await supabase.from('topic_verses').select('*');
+
   const container = document.getElementById("topics-display");
+  if (!container) return;
   container.innerHTML = "";
+
   topics.forEach(topic => {
     const topicVerses = verses.filter(v => v.topic_id === topic.id);
     const grouped = topicVerses.reduce((acc, v) => {
@@ -602,6 +629,7 @@ async function loadPublicTopics() {
       acc[key].push(v);
       return acc;
     }, {});
+
     const verseList = Object.entries(grouped).map(([subtopic, verses]) => {
       const items = verses.map(v => {
         const match = bibleData.find(b =>
@@ -612,18 +640,21 @@ async function loadPublicTopics() {
         const verseText = match ? cleanVerseText(match.text) : "(verse not found)";
         return `<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${verseText}</li>`;
       }).join("");
+
       const isPlaceholder = !subtopic || subtopic.trim().toLowerCase() === "misc";
+
       return isPlaceholder
         ? `<ul class="list-disc pl-5">${items}</ul>`
-        : `<h4 class="mt-4 font-semibold text-lg">${subtopic}</h4><ul class="list-disc pl-5">${items}</ul>`;
+        : `<h4 class="mt-4 font-semibold text-lg text-theme-text">${subtopic}</h4><ul class="list-disc pl-5">${items}</ul>`;
     }).join("");
+
     container.innerHTML += `
-      <div class="border border-gray-200 rounded p-4 bg-white">
-        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-gray-800 hover:text-sky-500 flex justify-between items-center">
+      <div class="border border-theme-border rounded p-4 bg-theme-surface">
+        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-theme-text hover:text-theme-accent flex justify-between items-center">
           <span>${topic.title}</span>
           <span id="toggle-icon-${topic.id}" class="text-xl">+</span>
         </button>
-        <ul id="topic-${topic.id}" class="ml-4 mt-2 list-disc text-sm hidden overflow-hidden transition-all duration-300 ease-in-out">
+        <ul id="topic-${topic.id}" class="ml-4 mt-2 list-disc text-sm text-theme-subtle-text hidden overflow-hidden transition-all duration-300 ease-in-out">
           ${verseList}
         </ul>
       </div>
@@ -679,3 +710,39 @@ document.addEventListener("keydown", function (e) {
     });
   }
 });
+
+
+
+
+
+
+// In script.js, you can add this anywhere
+
+function toggleDarkMode() {
+    // toggle icons inside button
+    const sunIcon = document.getElementById('theme-toggle-sun-icon');
+    const moonIcon = document.getElementById('theme-toggle-moon-icon');
+    sunIcon.classList.toggle('hidden');
+    moonIcon.classList.toggle('hidden');
+
+    // if set via local storage previously
+    if (localStorage.getItem('color-theme')) {
+        if (localStorage.getItem('color-theme') === 'light') {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        }
+
+    // if NOT set via local storage previously
+    } else {
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        }
+    }
+}

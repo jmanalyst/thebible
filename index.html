@@ -1,371 +1,260 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>The Living Word Online</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'theme-bg': 'var(--color-bg)',
+            'theme-surface': 'var(--color-surface)',
+            'theme-text': 'var(--color-text)',
+            'theme-accent': 'var(--color-accent)',
+            'theme-accent-hover': 'var(--color-accent-hover)',
+            'theme-subtle-text': 'var(--color-subtle-text)',
+            'theme-border': 'var(--color-border)',
+          },
+        },
+      },
+    }
+  </script>
+
   <style>
-    #custom-dropdown {
-      display: none;
-      overflow-y: auto;
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f9fafb; /* Gray 50 */
+      --color-text: #1f2937;
+      --color-subtle-text: #6b7280;
+      --color-accent: #3b82f6;
+      --color-accent-hover: #2563eb;
+      --color-border: #e5e7eb;
     }
-    #custom-dropdown.active {
-      display: block;
+    .dark {
+      --color-bg: #000000;
+      --color-surface: #212121;
+      --color-text: #f9fafb;
+      --color-subtle-text: #e0e0e0;
+      --color-accent: #60a5fa;
+      --color-accent-hover: #3b82f6;
+      --color-border: #464646;
     }
-    html {
-      scroll-behavior: smooth;
-    }
-
-
-
-
-
-
+    html { scroll-behavior: smooth; }
   </style>
+
+  <script>
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark')
+    }
+  </script>
+
+
+
+
+
+
+
+
+
+
+
 </head>
-<body class="bg-white text-black font-sans">
 
+<body class="bg-theme-bg text-theme-text font-sans">
 
- <script>
+<script>
   (function() {
     try {
       const savedState = JSON.parse(localStorage.getItem('bibleAppState'));
       if (savedState && savedState.isResultVisible) {
         const style = document.createElement('style');
-        style.id = 'flicker-fix-style'; // <-- ADD THIS LINE
-        style.textContent = `
-          #welcome-section, #topics-wrapper, footer {
-            display: none;
-          }
-          #result-section {
-            display: block;
-          }
-        `;
+        style.id = 'flicker-fix-style';
+        style.textContent = ` #welcome-section, #topics-wrapper, footer { display: none; } #result-section { display: block; } `;
         document.head.appendChild(style);
       }
-    } catch (e) {
-      console.warn('Could not parse saved state on initial load:', e);
-    }
+    } catch (e) { console.warn('Could not parse saved state on initial load:', e); }
   })();
 </script>
-
-
 
 <input type="hidden" id="book">
 <input type="hidden" id="chapter">
 <input type="hidden" id="verse">
 
-<!-- Sticky Header Bar -->
-<div id="search" class="sticky top-0 bg-white z-10 border-b shadow-sm px-4 py-2">
+<div id="search" class="sticky top-0 bg-theme-surface z-10 shadow-sm px-4 py-2">
   <div class="relative flex items-center justify-between max-w-5xl mx-auto">
 
-    <!-- Left: Pills -->
     <div class="flex space-x-2 shrink-0">
-      <button onclick="openBookPicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
+      <button onclick="openBookPicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
         <span id="pill-book">Book</span>
       </button>
-      <button onclick="openChapterPicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
+      <button onclick="openChapterPicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
         <span id="pill-chapter">Chapter</span>
       </button>
-      <button onclick="openVersePicker()" class="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold">
+      <button onclick="openVersePicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
         <span id="pill-verse">Verse</span>
       </button>
     </div>
 
-    <!-- Center: Bible App Title -->
-    <!-- <div class="absolute md:left-1/2 md:-translate-x-1/2 right-10 md:right-auto z-10 whitespace-nowrap">
-      <button onclick="goHome()" class="text-base sm:text-lg font-bold text-black hover:text-blue-600 transition">
-         The Living Word
-      </button>
-    </div> -->
+    <div class="flex items-center space-x-4">
+        <button onclick="goHome()" class="text-base sm:text-lg font-medium text-theme-text hover:text-theme-subtle-text transition">
+            Home
+        </button>
 
+        <button onclick="toggleDarkMode()" id="theme-toggle" type="button" class="text-theme-text hover:text-theme-subtle-text text-xl">
+            <svg id="theme-toggle-sun-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 10.607a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            <svg id="theme-toggle-moon-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+        <script>
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.getElementById('theme-toggle-moon-icon').classList.remove('hidden');
+            } else {
+                document.getElementById('theme-toggle-sun-icon').classList.remove('hidden');
+            }
+        </script>
 
-    <div class="absolute right-10 z-10 whitespace-nowrap">
-  <button onclick="goHome()" class="text-base sm:text-lg font-medium text-black hover:text-gray-400 transition">
-    Home
-  </button>
-</div>
-
-
-    <!-- Right: Icons -->
-    <div class="flex items-center space-x-3 text-xl shrink-0" id="search-container">
-      <!-- 🔍 -->
-      <button onclick="toggleSearchDropdown()" title="Search">
-        <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-      </button>
-
-      <!-- Hidden Dropdown -->
-      <div id="search-dropdown" class="absolute top-12 right-0 w-72 bg-white shadow-lg rounded-lg p-4 hidden z-50">
-        <!-- Search Form -->
-        <form id="search-form" class="flex gap-2 mb-2">
-          <input id="searchQuery" type="text" placeholder="Search keywords or phrases..."
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring focus:border-blue-400" />
-          <button type="submit" class="bg-black text-white px-4 py-2 rounded text-sm hover:bg-gray-800">Search</button>
-        </form>
-
-        <!-- Filters -->
-        <div class="flex flex-col gap-1 text-sm">
-          <label><input type="radio" name="filter" value="all" checked> All</label>
-          <label><input type="radio" name="filter" value="ot"> Old Testament</label>
-          <label><input type="radio" name="filter" value="nt"> New Testament</label>
-          <label><input type="radio" name="filter" value="book"> Current Book</label>
+        <div class="relative" id="search-container">
+            <button onclick="toggleSearchDropdown()" title="Search">
+                <svg class="w-6 h-6 text-theme-text" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            </button>
+            <div id="search-dropdown" class="absolute top-12 right-0 w-72 bg-theme-surface shadow-lg rounded-lg p-4 hidden z-50">
+                <form id="search-form" class="flex gap-2 mb-2">
+                    <input id="searchQuery" type="text" placeholder="Search..." class="w-full border border-theme-border rounded px-3 py-2 text-sm bg-theme-bg text-theme-text focus:outline-none focus:ring focus:border-theme-accent" />
+                    <button type="submit" class="bg-theme-text text-theme-bg px-4 py-2 rounded text-sm">Search</button>
+                </form>
+                <div class="flex flex-col gap-1 text-sm text-theme-subtle-text">
+                    <label><input type="radio" name="filter" value="all" checked> All</label>
+                    <label><input type="radio" name="filter" value="ot"> Old Testament</label>
+                    <label><input type="radio" name="filter" value="nt"> New Testament</label>
+                    <label><input type="radio" name="filter" value="book"> Current Book</label>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
 
-
-
-  <!--  Welcome Section -->
-  <section id="welcome-section" class="relative min-h-screen flex flex-col justify-center items-center text-center px-4 pt-24 bg-cover bg-center bg-no-repeat" style="background-image: url('public/hero.jpeg');">
-  <!-- Overlay -->
-  <div class="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
-
-  <!-- Content Remind me to fix z-0 is i need to--> 
+<section id="welcome-section" class="relative min-h-screen flex flex-col justify-center items-center text-center px-4 pt-24 bg-cover bg-center bg-no-repeat" style="background-image: url('public/hero.jpeg');">
+  <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"></div>
   <div class="relative z-0"> 
     <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 text-gray-100">The Living Word Online</h1>
-    <p class="text-base sm:text-1xl lg:text-2xl text-gray-100 mb-6 max-w-xl mx-auto text-center">
-      Search, read, and reflect on verses from the Bible.
-    </p>
-<a href="javascript:void(0);" onclick="loadGenesis1()"
-  class="inline-block bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition text-sm">
-  Start Reading 
-</a>
+    <p class="text-base sm:text-1xl lg:text-2xl text-gray-100 mb-6 max-w-xl mx-auto text-center">Search, read, and reflect on verses from the Bible.</p>
+    <a href="javascript:void(0);" onclick="loadGenesis1()" class="inline-block bg-gray-100 text-gray-900 px-6 py-3 rounded hover:bg-gray-200 transition text-sm">Start Reading</a>
   </div>
 </section>
 
-  <!-- Results -->
-  <div id="result-section" class="max-w-prose mx-auto px-4 py-6 hidden">
-    <div id="result" class="text-base leading-relaxed whitespace-pre-wrap pb-24"></div>
-  </div>
+<div id="result-section" class="max-w-prose mx-auto px-4 py-6 hidden">
+  <div id="result" class="text-base leading-relaxed whitespace-pre-wrap pb-24"></div>
+</div>
 
-<!-- Chapter Picker Modal -->
 <div id="chapter-picker" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
-  <div class="bg-white rounded-lg p-4 max-w-xs w-full shadow-lg">
+  <div class="bg-theme-surface rounded-lg p-4 max-w-xs w-full shadow-lg">
     <div class="text-center mb-2 font-semibold text-lg" id="chapter-picker-title">Select Chapter</div>
     <div class="overflow-y-auto max-h-96">
       <div id="chapter-grid" class="grid grid-cols-7 gap-2 text-center text-sm"></div>
     </div>
-    <button onclick="closeChapterPicker()" class="mt-4 w-full text-sm text-gray-700 py-1 border rounded hover:bg-gray-100">Cancel</button>
+    <button onclick="closeChapterPicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>
   </div>
 </div>
-
-
-
-
-
-<!-- Verse Picker Modal -->
 <div id="verse-picker" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
-  <div class="bg-white rounded-lg p-4 max-w-xs w-full shadow-lg">
+  <div class="bg-theme-surface rounded-lg p-4 max-w-xs w-full shadow-lg">
     <div class="text-center mb-2 font-semibold text-lg" id="verse-picker-title">Select Verse</div>
-
-    <!-- Scrollable grid like chapter picker -->
     <div class="overflow-y-auto max-h-96">
-      <div id="verse-grid" class="grid grid-cols-7 gap-2 text-center text-sm">
-        <!-- Verses will be dynamically added here -->
-      </div>
+      <div id="verse-grid" class="grid grid-cols-7 gap-2 text-center text-sm"></div>
     </div>
-
-    <button onclick="closeVersePicker()" class="mt-4 w-full text-sm text-gray-700 py-1 border rounded hover:bg-gray-100">Cancel</button>
+    <button onclick="closeVersePicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>
   </div>
 </div>
-
-
-
-
-<!-- Book Picker Modal -->
 <div id="book-picker" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
-  <div class="bg-white rounded-lg p-4 max-w-md w-full shadow-lg max-h-[90vh] overflow-y-auto">
+  <div class="bg-theme-surface rounded-lg p-4 max-w-md w-full shadow-lg max-h-[90vh] overflow-y-auto">
     <div class="text-center mb-2 font-semibold text-lg">Select Book</div>
-
     <div class="mb-4">
       <div class="text-sm font-semibold mb-1">Old Testament</div>
       <div id="old-testament" class="grid grid-cols-6 gap-2 text-center text-sm"></div>
     </div>
-
     <div>
       <div class="text-sm font-semibold mb-1">New Testament</div>
       <div id="new-testament" class="grid grid-cols-6 gap-2 text-center text-sm"></div>
     </div>
-
-    <button onclick="closeBookPicker()" class="mt-4 w-full text-sm text-gray-700 py-1 border rounded hover:bg-gray-100">Cancel</button>
+    <button onclick="closeBookPicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>
   </div>
 </div>
-
-
-
-
 
 <div id="topics-wrapper" class="block">
   <section id="topics-section" class="max-w-4xl mx-auto px-4 py-8">
     <h2 class="text-2xl font-bold mb-4"> Bible Topics</h2>
-    <div id="topics-display" class="space-y-4">
-      <!-- Topics will be injected here -->
-    </div>
+    <div id="topics-display" class="space-y-4"></div>
   </section>
 </div>
 
-
-
-<!-- Footer -->
-<footer class="bg-gray-50 border-t mt-12 text-sm text-gray-700">
-  <div class="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-    <!-- Left -->
-    <div>
-      <h3 class="text-black font-semibold text-base mb-2">The Living Word</h3>
-      <p class="max-w-sm">
-        Encouraging one another to grow in our relationship with God.
-      </p>
-    </div>
-
-    <!-- Middle: Ministry -->
-    <div>
-      <!-- <h4 class="text-black font-semibold mb-2">Ministry</h4> -->
-      <!-- <ul class="space-y-1"> -->
-        <!-- <li><a href="#" class="hover:underline">About</a></li> -->
-        <!-- <li><a href="#" class="hover:underline">Volunteer</a></li> -->
-        <!-- <li><a href="#" class="hover:underline">Blog</a></li> -->
-        <!-- <li><a href="#" class="hover:underline">Press</a></li> -->
-      </ul>
-    </div>
-
-    <!-- Right: Links -->
-    <div>
-      <!-- <h4 class="text-black font-semibold mb-2">Useful Links</h4> -->
-      <ul class="space-y-1">
-        <!-- <li><a href="#" class="hover:underline">Bible Versions</a></li> -->
-        <!-- <li><a href="#" class="hover:underline">Audio Bibles</a></li> -->
-        <!-- <li><a href="#" class="hover:underline">Verse of the Day</a></li> -->
-        <!-- <li><a href="#" class="hover:underline">Help</a></li> -->
-      </ul>
-    </div>
+<footer class="bg-theme-surface border-t border-theme-border mt-12 text-sm text-theme-subtle-text">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <h3 class="text-theme-text font-semibold text-base mb-2">The Living Word</h3>
+    <p class="max-w-sm">Encouraging one another to grow in our relationship with God.</p>
   </div>
-
-  <!-- Bottom Bar -->
-  <div class="border-t mt-8 pt-6 pb-8 px-4 text-center text-xs text-gray-500 flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto space-y-2 md:space-y-0">
+  <div class="border-t border-theme-border mt-8 pt-6 pb-8 px-4 text-center text-xs flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto space-y-2 md:space-y-0">
     <p>&copy; 2025 The Living Word. All rights reserved. | <a href="#" class="hover:underline">Privacy Policy</a> | <a href="#" class="hover:underline">Terms</a></p>
-
     <div class="flex space-x-4">
-      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/facebook.svg" alt="Facebook" class="w-4 h-4"></a>
-      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/twitter.svg" alt="Twitter" class="w-4 h-4"></a>
-      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/instagram.svg" alt="Instagram" class="w-4 h-4"></a>
-      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/youtube.svg" alt="YouTube" class="w-4 h-4"></a>
+      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/facebook.svg" alt="Facebook" class="w-4 h-4 filter dark:invert"></a>
+      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/twitter.svg" alt="Twitter" class="w-4 h-4 filter dark:invert"></a>
+      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/instagram.svg" alt="Instagram" class="w-4 h-4 filter dark:invert"></a>
+      <a href="#"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/youtube.svg" alt="YouTube" class="w-4 h-4 filter dark:invert"></a>
     </div>
   </div>
 </footer>
 
-
-
-
-
-
-
-  <script>
- 
-
-    document.addEventListener("DOMContentLoaded", () => {
-      // toggleClearButton();
-    });
-
-    // Show result section, hide welcome
+<script>
+    document.addEventListener("DOMContentLoaded", () => {});
     function showResultArea() {
       document.getElementById("welcome-section").classList.add("hidden");
       document.getElementById("result-section").classList.remove("hidden");
     }
-
-    // Patch global to make available for script.js
     window.showResultArea = showResultArea;
-
-    
-  function toggleSearchDropdown() {
-    const dropdown = document.getElementById("search-dropdown");
-    dropdown.classList.toggle("hidden");
-  }
-
-
-
-
     function toggleSearchDropdown() {
-    const dropdown = document.getElementById("search-dropdown");
-    dropdown.classList.toggle("hidden");
-  }
-
-  // Close dropdown when clicking outside
-  document.addEventListener("click", function (event) {
-    const dropdown = document.getElementById("search-dropdown");
-    const container = document.getElementById("search-container");
-
-    // If the dropdown is open and click is outside
-    if (!container.contains(event.target)) {
-      dropdown.classList.add("hidden");
+      const dropdown = document.getElementById("search-dropdown");
+      dropdown.classList.toggle("hidden");
     }
-  });
-
-
-
-
+    document.addEventListener("click", function (event) {
+      const dropdown = document.getElementById("search-dropdown");
+      const container = document.getElementById("search-container");
+      if (container && !container.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.add("hidden");
+      }
+    });
     function loadGenesis1() {
-    // Set Book, Chapter, Verse inputs
-    document.getElementById("book").value = "Genesis";
-    document.getElementById("chapter").value = "1";
-    document.getElementById("verse").value = ""; // optional: leave blank to load full chapter
-    window.scrollTo({ top: 0, behavior: "smooth"})
-
-    // Update pill display text
-    document.getElementById("pill-book").textContent = "Genesis";
-    document.getElementById("pill-chapter").textContent = "1";
-    document.getElementById("pill-verse").textContent = "Verse"; // reset
-
-    // Call your fetch/display logic (assuming you have maybeAutoFetch or similar)
-    if (typeof maybeAutoFetch === "function") {
-      maybeAutoFetch();
+      document.getElementById("book").value = "Genesis";
+      document.getElementById("chapter").value = "1";
+      document.getElementById("verse").value = "";
+      window.scrollTo({ top: 0, behavior: "smooth"})
+      document.getElementById("pill-book").textContent = "Genesis";
+      document.getElementById("pill-chapter").textContent = "1";
+      document.getElementById("pill-verse").textContent = "Verse";
+      if (typeof maybeAutoFetch === "function") {
+        maybeAutoFetch();
+      }
+      showResultArea();
     }
-
-    // Show result area
-    showResultArea();
-  }
-
-
-
-  function goHome() {
-  // Clear inputs and go back to welcome section
-  document.getElementById("welcome-section").classList.remove("hidden");
-  document.getElementById("result-section").classList.add("hidden");
-
-  // Optional: clear any previous state
-  document.getElementById("book").value = "";
-  document.getElementById("chapter").value = "";
-  document.getElementById("verse").value = "";
-
-  document.getElementById("pill-book").textContent = "Book";
-  document.getElementById("pill-chapter").textContent = "Chapter";
-  document.getElementById("pill-verse").textContent = "Verse";
-
-  // Optional: scroll to top
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
+    function goHome() {
+        if (typeof window.goHomeApp === 'function') {
+            window.goHomeApp();
+        } else {
+            // Fallback for original function if script.js hasn't loaded
+            document.getElementById("welcome-section").classList.remove("hidden");
+            document.getElementById("result-section").classList.add("hidden");
+            document.getElementById("topics-wrapper").classList.remove("hidden");
+            const flickerFixStyle = document.getElementById('flicker-fix-style');
+            if (flickerFixStyle) flickerFixStyle.remove();
+        }
+    }
 </script>
-
-
-
-
-  <!--  Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.3/dist/umd/supabase.js"></script>
-
-<!-- App Logic -->
 <script src="script.js"></script>
-
-
-
-
-
-
 
 </body>
 </html>
