@@ -33,7 +33,7 @@
  <style>
         :root {
       --color-bg: #ffffff;
-      --color-surface: #f9fafb; /* Gray 50 */
+      --color-surface: #ffffff; /* Gray 50 */
       --color-text: #000000;
       --color-subtle-text: #000000;
       --color-accent: #3b82f6;
@@ -47,7 +47,7 @@
       --color-subtle-text: #e0e0e0;
       --color-accent: #60a5fa;
       --color-accent-hover: #3b82f6;
-      --color-border: #303030;
+      --color-border: #212121;
     }
     html { scroll-behavior: smooth; }
 
@@ -179,6 +179,12 @@
   <div id="result" class="text-base leading-relaxed whitespace-pre-wrap pb-24"></div>
 </div>
 
+<button id="search-close-button" onclick="closeSearch()" title="Close Search" class="hidden fixed top-20 right-4 lg:right-40 z-5 bg-theme-surface p-2 rounded-full shadow-lg text-theme-text hover:scale-110 transition">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+</button>
+
+
+
 <div id="chapter-picker" class="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 hidden">
   <div class="bg-theme-surface rounded-lg p-4 max-w-xs w-full shadow-lg">
     <div class="text-center mb-2 font-semibold text-lg" id="chapter-picker-title">Select Chapter</div>
@@ -226,7 +232,10 @@
 
 
 
-<div id="selection-menu" class="hidden absolute z-20 w-64 rounded-lg bg-theme-surface shadow-xl border border-theme-border text-theme-text">
+<div id="selection-menu" class="hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-20 w-96 h-75 rounded-3xl bg-theme-surface shadow-2xl border-theme-border text-theme-text">
+
+
+
     <div class="p-3 border-b border-theme-border">
         <div class="text-xs text-theme-subtle-text">Currently Selected:</div>
         <div id="selected-ref" class="text-sm font-semibold">Genesis 2:1 KJV</div>
