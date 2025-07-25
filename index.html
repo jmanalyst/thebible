@@ -91,12 +91,14 @@
 </style>
 
   <script>
-    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-    } else {
-        document.documentElement.classList.remove('dark')
-    }
-  </script>
+  // This will only enable dark mode if the user has explicitly chosen it before.
+  // Otherwise, it will always default to light mode.
+  if (localStorage.getItem('color-theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+  } else {
+      document.documentElement.classList.remove('dark');
+  }
+</script>
 
 
 
