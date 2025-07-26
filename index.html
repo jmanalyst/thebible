@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coming Soon</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #1f2937, #111827);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center h-screen text-white px-4">
+  <div class="text-center max-w-md w-full">
+    <!-- Logo -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold tracking-wide">🚀</h1>
+    </div>
+
+    <!-- Headline -->
+    <h2 class="text-xl sm:text-2xl mb-4 font-semibold">Coming soon</h2>
+
+    <!-- Countdown -->
+    <div id="countdown" class="flex justify-center space-x-4 text-lg font-mono mb-6">
+      <div><span id="days">00</span><div class="text-sm">Days</div></div>
+      <div><span id="hours">00</span><div class="text-sm">Hours</div></div>
+      <div><span id="minutes">00</span><div class="text-sm">Minutes</div></div>
+      <div><span id="seconds">00</span><div class="text-sm">Seconds</div></div>
+    </div>
+
+    <!-- Email Form -->
+    <form class="flex flex-col sm:flex-row items-center gap-2" onsubmit="event.preventDefault(); alert('Thanks! You’re on the list.')">
+      <input type="email" placeholder="Enter your email" required class="w-full px-4 py-2 rounded text-black" />
+      <button type="submit" class="bg-white text-black font-semibold px-4 py-2 rounded hover:bg-gray-200">Notify Me</button>
+    </form>
+
+    <!-- Footer -->
+    <p class="mt-6 text-sm text-gray-400">© 2025</p>
+  </div>
+
+  <!-- Countdown Script -->
+  <script>
+    const launchDate = new Date("2025-12-31T00:00:00").getTime();
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const diff = launchDate - now;
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      document.getElementById("days").innerText = days.toString().padStart(2, '0');
+      document.getElementById("hours").innerText = hours.toString().padStart(2, '0');
+      document.getElementById("minutes").innerText = minutes.toString().padStart(2, '0');
+      document.getElementById("seconds").innerText = seconds.toString().padStart(2, '0');
+    };
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>
