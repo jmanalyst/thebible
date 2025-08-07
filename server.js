@@ -1,9 +1,8 @@
-// server.js (updated)
-
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -39,14 +38,65 @@ const chapterCounts = books.reduce((acc, book) => {
   return acc;
 }, {});
 
-// Server-side text formatting functions
+// Archaic words for tooltip definitions
+const archaicWords = {
+  "thee": "you",
+  "thou": "you",
+  "thy": "your",
+  "thine": "yours/your",
+  "ye": "you (plural)",
+  "hath": "has",
+  "doeth": "does",
+  "didst": "did",
+  "art": "are",
+  "unto": "to",
+  "wherefore": "why",
+  "whence": "from where",
+  "wilt": "will",
+  "shalt": "shall",
+  "hast": "have",
+  "saith": "says",
+  "cometh": "comes",
+  "goeth": "goes",
+  "behold": "look / see",
+  "verily": "truly",
+  "peradventure": "perhaps",
+  "begat": "fathered / had children",
+  "hearken": "listen",
+  "fain": "gladly / eagerly"
+  // Add more as needed...
+};
+
+function addTooltipsToVerseText(text) {
+  return text.replace(/\b(\w+)\b/g, (match) => {
+    const lower = match.toLowerCase();
+    if (archaicWords[lower]) {
+      return `<span class="relative group inline whitespace-nowrap align-baseline tooltip-wrapper">${match}<span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 tooltip hidden group-hover:block bg-black text-white dark:bg-gray-100 dark:text-black text-xs rounded px-2 py-1 z-50">${archaicWords[lower]}</span></span>`;
+    }
+    return match;
+  });
+}
+
+function formatRedLetterText(text) {
+  let healedText = text.replace(/\u203A\s*\[(.*?)\]\s*\u2039/g, ' $1 ');
+  healedText = healedText.replace(/\[(.*?)\]\s*\u2039/g, '\u2039$1 ');
+  healedText = healedText.replace(/\u203A\s*\[(.*?)\]/g, ' $1\u203A');
+  let formattedText = healedText.replace(/\u2039/g, '<span style="color: var(--color-red-letter)">');
+  formattedText = formattedText.replace(/\u203A([,.:;?!])/g, '$1</span>');
+  formattedText = formattedText.replace(/\u203A/g, '</span>');
+  return formattedText;
+}
+
+function formatTranslatorText(text) {
+  return text.replace(/\[(.*?)\]/g, '<em>$1</em>');
+}
+
 function formatVerseText(text) {
-  // Simple server-side formatting - no tooltips needed since they're client-side
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/\[(.*?)\]/g, '<span class="red-letter">$1</span>')
-    .trim();
+  return addTooltipsToVerseText(
+    formatTranslatorText(
+      formatRedLetterText(text.trim())
+    )
+  );
 }
 
 function getDailyVerse() {
@@ -244,3 +294,19 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = app;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
