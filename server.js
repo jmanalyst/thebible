@@ -9,11 +9,26 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
 
-// Add security headers
+// Serve static files with proper MIME types
+app.use(express.static(path.join(__dirname), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html');
+        }
+    }
+}));
+
+// Add security headers (but not for static files)
 app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
+    // Don't add nosniff for JavaScript files
+    if (!req.path.endsWith('.js')) {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -80,6 +95,12 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
 // Serve the main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Ensure script-protected.js is served with correct MIME type
+app.get('/script-protected.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, 'script-protected.js'));
 });
 
 // For Vercel deployment
