@@ -1,7 +1,7 @@
 {
-  "name": "bible-study-app",
+  "name": "bible-study-protected",
   "version": "1.0.0",
-  "description": "Protected Bible Study Application",
+  "description": "Bible Study App with server-side protection",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -14,7 +14,7 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["bible", "study", "api"],
-  "author": "Your Name",
-  "license": "MIT"
+  "engines": {
+    "node": ">=18.0.0"
+  }
 } 

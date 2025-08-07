@@ -11,6 +11,19 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Vercel
+.vercel
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # Logs
 logs
 *.log
@@ -28,7 +41,6 @@ coverage/
 .nyc_output
 
 # Dependency directories
-node_modules/
 jspm_packages/
 
 # Optional npm cache directory
@@ -41,18 +53,4 @@ jspm_packages/
 *.tgz
 
 # Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# Vercel
-.vercel
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db 
+.yarn-integrity 

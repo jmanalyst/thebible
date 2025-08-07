@@ -9,26 +9,11 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname)));
 
-// Serve static files with proper MIME types
-app.use(express.static(path.join(__dirname), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-        } else if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        } else if (path.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html');
-        }
-    }
-}));
-
-// Add security headers (but not for static files)
+// Security headers
 app.use((req, res, next) => {
-    // Don't add nosniff for JavaScript files
-    if (!req.path.endsWith('.js')) {
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-    }
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -46,7 +31,7 @@ try {
     bibleData = [];
 }
 
-// Helper function to format verse text
+// Helper functions
 function formatVerseText(text) {
     return text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -54,31 +39,14 @@ function formatVerseText(text) {
         .replace(/\[(.*?)\]/g, '<span class="red-letter">$1</span>');
 }
 
-// Helper function to get daily verse
 function getDailyVerse() {
     const today = new Date();
     const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
     const verseIndex = dayOfYear % bibleData.length;
-    return bibleData[verseIndex];
+    return bibleData[verseIndex] || { text: "For God so loved the world...", verse: "John 3:16" };
 }
 
 // SERVER-SIDE RENDERING ENDPOINTS
-app.get('/api/verse-picker', (req, res) => {
-    const books = [...new Set(bibleData.map(v => v.book))];
-    let html = '<div class="verse-picker">';
-    html += '<h3>Select a Verse</h3>';
-    html += '<div class="book-list">';
-    books.forEach(book => {
-        html += `<div class="book-item" data-book="${book}">${book}</div>`;
-    });
-    html += '</div>';
-    html += '<div class="chapter-list" style="display: none;"></div>';
-    html += '<div class="verse-list" style="display: none;"></div>';
-    html += '</div>';
-    
-    res.json({ html });
-});
-
 app.get('/api/search-results', (req, res) => {
     const query = req.query.q;
     if (!query) {
@@ -106,75 +74,13 @@ app.get('/api/search-results', (req, res) => {
     res.json({ html });
 });
 
-app.get('/api/daily-devotion', (req, res) => {
-    const dailyVerse = getDailyVerse();
-    const html = `
-        <div class="daily-devotion">
-            <h3>Daily Devotion</h3>
-            <div class="devotion-verse">
-                <div class="verse-reference">${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}</div>
-                <div class="verse-text">${formatVerseText(dailyVerse.text)}</div>
-            </div>
-        </div>
-    `;
-    res.json({ html });
-});
-
-app.get('/api/chapter-content/:book/:chapter', (req, res) => {
-    const { book, chapter } = req.params;
-    
-    const verses = bibleData.filter(v => 
-        v.book.toLowerCase() === book.toLowerCase() &&
-        parseInt(v.chapter) === parseInt(chapter)
-    );
-    
-    if (verses.length === 0) {
-        return res.json({ html: '<p>Chapter not found.</p>' });
-    }
-    
-    let html = `<div class="chapter-content" data-book="${book}" data-chapter="${chapter}">`;
-    html += `<h2>${book} Chapter ${chapter}</h2>`;
-    verses.forEach(verse => {
-        html += `<div class="verse-item" data-verse="${verse.verse}">`;
-        html += `<span class="verse-number">${verse.verse}</span>`;
-        html += `<span class="verse-text">${formatVerseText(verse.text)}</span>`;
-        html += '</div>';
-    });
-    html += '</div>';
-    
-    res.json({ html });
-});
-
-app.get('/api/reader-interface', (req, res) => {
-    const books = [...new Set(bibleData.map(v => v.book))];
-    let html = '<div class="reader-interface">';
-    html += '<h2>Bible Reader</h2>';
-    html += '<div class="book-selector">';
-    html += '<label for="book-select">Select Book:</label>';
-    html += '<select id="book-select">';
-    html += '<option value="">Choose a book...</option>';
-    books.forEach(book => {
-        html += `<option value="${book}">${book}</option>`;
-    });
-    html += '</select>';
-    html += '</div>';
-    html += '<div class="chapter-selector" style="display: none;">';
-    html += '<label for="chapter-select">Select Chapter:</label>';
-    html += '<select id="chapter-select"></select>';
-    html += '</div>';
-    html += '<div id="chapter-content"></div>';
-    html += '</div>';
-    
-    res.json({ html });
-});
-
 app.get('/api/book-picker', (req, res) => {
     const books = [...new Set(bibleData.map(v => v.book))];
     let html = '<div class="book-picker">';
     html += '<h3>Select a Book</h3>';
     html += '<div class="book-grid">';
     books.forEach(book => {
-        html += `<div class="book-item" data-book="${book}" onclick="selectBook('${book}')">${book}</div>`;
+        html += `<div class="book-item" data-book="${book}">${book}</div>`;
     });
     html += '</div>';
     html += '<button onclick="closeBookPicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>';
@@ -198,7 +104,7 @@ app.get('/api/chapter-picker', (req, res) => {
     html += `<h3>Select a Chapter from ${book}</h3>`;
     html += '<div class="chapter-grid">';
     chapters.forEach(chapter => {
-        html += `<div class="chapter-item" data-chapter="${chapter}" onclick="selectChapter('${chapter}')">${chapter}</div>`;
+        html += `<div class="chapter-item" data-chapter="${chapter}">${chapter}</div>`;
     });
     html += '</div>';
     html += '<button onclick="closeChapterPicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>';
@@ -223,7 +129,7 @@ app.get('/api/verse-picker', (req, res) => {
     html += `<h3>Select a Verse from ${book} Chapter ${chapter}</h3>`;
     html += '<div class="verse-grid">';
     verses.forEach(verse => {
-        html += `<div class="verse-item" data-verse="${verse.verse}" onclick="selectVerse('${verse.verse}')">${verse.verse}</div>`;
+        html += `<div class="verse-item" data-verse="${verse.verse}">${verse.verse}</div>`;
     });
     html += '</div>';
     html += '<button onclick="closeVersePicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>';
@@ -253,66 +159,71 @@ app.get('/api/verse-content/:book/:chapter/:verse', (req, res) => {
     res.json({ html });
 });
 
-// Original API Routes (keep for compatibility)
-app.get('/api/bible-data', (req, res) => {
-    res.json({ verses: bibleData });
-});
-
-app.get('/api/search', (req, res) => {
-    const query = req.query.q;
-    if (!query) {
-        return res.status(400).json({ error: 'Query parameter required' });
-    }
-    
-    const results = bibleData.filter(verse => 
-        verse.text.toLowerCase().includes(query.toLowerCase()) ||
-        verse.book.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 50); // Limit results
-    
-    res.json({ results });
-});
-
-app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
-    const { book, chapter, verse } = req.params;
-    
-    const result = bibleData.find(v => 
-        v.book.toLowerCase() === book.toLowerCase() &&
-        parseInt(v.chapter) === parseInt(chapter) &&
-        parseInt(v.verse) === parseInt(verse)
-    );
-    
-    if (!result) {
-        return res.status(404).json({ error: 'Verse not found' });
-    }
-    
-    res.json(result);
-});
-
-app.get('/api/chapter/:book/:chapter', (req, res) => {
+app.get('/api/chapter-content/:book/:chapter', (req, res) => {
     const { book, chapter } = req.params;
     
-    const results = bibleData.filter(v => 
+    const verses = bibleData.filter(v => 
         v.book.toLowerCase() === book.toLowerCase() &&
         parseInt(v.chapter) === parseInt(chapter)
     );
     
-    res.json({ verses: results });
+    if (verses.length === 0) {
+        return res.json({ html: '<p>Chapter not found.</p>' });
+    }
+    
+    let html = `<div class="chapter-content" data-book="${book}" data-chapter="${chapter}">`;
+    html += `<h2>${book} Chapter ${chapter}</h2>`;
+    verses.forEach(verse => {
+        html += `<div class="verse-item" data-verse="${verse.verse}">`;
+        html += `<span class="verse-number">${verse.verse}</span>`;
+        html += `<span class="verse-text">${formatVerseText(verse.text)}</span>`;
+        html += '</div>';
+    });
+    html += '</div>';
+    
+    res.json({ html });
+});
+
+app.get('/api/daily-devotion', (req, res) => {
+    const dailyVerse = getDailyVerse();
+    const html = `
+        <div class="daily-devotion">
+            <h3>Daily Devotion</h3>
+            <div class="devotion-verse">
+                <div class="verse-reference">${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}</div>
+                <div class="verse-text">${formatVerseText(dailyVerse.text)}</div>
+            </div>
+        </div>
+    `;
+    res.json({ html });
+});
+
+app.get('/api/reader-interface', (req, res) => {
+    const books = [...new Set(bibleData.map(v => v.book))];
+    let html = '<div class="reader-interface">';
+    html += '<h2>Bible Reader</h2>';
+    html += '<div class="book-selector">';
+    html += '<label for="book-select">Select Book:</label>';
+    html += '<select id="book-select">';
+    html += '<option value="">Choose a book...</option>';
+    books.forEach(book => {
+        html += `<option value="${book}">${book}</option>`;
+    });
+    html += '</select>';
+    html += '</div>';
+    html += '<div class="chapter-selector" style="display: none;">';
+    html += '<label for="chapter-select">Select Chapter:</label>';
+    html += '<select id="chapter-select"></select>';
+    html += '</div>';
+    html += '<div id="chapter-content"></div>';
+    html += '</div>';
+    
+    res.json({ html });
 });
 
 // Serve the main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Ensure script files are served with correct MIME type
-app.get('/script-protected.js', (req, res) => {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.sendFile(path.join(__dirname, 'script-protected.js'));
-});
-
-app.get('/script-minimal.js', (req, res) => {
-    res.setHeader('Content-Type', 'application/javascript');
-    res.sendFile(path.join(__dirname, 'script-minimal.js'));
 });
 
 // For Vercel deployment
