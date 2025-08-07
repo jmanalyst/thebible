@@ -28,16 +28,13 @@
       "dest": "/server.js"
     },
     {
-      "src": "/script-protected.js",
-      "dest": "/script-protected.js"
+      "src": "/script.js",
+      "dest": "/script-obfuscated.js"
     },
     {
-      "src": "/style.css",
-      "dest": "/style.css"
-    },
-    {
-      "src": "/public/(.*)",
-      "dest": "/public/$1"
+      "src": "/public/kjv.json",
+      "dest": "/api/blocked",
+      "status": 403
     },
     {
       "src": "/(.*)",

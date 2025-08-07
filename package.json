@@ -1,7 +1,7 @@
 {
   "name": "bible-study-protected",
   "version": "1.0.0",
-  "description": "Bible Study App with server-side protection",
+  "description": "Bible Study App with protected data and obfuscated code",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
