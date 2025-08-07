@@ -129,10 +129,8 @@ async function getChapter(book, chapter) {
     }
 }
 
-// Essential functions from original script.js
-function cleanVerseText(text) {
-    return text.trim();
-}
+// Copy all the essential functions from your original script.js
+// These functions remain the same but work with the API data
 
 function saveState() {
     const currentBook = document.getElementById("book")?.value;
@@ -174,6 +172,10 @@ function clearState() {
     sessionStorage.removeItem('hasVisited');
 }
 
+function cleanVerseText(text) {
+    return text.trim();
+}
+
 function showResultArea() {
     document.getElementById("welcome-section").classList.add("hidden");
     document.getElementById("result-section").classList.remove("hidden");
@@ -200,11 +202,10 @@ function maybeAutoFetch() {
     }
 }
 
-// Bible Topics Function
+// Bible Topics Function - using sample data for now
 async function loadPublicTopics() {
     console.log("=== Loading Public Topics ===");
     
-    // For now, let's create some sample topics since we don't have Supabase set up
     const sampleTopics = [
         {
             id: 1,
@@ -334,17 +335,17 @@ function toggleDarkMode() {
     }
 }
 
-// Other essential functions
-function openVersePicker() { /* implementation */ }
-function closeVersePicker() { /* implementation */ }
-function getVerse() { /* implementation */ }
-function nextChapter() { /* implementation */ }
-function prevChapter() { /* implementation */ }
-function setupSelectionMenu() { /* implementation */ }
-function getSavedHighlights() { /* implementation */ }
-function saveHighlights(highlights) { /* implementation */ }
-function applySavedHighlights() { /* implementation */ }
-function closeSearch() { /* implementation */ }
+// Essential functions - you'll need to copy the rest from your original script.js
+function openVersePicker() { /* Copy from original script.js */ }
+function closeVersePicker() { /* Copy from original script.js */ }
+function getVerse() { /* Copy from original script.js */ }
+function nextChapter() { /* Copy from original script.js */ }
+function prevChapter() { /* Copy from original script.js */ }
+function setupSelectionMenu() { /* Copy from original script.js */ }
+function getSavedHighlights() { /* Copy from original script.js */ }
+function saveHighlights(highlights) { /* Copy from original script.js */ }
+function applySavedHighlights() { /* Copy from original script.js */ }
+function closeSearch() { /* Copy from original script.js */ }
 function handleUrlParameters() { return false; }
 function getDailyVerse() { 
     return {
@@ -354,9 +355,9 @@ function getDailyVerse() {
 }
 function formatRedLetterText(text) { return text; }
 function formatTranslatorText(text) { return text; }
-function updateMetadata(book, chapter) { /* implementation */ }
-function displaySearchResults(results, query) { /* implementation */ }
-function displayNoResults(query) { /* implementation */ }
+function updateMetadata(book, chapter) { /* Copy from original script.js */ }
+function displaySearchResults(results, query) { /* Copy from original script.js */ }
+function displayNoResults(query) { /* Copy from original script.js */ }
 
 // Make functions globally available
 window.goHomeApp = goHome;

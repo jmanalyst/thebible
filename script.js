@@ -797,11 +797,11 @@ function maybeAutoFetch() {
   }
 }
 
-// function updatePillLabels() {
-//   document.getElementById("pill-book").textContent = document.getElementById("book").value || "Book";
-//   document.getElementById("pill-chapter").textContent = document.getElementById("chapter").value || "Chapter";
-//   document.getElementById("pill-verse").textContent = document.getElementById("verse").value || "Verse";
-// }
+function updatePillLabels() {
+  document.getElementById("pill-book").textContent = document.getElementById("book").value || "Book";
+  document.getElementById("pill-chapter").textContent = document.getElementById("chapter").value || "Chapter";
+  document.getElementById("pill-verse").textContent = document.getElementById("verse").value || "Verse";
+}
 
 let recognition;
 function startListening() {
@@ -860,7 +860,7 @@ function parseSpeechInput(input) {
   document.getElementById("book").value = matchedBook;
   document.getElementById("chapter").value = chapter;
   document.getElementById("verse").value = verse;
-  // updatePillLabels();
+  updatePillLabels();
   showResultArea();
   getVerseFromRef(matchedBook, parseInt(chapter), parseInt(verse));
 }

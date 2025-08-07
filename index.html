@@ -186,7 +186,7 @@
   <div class="relative flex items-center justify-between max-w-5xl mx-auto">
 
     <div class="flex space-x-2 shrink-0">
-      <!-- <button onclick="openBookPicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
+      <button onclick="openBookPicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
         <span id="pill-book">Book</span>
       </button>
       <button onclick="openChapterPicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
@@ -194,7 +194,7 @@
       </button>
       <button onclick="openVersePicker()" class="bg-theme-border text-theme-text px-3 py-1 rounded-full text-sm font-semibold">
         <span id="pill-verse">Verse</span>
-      </button> -->
+      </button>
     </div>
 
     <div class="flex items-center space-x-4">
@@ -214,7 +214,7 @@
             }
         </script>
 
-        <!-- <div class="relative" id="search-container">
+        <div class="relative" id="search-container">
             <button onclick="toggleSearchDropdown()" title="Search">
                 <svg class="w-6 h-6 text-theme-text" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             </button>
@@ -230,24 +230,17 @@
                     <label><input type="radio" name="filter" value="book"> Current Book</label>
                 </div>
             </div>
-        </div> -->
+        </div>
     </div>
   </div>
 </div>
 
-<section id="welcome-section" class="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 pt-24 bg-gradient-to-br from-gray-800 to-gray-900">
+<section id="welcome-section" class="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 pt-24 bg-cover bg-center bg-no-repeat" style="background-image: url('public/hero.jpeg');">
   <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"></div>
   <div class="relative z-0"> 
     <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 text-gray-100">The Living Word Online</h1>
     <p class="text-base sm:text-1xl lg:text-2xl text-gray-100 mb-6 max-w-xl mx-auto text-center">Search, read, and reflect on verses from the Bible.</p>
     <a href="javascript:void(0);" onclick="loadGenesis1()" class="inline-block bg-gray-100 text-gray-900 px-6 py-3 rounded hover:bg-gray-200 transition text-sm">Coming Soon</a>
-    
-    <!-- Daily Devotion -->
-    <div class="mt-8 p-6 bg-white/10 backdrop-blur-sm rounded-lg max-w-md mx-auto">
-      <h3 class="text-lg font-semibold text-white mb-2">Daily Verse</h3>
-      <p id="devotion-text" class="text-gray-100 mb-2 italic">Loading...</p>
-      <p id="devotion-ref" class="text-gray-300 text-sm">– John 3:16</p>
-    </div>
   </div>
 </section>
 
