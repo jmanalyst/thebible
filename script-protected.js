@@ -239,4 +239,20 @@ function selectVerse(verse) {
 
 // This minimal script only handles UI interactions
 // All business logic, data processing, and complex functions are on the server
-// Users can see this code, but it doesn't contain your valuable logic 
+// Users can see this code, but it doesn't contain your valuable logic
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
