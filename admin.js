@@ -123,8 +123,12 @@ async function addMultipleVerses() {
 
 // Load Topics and Dropdowns
 async function loadTopics() {
+  console.log("Loading topics...");
   const { data: topics } = await supabase.from("topics").select("*").order("order", { ascending: true });
   const { data: verses } = await supabase.from("topic_verses").select("*");
+  const { data: subtopics } = await supabase.from("subtopics").select("*").order("order", { ascending: true });
+  
+  console.log("Loaded data:", { topics: topics?.length, verses: verses?.length, subtopics: subtopics?.length });
 
   const list = document.getElementById("topics-list");
   const topicSelect = document.getElementById("topic-select");
@@ -143,8 +147,19 @@ async function loadTopics() {
 
     const grouped = {};
     const topicVerses = verses.filter(v => v.topic_id === topic.id);
+    const topicSubtopics = subtopics?.filter(s => s.topic_id === topic.id) || [];
+    
+    // Group verses by subtopic, using subtopics table for names
     topicVerses.forEach(v => {
-      const key = v.subtopic?.trim() || "__misc__";
+      let key = v.subtopic?.trim() || "__misc__";
+      
+      // If this subtopic exists in the subtopics table, use that name
+      // Also check if there's a subtopic with the same name (for renamed subtopics)
+      const subtopicData = topicSubtopics.find(s => s.title === v.subtopic);
+      if (subtopicData) {
+        key = subtopicData.title;
+      }
+      
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(v);
     });
@@ -244,19 +259,13 @@ document.querySelectorAll('.subtopics-container').forEach(container => {
           opt.value = title;
           opt.textContent = title;
           multiSubSelect.appendChild(opt);
-
-
-
-  
-
-
-
-
-          
         });
       }
     }
   };
+
+  // Setup rename dropdowns
+  setupRenameDropdowns();
 }
 
 
@@ -310,6 +319,145 @@ async function deleteTopic(topicId) {
   await supabase.from("subtopics").delete().eq("topic_id", topicId);
   await supabase.from("topics").delete().eq("id", topicId);
   loadTopics();
+}
+
+// Rename functionality
+function setupRenameDropdowns() {
+  const typeSelect = document.getElementById("rename-type-select");
+  const topicSelect = document.getElementById("rename-topic-select");
+  const subtopicSelect = document.getElementById("rename-subtopic-select");
+
+  typeSelect.onchange = async () => {
+    const type = typeSelect.value;
+    topicSelect.classList.add("hidden");
+    subtopicSelect.classList.add("hidden");
+
+    if (type === "topic") {
+      topicSelect.classList.remove("hidden");
+      await populateRenameTopicSelect();
+    } else if (type === "subtopic") {
+      subtopicSelect.classList.remove("hidden");
+      await populateRenameSubtopicSelect();
+    }
+  };
+
+  topicSelect.onchange = () => {
+    const selectedOption = topicSelect.options[topicSelect.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      document.getElementById("new-name").value = selectedOption.text;
+    }
+  };
+
+  subtopicSelect.onchange = () => {
+    const selectedOption = subtopicSelect.options[subtopicSelect.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      document.getElementById("new-name").value = selectedOption.text;
+    }
+  };
+}
+
+async function populateRenameTopicSelect() {
+  const { data: topics } = await supabase.from("topics").select("*").order("order", { ascending: true });
+  const select = document.getElementById("rename-topic-select");
+  
+  select.innerHTML = `<option value="">-- Select topic to rename --</option>`;
+  topics.forEach(topic => {
+    const option = document.createElement("option");
+    option.value = topic.id;
+    option.textContent = topic.title;
+    select.appendChild(option);
+  });
+}
+
+async function populateRenameSubtopicSelect() {
+  const { data: subtopics } = await supabase
+    .from("subtopics")
+    .select("id, title, topic_id")
+    .order("order", { ascending: true });
+  
+  const { data: topics } = await supabase.from("topics").select("id, title").order("order", { ascending: true });
+  const select = document.getElementById("rename-subtopic-select");
+  
+  select.innerHTML = `<option value="">-- Select subtopic to rename --</option>`;
+  
+  if (subtopics) {
+    subtopics.forEach(subtopic => {
+      const topic = topics.find(t => t.id === subtopic.topic_id);
+      const option = document.createElement("option");
+      option.value = subtopic.id;
+      option.textContent = `${subtopic.title} (in ${topic?.title || 'Unknown Topic'})`;
+      select.appendChild(option);
+    });
+  }
+}
+
+async function renameItem() {
+  const type = document.getElementById("rename-type-select").value;
+  const newName = document.getElementById("new-name").value.trim();
+  
+  if (!type || !newName) {
+    return alert("Please select a type and enter a new name.");
+  }
+
+  if (type === "topic") {
+    const topicId = document.getElementById("rename-topic-select").value;
+    if (!topicId) return alert("Please select a topic to rename.");
+    
+    const { error } = await supabase
+      .from("topics")
+      .update({ title: newName })
+      .eq("id", topicId);
+    
+    if (error) return alert("Error: " + error.message);
+    
+  } else if (type === "subtopic") {
+    const subtopicId = document.getElementById("rename-subtopic-select").value;
+    if (!subtopicId) return alert("Please select a subtopic to rename.");
+    
+    // First get the current subtopic data before updating
+    const { data: currentSubtopic } = await supabase
+      .from("subtopics")
+      .select("topic_id, title")
+      .eq("id", subtopicId)
+      .single();
+    
+    if (!currentSubtopic) return alert("Subtopic not found.");
+    
+    // Update the subtopic title in the subtopics table
+    const { error: subtopicError } = await supabase
+      .from("subtopics")
+      .update({ title: newName })
+      .eq("id", subtopicId);
+    
+    if (subtopicError) return alert("Error: " + subtopicError.message);
+    
+    // Then update all verses that reference this subtopic using the old name
+    const { error: verseError } = await supabase
+      .from("topic_verses")
+      .update({ subtopic: newName })
+      .eq("topic_id", currentSubtopic.topic_id)
+      .eq("subtopic", currentSubtopic.title);
+    
+    if (verseError) return alert("Error updating verses: " + verseError.message);
+  }
+
+  // Clear form
+  document.getElementById("rename-type-select").value = "";
+  document.getElementById("rename-topic-select").classList.add("hidden");
+  document.getElementById("rename-subtopic-select").classList.add("hidden");
+  document.getElementById("new-name").value = "";
+  
+  alert("Successfully renamed!");
+  
+  // Force immediate refresh and then another after delay
+  console.log("Refreshing topics list after rename...");
+  await loadTopics();
+  
+  // Additional refresh after delay to ensure everything is updated
+  setTimeout(() => {
+    console.log("Second refresh after rename...");
+    loadTopics();
+  }, 1000);
 }
 
 // Auth state handlers
