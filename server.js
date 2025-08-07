@@ -168,6 +168,91 @@ app.get('/api/reader-interface', (req, res) => {
     res.json({ html });
 });
 
+app.get('/api/book-picker', (req, res) => {
+    const books = [...new Set(bibleData.map(v => v.book))];
+    let html = '<div class="book-picker">';
+    html += '<h3>Select a Book</h3>';
+    html += '<div class="book-grid">';
+    books.forEach(book => {
+        html += `<div class="book-item" data-book="${book}" onclick="selectBook('${book}')">${book}</div>`;
+    });
+    html += '</div>';
+    html += '<button onclick="closeBookPicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>';
+    html += '</div>';
+    
+    res.json({ html });
+});
+
+app.get('/api/chapter-picker', (req, res) => {
+    const book = req.query.book;
+    if (!book) {
+        return res.json({ html: '<p>No book selected</p>' });
+    }
+    
+    const chapters = [...new Set(bibleData
+        .filter(v => v.book.toLowerCase() === book.toLowerCase())
+        .map(v => parseInt(v.chapter))
+    )].sort((a, b) => a - b);
+    
+    let html = '<div class="chapter-picker">';
+    html += `<h3>Select a Chapter from ${book}</h3>`;
+    html += '<div class="chapter-grid">';
+    chapters.forEach(chapter => {
+        html += `<div class="chapter-item" data-chapter="${chapter}" onclick="selectChapter('${chapter}')">${chapter}</div>`;
+    });
+    html += '</div>';
+    html += '<button onclick="closeChapterPicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>';
+    html += '</div>';
+    
+    res.json({ html });
+});
+
+app.get('/api/verse-picker', (req, res) => {
+    const book = req.query.book;
+    const chapter = req.query.chapter;
+    
+    if (!book || !chapter) {
+        return res.json({ html: '<p>Please select a book and chapter first</p>' });
+    }
+    
+    const verses = bibleData
+        .filter(v => v.book.toLowerCase() === book.toLowerCase() && parseInt(v.chapter) === parseInt(chapter))
+        .sort((a, b) => parseInt(a.verse) - parseInt(b.verse));
+    
+    let html = '<div class="verse-picker">';
+    html += `<h3>Select a Verse from ${book} Chapter ${chapter}</h3>`;
+    html += '<div class="verse-grid">';
+    verses.forEach(verse => {
+        html += `<div class="verse-item" data-verse="${verse.verse}" onclick="selectVerse('${verse.verse}')">${verse.verse}</div>`;
+    });
+    html += '</div>';
+    html += '<button onclick="closeVersePicker()" class="mt-4 w-full text-sm text-theme-subtle-text py-1 border border-theme-border rounded hover:bg-theme-border">Cancel</button>';
+    html += '</div>';
+    
+    res.json({ html });
+});
+
+app.get('/api/verse-content/:book/:chapter/:verse', (req, res) => {
+    const { book, chapter, verse } = req.params;
+    
+    const result = bibleData.find(v => 
+        v.book.toLowerCase() === book.toLowerCase() &&
+        parseInt(v.chapter) === parseInt(chapter) &&
+        parseInt(v.verse) === parseInt(verse)
+    );
+    
+    if (!result) {
+        return res.json({ html: '<p>Verse not found</p>' });
+    }
+    
+    let html = '<div class="verse-content">';
+    html += `<h2>${book} ${chapter}:${verse}</h2>`;
+    html += `<div class="verse-text">${formatVerseText(result.text)}</div>`;
+    html += '</div>';
+    
+    res.json({ html });
+});
+
 // Original API Routes (keep for compatibility)
 app.get('/api/bible-data', (req, res) => {
     res.json({ verses: bibleData });
@@ -219,10 +304,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Ensure script-protected.js is served with correct MIME type
+// Ensure script files are served with correct MIME type
 app.get('/script-protected.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.sendFile(path.join(__dirname, 'script-protected.js'));
+});
+
+app.get('/script-minimal.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, 'script-minimal.js'));
 });
 
 // For Vercel deployment
