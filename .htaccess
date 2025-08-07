@@ -1,0 +1,33 @@
+# Prevent direct access to sensitive files
+<Files "script.js">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "kjv.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "*.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Allow access only through the server
+<Files "index.html">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
+# Redirect all requests to index.html for SPA
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [QSA,L]
+
+# Security headers
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin" 
