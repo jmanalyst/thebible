@@ -235,12 +235,19 @@
   </div>
 </div>
 
-<section id="welcome-section" class="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 pt-24 bg-cover bg-center bg-no-repeat" style="background-image: url('public/hero.jpeg');">
+<section id="welcome-section" class="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 pt-24 bg-gradient-to-br from-gray-800 to-gray-900">
   <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"></div>
   <div class="relative z-0"> 
     <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 text-gray-100">The Living Word Online</h1>
     <p class="text-base sm:text-1xl lg:text-2xl text-gray-100 mb-6 max-w-xl mx-auto text-center">Search, read, and reflect on verses from the Bible.</p>
     <a href="javascript:void(0);" onclick="loadGenesis1()" class="inline-block bg-gray-100 text-gray-900 px-6 py-3 rounded hover:bg-gray-200 transition text-sm">Coming Soon</a>
+    
+    <!-- Daily Devotion -->
+    <div class="mt-8 p-6 bg-white/10 backdrop-blur-sm rounded-lg max-w-md mx-auto">
+      <h3 class="text-lg font-semibold text-white mb-2">Daily Verse</h3>
+      <p id="devotion-text" class="text-gray-100 mb-2 italic">Loading...</p>
+      <p id="devotion-ref" class="text-gray-300 text-sm">– John 3:16</p>
+    </div>
   </div>
 </section>
 

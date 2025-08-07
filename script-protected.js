@@ -129,46 +129,236 @@ async function getChapter(book, chapter) {
     }
 }
 
-// Include all your other functions here...
-// (Copy the rest of your original script.js functions)
+// Essential functions from original script.js
+function cleanVerseText(text) {
+    return text.trim();
+}
 
-// Placeholder for other functions - you'll need to copy them from your original script.js
-function saveState() { /* implementation */ }
-function restoreState() { /* implementation */ }
-function clearState() { /* implementation */ }
-function cleanVerseText(text) { /* implementation */ }
-function addTooltipsToVerseText(text) { /* implementation */ }
-function showPrevNextVerseButtons(ref) { /* implementation */ }
-function readFullChapter() { /* implementation */ }
-function nextVerse() { /* implementation */ }
-function prevVerse() { /* implementation */ }
-function openBookPicker() { /* implementation */ }
-function closeBookPicker() { /* implementation */ }
-function selectBook(book) { /* implementation */ }
-function openChapterPicker() { /* implementation */ }
-function closeChapterPicker() { /* implementation */ }
+function saveState() {
+    const currentBook = document.getElementById("book")?.value;
+    const currentChapter = document.getElementById("chapter")?.value;
+    const currentVerse = document.getElementById("verse")?.value;
+    
+    if (currentBook && currentChapter) {
+        sessionStorage.setItem('currentBook', currentBook);
+        sessionStorage.setItem('currentChapter', currentChapter);
+        sessionStorage.setItem('currentVerse', currentVerse || '');
+    }
+}
+
+function restoreState() {
+    const savedBook = sessionStorage.getItem('currentBook');
+    const savedChapter = sessionStorage.getItem('currentChapter');
+    const savedVerse = sessionStorage.getItem('currentVerse');
+    
+    if (savedBook && savedChapter) {
+        document.getElementById("book").value = savedBook;
+        document.getElementById("chapter").value = savedChapter;
+        document.getElementById("verse").value = savedVerse || '';
+        
+        // Update pill display
+        document.getElementById("pill-book").textContent = savedBook;
+        document.getElementById("pill-chapter").textContent = savedChapter;
+        document.getElementById("pill-verse").textContent = savedVerse || "Verse";
+        
+        // Load the content
+        maybeAutoFetch();
+        showResultArea();
+    }
+}
+
+function clearState() {
+    sessionStorage.removeItem('currentBook');
+    sessionStorage.removeItem('currentChapter');
+    sessionStorage.removeItem('currentVerse');
+    sessionStorage.removeItem('hasVisited');
+}
+
+function showResultArea() {
+    document.getElementById("welcome-section").classList.add("hidden");
+    document.getElementById("result-section").classList.remove("hidden");
+    document.getElementById("topics-wrapper").classList.add("hidden");
+}
+
+function goHome() {
+    document.getElementById("welcome-section").classList.remove("hidden");
+    document.getElementById("result-section").classList.add("hidden");
+    document.getElementById("topics-wrapper").classList.remove("hidden");
+}
+
+function maybeAutoFetch() {
+    const book = document.getElementById("book").value;
+    const chapter = document.getElementById("chapter").value;
+    const verse = document.getElementById("verse").value;
+    
+    if (book && chapter) {
+        if (verse) {
+            getVerse();
+        } else {
+            getChapter(book, chapter);
+        }
+    }
+}
+
+// Bible Topics Function
+async function loadPublicTopics() {
+    console.log("=== Loading Public Topics ===");
+    
+    // For now, let's create some sample topics since we don't have Supabase set up
+    const sampleTopics = [
+        {
+            id: 1,
+            title: "God's Love",
+            verses: [
+                { book: "John", chapter: 3, verse: 16, text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life." },
+                { book: "1 John", chapter: 4, verse: 8, text: "He that loveth not knoweth not God; for God is love." }
+            ]
+        },
+        {
+            id: 2,
+            title: "Faith",
+            verses: [
+                { book: "Hebrews", chapter: 11, verse: 1, text: "Now faith is the substance of things hoped for, the evidence of things not seen." },
+                { book: "Romans", chapter: 10, verse: 17, text: "So then faith cometh by hearing, and hearing by the word of God." }
+            ]
+        },
+        {
+            id: 3,
+            title: "Prayer",
+            verses: [
+                { book: "Matthew", chapter: 6, verse: 9, text: "After this manner therefore pray ye: Our Father which art in heaven, Hallowed be thy name." },
+                { book: "Philippians", chapter: 4, verse: 6, text: "Be careful for nothing; but in every thing by prayer and supplication with thanksgiving let your requests be made known unto God." }
+            ]
+        }
+    ];
+    
+    const container = document.getElementById("topics-display");
+    if (!container) {
+        console.error("Topics container not found!");
+        return;
+    }
+    container.innerHTML = "";
+
+    sampleTopics.forEach((topic) => {
+        const verseList = topic.verses.map(v => 
+            `<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${v.text}</li>`
+        ).join("");
+
+        const topicHTML = `
+            <div class="rounded p-4 bg-theme-surface">
+                <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-theme-text hover:text-theme-accent flex justify-between items-center">
+                    <span>${topic.title}</span>
+                    <span id="toggle-icon-${topic.id}" class="text-xl">+</span>
+                </button>
+                <div id="topic-${topic.id}" class="ml-4 mt-2 text-sm text-theme-subtle-text hidden overflow-hidden transition-all duration-300 ease-in-out">
+                    <ul class="list-disc pl-5">${verseList}</ul>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML += topicHTML;
+    });
+}
+
+// Topic toggle function
+window.toggleTopic = function(id) {
+    const el = document.getElementById("topic-" + id);
+    const icon = document.getElementById("toggle-icon-" + id);
+    
+    if (!el || !icon) return;
+    
+    const isCurrentlyHidden = el.classList.contains("hidden");
+    
+    if (isCurrentlyHidden) {
+        el.classList.remove("hidden");
+        el.style.maxHeight = "0px";
+        el.style.overflow = "hidden";
+        el.style.transition = "max-height 0.4s ease-out";
+        
+        const scrollHeight = el.scrollHeight;
+        requestAnimationFrame(() => {
+            el.style.maxHeight = scrollHeight + "px";
+        });
+        
+        icon.textContent = "−";
+        
+        setTimeout(() => {
+            el.style.maxHeight = "none";
+            el.style.overflow = "";
+            el.style.transition = "";
+        }, 400);
+    } else {
+        const currentHeight = el.scrollHeight;
+        el.style.maxHeight = currentHeight + "px";
+        el.style.overflow = "hidden";
+        el.style.transition = "max-height 0.4s ease-out";
+        
+        requestAnimationFrame(() => {
+            el.style.maxHeight = "0px";
+        });
+        
+        icon.textContent = "+";
+        
+        setTimeout(() => {
+            el.classList.add("hidden");
+            el.style.maxHeight = "";
+            el.style.overflow = "";
+            el.style.transition = "";
+        }, 400);
+    }
+};
+
+// Dark mode function
+function toggleDarkMode() {
+    const sunIcon = document.getElementById('theme-toggle-sun-icon');
+    const moonIcon = document.getElementById('theme-toggle-moon-icon');
+    sunIcon.classList.toggle('hidden');
+    moonIcon.classList.toggle('hidden');
+
+    if (localStorage.getItem('color-theme')) {
+        if (localStorage.getItem('color-theme') === 'light') {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        }
+    } else {
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        }
+    }
+}
+
+// Other essential functions
 function openVersePicker() { /* implementation */ }
 function closeVersePicker() { /* implementation */ }
 function getVerse() { /* implementation */ }
 function nextChapter() { /* implementation */ }
 function prevChapter() { /* implementation */ }
-function showResultArea() { /* implementation */ }
-function goHome() { /* implementation */ }
-function maybeAutoFetch() { /* implementation */ }
-function startListening() { /* implementation */ }
-function parseSpeechInput(input) { /* implementation */ }
-function toggleSearch() { /* implementation */ }
-function loadPublicTopics() { /* implementation */ }
-function toggleDarkMode() { /* implementation */ }
 function setupSelectionMenu() { /* implementation */ }
 function getSavedHighlights() { /* implementation */ }
 function saveHighlights(highlights) { /* implementation */ }
 function applySavedHighlights() { /* implementation */ }
 function closeSearch() { /* implementation */ }
-function handleUrlParameters() { /* implementation */ }
-function getDailyVerse() { /* implementation */ }
-function formatRedLetterText(text) { /* implementation */ }
-function formatTranslatorText(text) { /* implementation */ }
+function handleUrlParameters() { return false; }
+function getDailyVerse() { 
+    return {
+        text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life.",
+        verse: "John 3:16"
+    };
+}
+function formatRedLetterText(text) { return text; }
+function formatTranslatorText(text) { return text; }
 function updateMetadata(book, chapter) { /* implementation */ }
 function displaySearchResults(results, query) { /* implementation */ }
-function displayNoResults(query) { /* implementation */ } 
+function displayNoResults(query) { /* implementation */ }
+
+// Make functions globally available
+window.goHomeApp = goHome;
+window.showResultArea = showResultArea;
+window.toggleDarkMode = toggleDarkMode; 
