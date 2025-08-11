@@ -453,6 +453,10 @@ function prevVerse() {
 }
 
 function getVerseFromRef(book, chapter, verse) {
+  console.log('🔍 getVerseFromRef called with:', { book, chapter, verse });
+  console.log('🔍 bibleData length:', bibleData.length);
+  console.log('🔍 Looking for verses matching:', { book: book.toLowerCase(), chapter: parseInt(chapter) });
+  
   updateMetadata(book, chapter);
   currentBook = book;
   currentChapter = chapter;
@@ -463,12 +467,44 @@ function getVerseFromRef(book, chapter, verse) {
   showResultArea();
 
   // Get all verses in the chapter
-  const verses = bibleData.filter(v =>
-    v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
-    v.chapter === parseInt(chapter)
-  );
-
+  const verses = bibleData.filter(v => {
+    // Handle both "Psalm" and "Psalms" (and other similar cases)
+    const bookName = v.book_name ? v.book_name.toLowerCase() : '';
+    const searchBook = book.toLowerCase();
+    
+    // Check if book names match (including singular/plural variations)
+    const bookMatches = bookName === searchBook || 
+                       bookName === searchBook + 's' || 
+                       bookName === searchBook.replace(/s$/, '');
+    
+    return bookMatches && v.chapter === parseInt(chapter);
+  });
+  
+  console.log('🔍 Found verses:', verses.length);
+  console.log('🔍 First few verses:', verses.slice(0, 3));
+  
+  // Debug: Check what the actual data structure looks like
+  console.log('🔍 Sample Bible data entries:');
+  console.log('- First entry:', bibleData[0]);
+  console.log('- Looking for book_name:', book.toLowerCase());
+  console.log('- Looking for chapter:', parseInt(chapter));
+  
+  // Check if there are any Psalms at all
+  const allPsalms = bibleData.filter(v => v.book_name && v.book_name.toLowerCase().includes('psalm'));
+  console.log('🔍 All entries with "psalm" in book_name:', allPsalms.length);
+  if (allPsalms.length > 0) {
+    console.log('🔍 Sample Psalm entry:', allPsalms[0]);
+  }
+  
+  // Update meta tags for social sharing
   if (verses.length > 0) {
+    const selectedVerse = verses.find(v => v.verse === parseInt(verse));
+    if (selectedVerse) {
+      updateMetaTags(book, chapter, verse, selectedVerse.text);
+    } else {
+      updateMetaTags(book, chapter, null, null);
+    }
+    
     // Format all verses in the chapter
     const verseList = verses.map(v => {
       let processedText = formatRedLetterText(v.text);
@@ -696,6 +732,9 @@ async function getChapter(book, chapter) {
   );
 
    if (verses.length > 0) {
+    // Update meta tags for social sharing
+    updateMetaTags(book, chapter, null, null);
+    
     // MODIFIED: This block now has a safer, clearer text-formatting process
     const verseList = verses.map(v => {
       let processedText = formatRedLetterText(v.text);
@@ -847,6 +886,9 @@ function goHome() {
   
   // Clear state when going home
   clearState();
+  
+  // Reset meta tags to default when going home
+  updateMetaTags(null, null, null, null);
 }
 
 function maybeAutoFetch() {
@@ -965,7 +1007,12 @@ function searchBible(query) {
   );
   if (matches.length === 0) {
     result.innerHTML = `No verses found for "${query}".`;
+    // Update meta tags for search with no results
+    updateMetaTags(null, null, null, null);
   } else {
+    // Update meta tags for search results
+    const firstMatch = matches[0];
+    updateMetaTags(firstMatch.book_name, firstMatch.chapter, firstMatch.verse, firstMatch.text);
     const rendered = matches.map(v => {
       const regex = new RegExp(`(${query})`, 'gi');
       const highlighted = v.text.replace(regex, '<mark>$1</mark>');
@@ -1674,61 +1721,35 @@ function closeSearch() {
 // Add this entire new function to script.js
 
 function handleUrlParameters() {
-    const params = new URLSearchParams(window.location.search);
-    const book = params.get('book');
-    const chapter = params.get('chapter');
-    const verse = params.get('verse');
-    const verses = params.get('verses');
-
-    if (book && chapter) {
-        // If the URL has parameters, load the specified scripture
-        document.getElementById("book").value = book;
-        document.getElementById("chapter").value = chapter;
-        document.getElementById("verse").value = verse || "";
-
-        updatePillLabels();
-
-        if (verses) {
-            // Handle multiple verses selection
-            getChapter(book, chapter);
-            // After the chapter loads, we'll need to select the verses
-            setTimeout(() => {
-                const verseNumbers = verses.split(',').map(v => parseInt(v.trim()));
-                let firstSelectedVerse = null;
-                
-                verseNumbers.forEach(verseNum => {
-                    const verseElement = document.querySelector(`[data-verse="${verseNum}"]`);
-                    if (verseElement) {
-                        verseElement.classList.add('menu-selected');
-                        // Add to selectedVerses if the menu is set up
-                        if (window.selectedVerses) {
-                            window.selectedVerses.add(verseElement);
-                        }
-                        // Track the first verse for scrolling
-                        if (!firstSelectedVerse) {
-                            firstSelectedVerse = verseElement;
-                        }
-                    }
-                });
-                
-                // Scroll to the first selected verse with a slight delay to ensure rendering is complete
-                if (firstSelectedVerse) {
-                    setTimeout(() => {
-                        firstSelectedVerse.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'center' 
-                        });
-                    }, 50);
-                }
-            }, 100);
-        } else if (verse) {
-            getVerseFromRef(book, chapter, verse);
-        } else {
-            getChapter(book, chapter);
-        }
-        return true; // Indicate that a URL was handled
+  const urlParams = new URLSearchParams(window.location.search);
+  const book = urlParams.get('book');
+  const chapter = urlParams.get('chapter');
+  const verse = urlParams.get('verse');
+  
+  if (book && chapter) {
+    console.log('🔗 URL parameters detected:', { book, chapter, verse });
+    
+    // Set the input values
+    document.getElementById('book').value = book;
+    document.getElementById('chapter').value = chapter;
+    if (verse) {
+      document.getElementById('verse').value = verse;
     }
-    return false; // Indicate no URL was handled
+    
+    // Update pill labels
+    updatePillLabels();
+    
+    // Load the verse or chapter
+    if (verse) {
+      getVerseFromRef(book, chapter, verse);
+    } else {
+      getChapter(book, chapter);
+    }
+    
+    return true; // URL was handled
+  }
+  
+  return false; // No URL parameters
 }
 
 
@@ -1821,6 +1842,70 @@ function updateMetadata(book, chapter) {
         descriptionTag.setAttribute('content', descriptionContent);
     }
 }
+
+// Function to update Open Graph meta tags for social sharing
+function updateMetaTags(book, chapter, verse, verseText) {
+  const currentUrl = window.location.href;
+  const cleanedText = verseText ? cleanVerseText(verseText) : '';
+  
+  // Create a meaningful title
+  let title = `The Living Word Online`;
+  if (book && chapter) {
+    title = `${book} ${chapter}`;
+    if (verse) {
+      title += `:${verse}`;
+    }
+  }
+  
+  // Create a description with the verse text
+  let description = 'Search, read, and reflect on verses from the Bible.';
+  if (cleanedText) {
+    // Truncate verse text to fit in meta description (around 160 characters)
+    const maxLength = 140;
+    if (cleanedText.length > maxLength) {
+      description = cleanedText.substring(0, maxLength).trim() + '...';
+    } else {
+      description = cleanedText;
+    }
+  }
+  
+  // Update page title
+  document.title = title;
+  
+  // Update meta description
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute('content', description);
+  }
+  
+  // Update Open Graph tags
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  
+  if (ogTitle) ogTitle.setAttribute('content', title);
+  if (ogDescription) ogDescription.setAttribute('content', description);
+  if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+  
+  // Update Twitter Card tags
+  const twitterTitle = document.querySelector('meta[property="twitter:title"]');
+  const twitterDescription = document.querySelector('meta[property="twitter:description"]');
+  const twitterUrl = document.querySelector('meta[property="twitter:url"]');
+  
+  if (twitterTitle) twitterTitle.setAttribute('content', title);
+  if (twitterDescription) twitterDescription.setAttribute('content', description);
+  if (twitterUrl) twitterUrl.setAttribute('content', currentUrl);
+  
+  // Update canonical URL
+  const canonicalLink = document.querySelector('link[rel="canonical"]');
+  if (canonicalLink) {
+    canonicalLink.setAttribute('href', currentUrl);
+  }
+  
+
+}
+
+
 
 
 

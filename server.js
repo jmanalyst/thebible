@@ -325,6 +325,25 @@ function searchBible(query, filter = 'all', currentBook = '') {
   };
 }
 
+// Function to generate meta tags for a specific verse
+function generateVerseMetaTags(book, chapter, verse, verseText) {
+  const title = verse ? `${book} ${chapter}:${verse}` : `${book} ${chapter}`;
+  const description = verseText ? 
+    verseText.replace(/[^\w\s]/g, '').substring(0, 140) + '...' : 
+    `Read ${book} chapter ${chapter} from the Bible`;
+  
+  return {
+    title: `${title} | The Living Word Online`,
+    description: description,
+    ogTitle: title,
+    ogDescription: description,
+    ogUrl: `https://thelivingwordonline.com/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}`,
+    twitterTitle: title,
+    twitterDescription: description,
+    twitterUrl: `https://thelivingwordonline.com/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}`
+  };
+}
+
 // API Routes to protect kjv.json
 app.get('/api/bible-data', (req, res) => {
   res.json({ verses: bibleData });
@@ -416,6 +435,102 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
   });
   
   res.json({ verses: processedVerses });
+});
+
+// Route to serve Bible verses with pre-generated meta tags
+app.get('/:book/:chapter/:verse?', (req, res) => {
+  const { book, chapter, verse } = req.params;
+  
+  // Find the verse data
+  let verseData = null;
+  if (verse) {
+    verseData = bibleData.find(v => {
+      // Handle both "Psalm" and "Psalms" (and other similar cases)
+      const bookName = v.book_name ? v.book_name.toLowerCase() : '';
+      const searchBook = book.toLowerCase();
+      
+      // Check if book names match (including singular/plural variations)
+      const bookMatch = bookName === searchBook || 
+                       bookName === searchBook + 's' || 
+                       bookName === searchBook.replace(/s$/, '');
+      
+      const chapterMatch = parseInt(v.chapter) === parseInt(chapter);
+      const verseMatch = parseInt(v.verse) === parseInt(verse);
+      
+      return bookMatch && chapterMatch && verseMatch;
+    });
+  } else {
+    // For chapter view, get first verse for description
+    verseData = bibleData.find(v => {
+      // Handle both "Psalm" and "Psalms" (and other similar cases)
+      const bookName = v.book_name ? v.book_name.toLowerCase() : '';
+      const searchBook = book.toLowerCase();
+      
+      // Check if book names match (including singular/plural variations)
+      const bookMatch = bookName === searchBook || 
+                       bookName === searchBook + 's' || 
+                       bookName === searchBook.replace(/s$/, '');
+      
+      const chapterMatch = parseInt(v.chapter) === parseInt(chapter);
+      
+      return bookMatch && chapterMatch;
+    });
+  }
+  
+  if (!verseData) {
+    return res.status(404).send('Verse not found');
+  }
+  
+  // Generate meta tags
+  const metaTags = generateVerseMetaTags(
+    verseData.book_name, 
+    verseData.chapter, 
+    verse ? verseData.verse : null, 
+    verseData.text
+  );
+  
+  // Generate HTML with meta tags
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${metaTags.title}</title>
+  <meta name="description" content="${metaTags.description}">
+  
+  <!-- Open Graph meta tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="${metaTags.ogUrl}">
+  <meta property="og:title" content="${metaTags.ogTitle}">
+  <meta property="og:description" content="${metaTags.ogDescription}">
+  <meta property="og:image" content="https://thelivingwordonline.com/public/hero.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="The Living Word Online">
+  
+  <!-- Twitter Card meta tags -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="${metaTags.twitterUrl}">
+  <meta property="twitter:title" content="${metaTags.twitterTitle}">
+  <meta property="twitter:description" content="${metaTags.twitterDescription}">
+  <meta property="twitter:image" content="https://thelivingwordonline.com/public/hero.png">
+  
+  <link rel="canonical" href="${metaTags.ogUrl}">
+  
+  <script>
+    // Redirect to main app with parameters after a delay
+    setTimeout(() => {
+      window.location.href = '/?book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}${verse ? `&verse=${encodeURIComponent(verse)}` : ''}';
+    }, 3000); // Wait 3 seconds before redirecting
+  </script>
+</head>
+<body>
+  <p>Redirecting to The Living Word Online...</p>
+</body>
+</html>`;
+  
+  res.send(html);
 });
 
 // Serve the main page
