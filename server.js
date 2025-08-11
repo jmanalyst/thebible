@@ -43,172 +43,7 @@ const chapterCounts = {
   "Genesis": 50, "Exodus": 40, "Leviticus": 27, "Numbers": 36, "Deuteronomy": 34, "Joshua": 24, "Judges": 21, "Ruth": 4, "1 Samuel": 31, "2 Samuel": 24, "1 Kings": 22, "2 Kings": 25, "1 Chronicles": 29, "2 Chronicles": 36, "Ezra": 10, "Nehemiah": 13, "Esther": 10, "Job": 42, "Psalms": 150, "Proverbs": 31, "Ecclesiastes": 12, "Song of Solomon": 8, "Isaiah": 66, "Jeremiah": 52, "Lamentations": 5, "Ezekiel": 48, "Daniel": 12, "Hosea": 14, "Joel": 3, "Amos": 9, "Obadiah": 1, "Jonah": 4, "Micah": 7, "Nahum": 3, "Habakkuk": 3, "Zephaniah": 3, "Haggai": 2, "Zechariah": 14, "Malachi": 4, "Matthew": 28, "Mark": 16, "Luke": 24, "John": 21, "Acts": 28, "Romans": 16, "1 Corinthians": 16, "2 Corinthians": 13, "Galatians": 6, "Ephesians": 6, "Philippians": 4, "Colossians": 4, "1 Thessalonians": 5, "2 Thessalonians": 3, "1 Timothy": 6, "2 Timothy": 4, "Titus": 3, "Philemon": 1, "Hebrews": 13, "James": 5, "1 Peter": 5, "2 Peter": 3, "1 John": 5, "2 John": 1, "3 John": 1, "Jude": 1, "Revelation": 22
 };
 
-const archaicWords = {
-  "thee": "you",
-  "thou": "you",
-  "thy": "your",
-  "thine": "yours/your",
-  "ye": "you (plural)",
-  "hath": "has",
-  "doeth": "does",
-  "didst": "did",
-  "art": "are",
-  "unto": "to",
-  "wherefore": "why",
-  "whence": "from where",
-  "wilt": "will",
-  "shalt": "shall",
-  "hast": "have",
-  "saith": "says",
-  "cometh": "comes",
-  "goeth": "goes",
-  "behold": "look / see",
-  "verily": "truly",
-  "peradventure": "perhaps",
-  "begat": "fathered / had children",
-  "hearken": "listen",
-  "fain": "gladly / eagerly",
-  "anon": "soon / shortly",
-  "abase": "humble / bring low",
-  "abide": "remain / live",
-  "aforetime": "formerly",
-  "alway": "always",
-  "bewray": "betray",
-  "beseech": "beg / urgently request",
-  "bosom": "chest / heart",
-  "concupiscence": "lust / strong desire",
-  "countenance": "face / expression",
-  "divers": "various / different",
-  "draught": "toilet / waste place",
-  "ensample": "example",
-  "eschew": "avoid",
-  "haply": "perhaps / by chance",
-  "holpen": "helped",
-  "janitor": "doorkeeper",
-  "kinsman": "relative",
-  "letteth": "restrains / holds back",
-  "meat": "food (not just meat)",
-  "nay": "no",
-  "nigh": "near",
-  "quickened": "made alive",
-  "raiment": "clothing",
-  "rent": "tore",
-  "shewed": "showed",
-  "shew": "show",
-  "sojourn": "stay temporarily",
-  "sore": "greatly / severely",
-  "staves": "staffs / sticks",
-  "suffer": "allow",
-  "sundry": "various",
-  "tarry": "stay / wait",
-  "wist": "knew",
-  "wot": "know",
-  "woe": "sorrow / distress",
-  "wouldest": "would",
-  "yonder": "over there",
-  "thereof": "of it / from it",
-  "therein": "in it",
-  "herein": "in this",
-  "hither": "here",
-  "thither": "there",
-  "howbeit": "however / nevertheless",
-  "aught": "anything",
-  "naught": "nothing",
-  "durst": "dared",
-  "ere": "before",
-  "giveth": "gives",
-  "loveth": "loves",
-  "hateth": "hates",
-  "knowest": "you know",
-  "maketh": "makes",
-  "taketh": "takes",
-  "bringeth": "brings",
-  "hearest": "you hear",
-  "firmament": "sky / heavens",
-  "sittest": "you sit",
-  "recompense": "repay / reward",
-  "multitude": "crowd / large group",
-  "tribulation": "trouble / suffering",
-  "vain": "worthless / futile",
-  "fowl": "bird",
-  "fowls": "birds",
-  "breadth": "width",
-  "beguiled": "deceived / misled",
-  "shouldest": "should",
-  "wast": "were",
-  "gavest": "gave",
-  "lieth": "lies",
-  "creepeth": "creeps",
-  "crieth": "cries",
-  "comest": "you come",
-  "fro": "away / from / back",
-  "doth": "does",
-  "escheweth": "avoids",
-  "nought": "nothing / worthless",
-  "feareth": "fears",
-  "holdeth": "holds",
-  "movedst": "you moved",
-  "smote": "struck / hit forcefully",
-  "tillest": "you cultivate",
-  "henceforth": "from now on",
-  "vagabond": "wanderer",
-  "findeth": "finds",
-  "slay": "kill",
-  "slayeth": "kills",
-  "slain": "killed",
-  "sevenfold": "seven times as much",
-  "hearkened": "listened",
-  "doest": "do (you do)",
-  "dost": "do (you)",
-  "withal": "with it / with that",
-  "speakest": "you speak",
-  "speaketh": "speaks",
-  "assay": "attempt / try",
-  "potsherd": "broken piece of pottery",
-  "wroth": "angry / furious",
-  "sheweth": "shows",
-  "taketh": "takes",
-  "wilt": "will",
-  "revile": "insult / speak abusively about",
-  "wherewith": "with what / by which (depending on context)",
-  "thenceforth": "from that time on",
-  "trodden": "trampled / walked on",
-  "bushel": "a container or unit of measure for dry goods (about 8 gallons)",
-  "jot": "the smallest letter or mark (in Hebrew, refers to 'yod')",
-  "tittle": "a tiny mark or stroke in writing (used to emphasize even the smallest detail)",
-  "raca": "an Aramaic insult meaning 'empty-headed' or 'worthless'",
-  "rememberest": "remember",
-  "profitable": "beneficial / useful / valuable",
-  "farthing": "a small coin of little value (1/4 of a penny)",
-  "thence": "from there / from that place",
-  "uttermost": "farthest / greatest / most extreme",
-  "looketh": "looks",
-  "smite": "strike / hit with force",
-  "alms": "charitable giving / money or goods given to the poor",
-  "fastest": "periods of fasting (not 'quickest')",
-  "morrow": "the next day / tomorrow",
-  "wherewithal": "with what / by what means",
-  "mammon": "wealth or riches (often personified as a false god of materialism)",
-  "beholdest": "you look at",
-  "mete": "measure out / distribute",
-  "mote": "a tiny speck or particle (especially of dust)",
-  "beam": "a large piece of wood (used metaphorically for a major flaw or sin)",
-  "heareth": "hears / listens to",
-  "strait": "narrow / tight / constricted",
-  "thereat": "at that place / at it",
-  "thyself": "yourself",
-  "meaneth": "means",
-  "therefore": "for that reason or as a result",
-  "variance": "conflict / division",
-  "overcometh": "overcomes / conquers",
-  "sufferest": "allow / permit",
-  "notwithstanding": "despite / even though / nevertheless",
-  "borne": "carried / endured / brought forth",
-  "hence": "from here / from now (depending on context)",
-  "tiller": "farmer / cultivator of soil",
-  "lest": "for fear that / to avoid / so that not",
-  "vanity": "worthlessness / emptiness"
-};
+
 
 // Helper functions moved from script.js
 function cleanVerseText(text) {
@@ -243,16 +78,7 @@ function formatTranslatorText(text) {
   return text.replace(/\[(.*?)\]/g, '<em>$1</em>');
 }
 
-function addTooltipsToVerseText(text) {
-  return text.replace(/\b(\w+)\b/g, (match) => {
-    const lower = match.toLowerCase();
-    if (archaicWords[lower]) {
-      // MODIFIED: Added dark mode classes for the tooltip's background and text color
-      return `<span class="relative group inline whitespace-nowrap align-baseline tooltip-wrapper">${match}<span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 tooltip hidden group-hover:block bg-black text-white dark:bg-gray-100 dark:text-black text-xs rounded px-2 py-1 z-50">${archaicWords[lower]}</span></span>`;
-    }
-    return match;
-  });
-}
+// Tooltip functionality moved to script.js for client-side processing
 
 // Enhanced daily verse generation with better randomization
 function getDailyVerse() {
@@ -302,7 +128,6 @@ function searchBible(query, filter = 'all', currentBook = '') {
   const processedResults = matches.map(v => {
     let processedText = formatRedLetterText(v.text);
     processedText = formatTranslatorText(processedText);
-    processedText = addTooltipsToVerseText(processedText);
     const finalText = cleanVerseText(processedText);
     
     // Highlight search terms
@@ -353,9 +178,7 @@ app.get('/api/books', (req, res) => {
   res.json({ books, bookAbbreviations, chapterCounts });
 });
 
-app.get('/api/archaic-words', (req, res) => {
-  res.json({ archaicWords });
-});
+
 
 app.get('/api/daily-verse', (req, res) => {
   res.json(getDailyVerse());
@@ -400,7 +223,6 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
   // Process the text on the server side
   let processedText = formatRedLetterText(result.text);
   processedText = formatTranslatorText(processedText);
-  processedText = addTooltipsToVerseText(processedText);
   const finalText = cleanVerseText(processedText);
   
   res.json({
@@ -425,7 +247,6 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
   const processedVerses = results.map(v => {
     let processedText = formatRedLetterText(v.text);
     processedText = formatTranslatorText(processedText);
-    processedText = addTooltipsToVerseText(processedText);
     const finalText = cleanVerseText(processedText);
     
     return {
