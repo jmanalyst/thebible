@@ -385,17 +385,18 @@ let currentBook = "";
 let currentChapter = 0;
 let currentVerse = 0;
 
-function showPrevNextVerseButtons(ref) {
-  const result = document.getElementById("result");
-  const btns = `
-    <div class="flex gap-2 mt-4">
-      <button onclick="prevVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Previous Verse</button> 
-      <button onclick="readFullChapter()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Full Chapter</button>
-      <button onclick="nextVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Next Verse</button>
-    </div>
-  `;
-  result.innerHTML += btns;
-}
+// This function is no longer needed since we show full chapters with verse selection
+// function showPrevNextVerseButtons(ref) {
+//   const result = document.getElementById("result");
+//   const btns = `
+//     <div class="flex gap-2 mt-4">
+//       <button onclick="prevVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Previous Verse</button> 
+//       <button onclick="readFullChapter()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Full Chapter</button>
+//       <button onclick="nextVerse()" class="text-sm border border-black px-2 py-1 rounded hover:bg-gray-100">Next Verse</button>
+//     </div>
+//   `;
+//   result.innerHTML += btns;
+// }
 
 
 
@@ -427,7 +428,7 @@ function readFullChapter() {
   // 3. Update the header pills
   updatePillLabels();
 
-  // 4. Now, get the full chapter
+  // 4. Now, get the full chapter without verse selection
   getChapter(currentBook, currentChapter);
 }
 
@@ -461,21 +462,64 @@ function getVerseFromRef(book, chapter, verse) {
   result.innerHTML = "Loading...";
   showResultArea();
 
-  const verseObj = bibleData.find(v =>
+  // Get all verses in the chapter
+  const verses = bibleData.filter(v =>
     v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
-    v.chapter === parseInt(chapter) &&
-    v.verse === parseInt(verse)
+    v.chapter === parseInt(chapter)
   );
 
-  if (verseObj) {
+  if (verses.length > 0) {
+    // Format all verses in the chapter
+    const verseList = verses.map(v => {
+      let processedText = formatRedLetterText(v.text);
+      processedText = formatTranslatorText(processedText);
+      processedText = addTooltipsToVerseText(processedText);
+      const finalText = cleanVerseText(processedText);
+
+      // Add a special class to the selected verse for highlighting
+      const isSelectedVerse = v.verse === parseInt(verse);
+      const selectedClass = isSelectedVerse ? 'verse-selected' : '';
+
+      return `<p class="verse-line p-2 -m-2 rounded-md mb-8 ${selectedClass}" data-verse-ref="${book} ${chapter}:${v.verse}" data-book="${book}" data-chapter="${chapter}" data-verse="${v.verse}"><sup class="font-semibold text-theme-subtle-text mr-1">${v.verse}</sup><span class="verse-text">${finalText}</span></p>`
+    }).join("");
+
     result.innerHTML = `
-      <p class="font-semibold text-xl mb-2 leading-relaxed">${addTooltipsToVerseText(cleanVerseText(verseObj.text))}</p>
-      <p class="text-sm text-gray-500">– ${book} ${chapter}:${verse}</p>
+      <div class="max-w-sm mx-auto px-4 text-center">
+        <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
+      </div>
+      <div class="max-w-prose mx-auto px-4 text-left text-[16pt] leading-relaxed font-serif whitespace-pre-wrap">
+      ${verseList}
+      </div>
+      
+      <div class="fixed top-1/2 -translate-y-1/2 left-0 z-40">
+        <button onclick="prevChapter()" class="ml-1 lg:ml-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+      </div>
+
+      <div class="fixed top-1/2 -translate-y-1/2 right-0 z-40">
+        <button onclick="nextChapter()" class="mr-1 lg:mr-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
     `;
-    showPrevNextVerseButtons(`${book} ${chapter}:${verse}`);
+
+    applySavedHighlights();
+    
+    // Scroll to the selected verse after a short delay to ensure rendering is complete
+    setTimeout(() => {
+      const selectedVerseElement = document.querySelector('.verse-selected');
+      if (selectedVerseElement) {
+        selectedVerseElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 100);
   } else {
-    result.innerHTML = "Verse not found.";
+    result.innerHTML = "Chapter not found.";
   }
+  
   // MODIFIED: Save state after rendering the verse.
   saveState();
 }
@@ -700,6 +744,9 @@ function nextChapter() {
     const newChapter = currentChapter + 1;
     // NEW: Update the input value and the pill display
     document.getElementById('chapter').value = newChapter;
+    // Reset verse selection when moving to next chapter
+    document.getElementById('verse').value = '';
+    currentVerse = 0;
     updatePillLabels();
     getChapter(currentBook, newChapter);
 
@@ -708,6 +755,9 @@ function nextChapter() {
     // NEW: Update for the next book and reset chapter to 1
     document.getElementById('book').value = nextBook;
     document.getElementById('chapter').value = 1;
+    // Reset verse selection when moving to next book
+    document.getElementById('verse').value = '';
+    currentVerse = 0;
     updatePillLabels();
     getChapter(nextBook, 1);
     
@@ -715,6 +765,13 @@ function nextChapter() {
     // You are at the end of the Bible
     return; 
   }
+  
+  // Clean up URL parameters when navigating chapters
+  const params = new URLSearchParams(window.location.search);
+  params.delete('verse');
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  history.replaceState({}, '', newUrl);
+  
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -743,6 +800,13 @@ function prevChapter() {
     alert("You are at the beginning of the Bible.");
     return;
   }
+  
+  // Clean up URL parameters when navigating chapters
+  const params = new URLSearchParams(window.location.search);
+  params.delete('verse');
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  history.replaceState({}, '', newUrl);
+  
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -1289,18 +1353,66 @@ function setupSelectionMenu() {
 
     if (!resultArea || !selectionMenu) return;
 
-    let lastClickedVerseElement = null;
+    let selectedVerses = new Set(); // Track multiple selected verses
+    window.selectedVerses = selectedVerses; // Make it globally accessible for URL handling
 
     const showMenu = () => {
         selectionMenu.classList.remove('hidden');
+        
+        // Scroll the last clicked verse into view if it's near the bottom
+        // Use a small delay to ensure menu is rendered and we can get its height
+        setTimeout(() => {
+            if (selectedVerses.size > 0) {
+                const lastClickedVerse = Array.from(selectedVerses).slice(-1)[0]; // Get the most recently added verse
+                if (lastClickedVerse) {
+                    const menuHeight = selectionMenu.offsetHeight || 150;
+                    const verseRect = lastClickedVerse.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+                    
+                    // Check if the verse is too close to the bottom where the menu would cover it
+                    if (verseRect.bottom > (windowHeight - menuHeight - 50)) { // 50px buffer
+                        const scrollAmount = verseRect.bottom - (windowHeight - menuHeight) + 100; // Extra space
+                        window.scrollBy({ 
+                            top: scrollAmount, 
+                            behavior: 'smooth' 
+                        });
+                    }
+                }
+            }
+        }, 10); // Small delay to ensure menu is rendered
+    };
+
+    const updateMenuContent = () => {
+        if (selectedVerses.size === 0) return;
+        
+        if (selectedVerses.size === 1) {
+            // Single verse selection
+            const verse = Array.from(selectedVerses)[0];
+            selectedRef.textContent = verse.dataset.verseRef;
+        } else {
+            // Multiple verse selection
+            const verses = Array.from(selectedVerses).map(verse => verse.dataset.verseRef);
+            selectedRef.textContent = `${verses.length} verses selected`;
+        }
+        
+        // Check if any selected verse has highlights
+        const hasHighlights = Array.from(selectedVerses).some(verse => {
+            const textSpan = verse.querySelector('.verse-text');
+            return textSpan && Array.from(textSpan.classList).some(c => c.startsWith('highlight-'));
+        });
+        removeHighlightButton.classList.toggle('hidden', !hasHighlights);
     };
 
     const hideMenu = () => {
         selectionMenu.classList.add('hidden');
-        const currentlySelected = document.querySelector('.verse-selected');
-        if (currentlySelected) {
-            currentlySelected.classList.remove('verse-selected');
-        }
+        // Remove menu-selected class from all verses when hiding menu
+        const menuSelectedVerses = document.querySelectorAll('.verse-line.menu-selected');
+        menuSelectedVerses.forEach(verse => {
+            verse.classList.remove('menu-selected');
+        });
+        selectedVerses.clear(); // Clear selected verses
+        // Don't remove verse-selected class here as it's used for the full chapter view
+        // The verse-selected class will be managed by the getVerseFromRef function
     };
 
     // MODIFIED: This single event listener now handles all click logic
@@ -1315,41 +1427,25 @@ function setupSelectionMenu() {
 
         // Case 2: The user clicked on a verse.
         if (clickedVerse) {
-            const isAlreadySelected = clickedVerse.classList.contains('verse-selected');
+            const isMenuSelected = clickedVerse.classList.contains('menu-selected');
 
-            // First, deselect any other verse
-            const previouslySelected = document.querySelector('.verse-selected');
-            if (previouslySelected) {
-                previouslySelected.classList.remove('verse-selected');
+            // Toggle selection: if already selected, deselect it
+            if (isMenuSelected) {
+                clickedVerse.classList.remove('menu-selected');
+                selectedVerses.delete(clickedVerse);
+            } else {
+                // Add to selection
+                clickedVerse.classList.add('menu-selected');
+                selectedVerses.add(clickedVerse);
             }
 
-            // If the clicked verse was already the selected one, hide the menu (toggle off)
-            if (isAlreadySelected) {
+            // Show menu if we have any selections
+            if (selectedVerses.size > 0) {
+                showMenu();
+                updateMenuContent();
+            } else {
                 hideMenu();
-                return;
             }
-
-            // Otherwise, select the new verse...
-            clickedVerse.classList.add('verse-selected');
-            lastClickedVerseElement = clickedVerse;
-            
-            // ...scroll it into view if needed...
-            const menuHeight = selectionMenu.offsetHeight || 150;
-            const verseRect = clickedVerse.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
-            if (verseRect.bottom > (windowHeight - menuHeight)) {
-                const scrollAmount = verseRect.bottom - (windowHeight - menuHeight) + 150;
-                window.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-            }
-
-            // ...and show the menu.
-            showMenu();
-            
-            // Update menu content
-            selectedRef.textContent = clickedVerse.dataset.verseRef;
-            const textSpan = clickedVerse.querySelector('.verse-text');
-            const isHighlighted = textSpan && Array.from(textSpan.classList).some(c => c.startsWith('highlight-'));
-            removeHighlightButton.classList.toggle('hidden', !isHighlighted);
 
         } else {
             // Case 3: The user clicked anywhere else (not a verse, not the menu)
@@ -1360,45 +1456,87 @@ function setupSelectionMenu() {
     // --- Button Actions (These are unchanged) ---
 
     highlightColorButtons.addEventListener('click', (e) => {
-        if (e.target.dataset.color && lastClickedVerseElement) {
+        if (e.target.dataset.color && selectedVerses.size > 0) {
             const color = e.target.dataset.color;
-            const textSpan = lastClickedVerseElement.querySelector('.verse-text');
-            if (!textSpan) return;
-            textSpan.classList.remove('highlight-yellow', 'highlight-blue', 'highlight-green', 'highlight-pink');
-            textSpan.classList.add(`highlight-${color}`);
-            const verseRef = lastClickedVerseElement.dataset.verseRef;
             const highlights = getSavedHighlights();
-            highlights[verseRef] = color;
+            
+            selectedVerses.forEach(verse => {
+                const textSpan = verse.querySelector('.verse-text');
+                if (!textSpan) return;
+                textSpan.classList.remove('highlight-yellow', 'highlight-blue', 'highlight-green', 'highlight-pink');
+                textSpan.classList.add(`highlight-${color}`);
+                const verseRef = verse.dataset.verseRef;
+                highlights[verseRef] = color;
+            });
+            
             saveHighlights(highlights);
             hideMenu(); // Hide menu after highlighting
         }
     });
 
     removeHighlightButton.addEventListener('click', () => {
-        if (lastClickedVerseElement) {
-            const textSpan = lastClickedVerseElement.querySelector('.verse-text');
-            if (textSpan) {
-                textSpan.classList.remove('highlight-yellow', 'highlight-blue', 'highlight-green', 'highlight-pink');
-                const verseRef = lastClickedVerseElement.dataset.verseRef;
-                const highlights = getSavedHighlights();
-                delete highlights[verseRef];
-                saveHighlights(highlights);
-            }
+        if (selectedVerses.size > 0) {
+            const highlights = getSavedHighlights();
+            
+            selectedVerses.forEach(verse => {
+                const textSpan = verse.querySelector('.verse-text');
+                if (textSpan) {
+                    textSpan.classList.remove('highlight-yellow', 'highlight-blue', 'highlight-green', 'highlight-pink');
+                    const verseRef = verse.dataset.verseRef;
+                    delete highlights[verseRef];
+                }
+            });
+            
+            saveHighlights(highlights);
             hideMenu(); 
         }
     });
 
     copyButton.addEventListener('click', () => {
-        if (!lastClickedVerseElement) return;
-        const book = lastClickedVerseElement.dataset.book;
-        const chapter = parseInt(lastClickedVerseElement.dataset.chapter);
-        const verse = parseInt(lastClickedVerseElement.dataset.verse);
-        const originalVerse = bibleData.find(v => v.book_name === book && v.chapter === chapter && v.verse === verse);
-        const cleanOriginalText = originalVerse ? cleanVerseText(originalVerse.text) : lastClickedVerseElement.querySelector('.verse-text').textContent;
-        const verseRef = lastClickedVerseElement.dataset.verseRef;
-        const urlParams = new URLSearchParams({ book, chapter, verse });
-        const shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
-        const textToCopy = `"${cleanOriginalText}"\n- ${verseRef}\n\n${shareUrl}`;
+        if (selectedVerses.size === 0) return;
+        
+        let textToCopy = '';
+        let shareUrl = '';
+        
+        if (selectedVerses.size === 1) {
+            // Single verse - use existing format
+            const verse = Array.from(selectedVerses)[0];
+            const book = verse.dataset.book;
+            const chapter = parseInt(verse.dataset.chapter);
+            const verseNum = parseInt(verse.dataset.verse);
+            const originalVerse = bibleData.find(v => v.book_name === book && v.chapter === chapter && v.verse === verseNum);
+            let cleanOriginalText = originalVerse ? cleanVerseText(originalVerse.text) : verse.querySelector('.verse-text').textContent;
+            // Remove unwanted symbols for copy
+            cleanOriginalText = cleanOriginalText.replace(/[¶\[\]‹›]/g, '').trim();
+            const verseRef = verse.dataset.verseRef;
+            const urlParams = new URLSearchParams({ book, chapter, verse: verseNum });
+            shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
+            textToCopy = `"${cleanOriginalText}"\n- ${verseRef}\n\n${shareUrl}`;
+        } else {
+            // Multiple verses - create a combined format
+            const verses = Array.from(selectedVerses).map(verse => {
+                const book = verse.dataset.book;
+                const chapter = parseInt(verse.dataset.chapter);
+                const verseNum = parseInt(verse.dataset.verse);
+                const originalVerse = bibleData.find(v => v.book_name === book && v.chapter === chapter && v.verse === verseNum);
+                let cleanOriginalText = originalVerse ? cleanVerseText(originalVerse.text) : verse.querySelector('.verse-text').textContent;
+                // Remove unwanted symbols for copy
+                cleanOriginalText = cleanOriginalText.replace(/[¶\[\]‹›]/g, '').trim();
+                return `${verse.dataset.verseRef}: "${cleanOriginalText}"`;
+            });
+            
+            const firstVerse = Array.from(selectedVerses)[0];
+            const book = firstVerse.dataset.book;
+            const chapter = parseInt(firstVerse.dataset.chapter);
+            
+            // Create URL with all selected verses
+            const urlParams = new URLSearchParams({ book, chapter });
+            const selectedVerseNumbers = Array.from(selectedVerses).map(verse => verse.dataset.verse).join(',');
+            urlParams.set('verses', selectedVerseNumbers);
+            shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
+            
+            textToCopy = verses.join('\n\n') + `\n\n${shareUrl}`;
+        }
         
         navigator.clipboard.writeText(textToCopy).then(() => {
             const originalContent = copyButton.innerHTML;
@@ -1412,23 +1550,49 @@ function setupSelectionMenu() {
 
     // SHARE BUTTON
 shareButton.addEventListener('click', () => {
-    if (!lastClickedVerseElement) return;
-    const verseText = lastClickedVerseElement.querySelector('.verse-text').textContent;
-    const verseRef = lastClickedVerseElement.dataset.verseRef;
-
-    // Build the shareable URL
-    const book = lastClickedVerseElement.dataset.book;
-    const chapter = lastClickedVerseElement.dataset.chapter;
-    const verse = lastClickedVerseElement.dataset.verse;
-    const urlParams = new URLSearchParams({ book, chapter, verse });
-    const shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
+    if (selectedVerses.size === 0) return;
     
+    let shareText = '';
+    let shareUrl = '';
+    
+    if (selectedVerses.size === 1) {
+        // Single verse - use existing format
+        const verse = Array.from(selectedVerses)[0];
+        let verseText = verse.querySelector('.verse-text').textContent;
+        // Remove unwanted symbols for share
+        verseText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+        const verseRef = verse.dataset.verseRef;
+        const book = verse.dataset.book;
+        const chapter = verse.dataset.chapter;
+        const verseNum = verse.dataset.verse;
+        const urlParams = new URLSearchParams({ book, chapter, verse: verseNum });
+        shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
+        shareText = `"${verseText}" - ${verseRef}\n${shareUrl}`;
+    } else {
+        // Multiple verses - create a combined format
+        const verses = Array.from(selectedVerses).map(verse => {
+            let verseText = verse.querySelector('.verse-text').textContent;
+            // Remove unwanted symbols for share
+            verseText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+            return `${verse.dataset.verseRef}: "${verseText}"`;
+        });
+        
+        const firstVerse = Array.from(selectedVerses)[0];
+        const book = firstVerse.dataset.book;
+        const chapter = parseInt(firstVerse.dataset.chapter);
+        
+        // Create URL with all selected verses
+        const urlParams = new URLSearchParams({ book, chapter });
+        const selectedVerseNumbers = Array.from(selectedVerses).map(verse => verse.dataset.verse).join(',');
+        urlParams.set('verses', selectedVerseNumbers);
+        shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
+        
+        shareText = verses.join('\n\n') + `\n\n${shareUrl}`;
+    }
     
     if (navigator.share) {
         navigator.share({
-            // title: `Verse from The Living Word`,
-            // This 'text' property already includes the scripture
-            text: `"${verseText}" - ${verseRef}\n${shareUrl}`, 
+            text: shareText, 
             url: shareUrl 
         });
     } else {
@@ -1514,6 +1678,7 @@ function handleUrlParameters() {
     const book = params.get('book');
     const chapter = params.get('chapter');
     const verse = params.get('verse');
+    const verses = params.get('verses');
 
     if (book && chapter) {
         // If the URL has parameters, load the specified scripture
@@ -1523,7 +1688,40 @@ function handleUrlParameters() {
 
         updatePillLabels();
 
-        if (verse) {
+        if (verses) {
+            // Handle multiple verses selection
+            getChapter(book, chapter);
+            // After the chapter loads, we'll need to select the verses
+            setTimeout(() => {
+                const verseNumbers = verses.split(',').map(v => parseInt(v.trim()));
+                let firstSelectedVerse = null;
+                
+                verseNumbers.forEach(verseNum => {
+                    const verseElement = document.querySelector(`[data-verse="${verseNum}"]`);
+                    if (verseElement) {
+                        verseElement.classList.add('menu-selected');
+                        // Add to selectedVerses if the menu is set up
+                        if (window.selectedVerses) {
+                            window.selectedVerses.add(verseElement);
+                        }
+                        // Track the first verse for scrolling
+                        if (!firstSelectedVerse) {
+                            firstSelectedVerse = verseElement;
+                        }
+                    }
+                });
+                
+                // Scroll to the first selected verse with a slight delay to ensure rendering is complete
+                if (firstSelectedVerse) {
+                    setTimeout(() => {
+                        firstSelectedVerse.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center' 
+                        });
+                    }, 50);
+                }
+            }, 100);
+        } else if (verse) {
             getVerseFromRef(book, chapter, verse);
         } else {
             getChapter(book, chapter);
