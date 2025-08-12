@@ -897,7 +897,7 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   <meta property="og:url" content="${metaTags.ogUrl}">
   <meta property="og:title" content="${metaTags.ogTitle}">
   <meta property="og:description" content="${metaTags.ogDescription}">
-  <meta property="og:image" content="https://thelivingwordonline.com/public/hero.png">
+  <meta property="og:image" content="https://thelivingwordonline.com/hero.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="The Living Word Online">
@@ -907,7 +907,7 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   <meta property="twitter:url" content="${metaTags.twitterUrl}">
   <meta property="twitter:title" content="${metaTags.twitterTitle}">
   <meta property="twitter:description" content="${metaTags.twitterDescription}">
-  <meta property="twitter:image" content="https://thelivingwordonline.com/public/hero.png">
+  <meta property="twitter:image" content="https://thelivingwordonline.com/hero.png">
   
   <link rel="canonical" href="${metaTags.ogUrl}">
   
