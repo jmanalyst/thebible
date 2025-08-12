@@ -31,7 +31,7 @@ const SECURITY_CONFIG = {
   // Rate limiting configuration
   RATE_LIMIT: {
     WINDOW_MS: 60000, // 1 minute
-    MAX_REQUESTS: 500, // Increased from 100 to allow Bible topics to load
+    MAX_REQUESTS: 500, // Increased from 100 to allow Bible verse topics to load
     BURST_WINDOW_MS: 30000, // 30 seconds
     MAX_BURST: 200 // Increased from 50 to allow burst loading of topics
   },
