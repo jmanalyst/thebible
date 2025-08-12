@@ -817,6 +817,13 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   const { book, chapter, verse } = req.params;
   
   console.log('🔍 Verse route called:', { book, chapter, verse });
+  console.log('🔍 Params type check:', { 
+    book: typeof book, 
+    chapter: typeof chapter, 
+    verse: typeof verse,
+    verseExists: !!verse,
+    verseValue: verse
+  });
   
   // SECURITY: Load KJV data on-demand for meta tag generation only
   let verseData = null;
@@ -826,6 +833,7 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
     const verses = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.verses) ? rawData.verses : []);
     
     if (verse) {
+      console.log('🔍 Looking for specific verse:', { verse, chapter, book });
       verseData = verses.find(v => {
         // Handle both "Psalm" and "Psalms" (and other similar cases)
         const bookName = v.book_name ? v.book_name.toLowerCase() : '';
@@ -839,8 +847,34 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
         const chapterMatch = parseInt(v.chapter) === parseInt(chapter);
         const verseMatch = parseInt(v.verse) === parseInt(verse);
         
+        console.log('🔍 Verse match check:', {
+          bookName,
+          searchBook,
+          bookMatch,
+          chapterMatch,
+          verseMatch,
+          vChapter: v.chapter,
+          vVerse: v.verse,
+          requestedChapter: chapter,
+          requestedVerse: verse
+        });
+        
         return bookMatch && chapterMatch && verseMatch;
       });
+      
+      if (!verseData) {
+        console.log('❌ Specific verse not found, falling back to first verse of chapter');
+        // Fallback to first verse of chapter if specific verse not found
+        verseData = verses.find(v => {
+          const bookName = v.book_name ? v.book_name.toLowerCase() : '';
+          const searchBook = book.toLowerCase();
+          const bookMatch = bookName === searchBook || 
+                           bookName === searchBook + 's' || 
+                           bookName === searchBook.replace(/s$/, '');
+          const chapterMatch = parseInt(v.chapter) === parseInt(chapter);
+          return bookMatch && chapterMatch;
+        });
+      }
     } else {
       // For chapter view, get first verse for description
       verseData = verses.find(v => {

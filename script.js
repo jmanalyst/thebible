@@ -2490,6 +2490,8 @@ function updateMetadata(book, chapter) {
 
 // Function to update Open Graph meta tags for social sharing
 function updateMetaTags(book, chapter, verse, verseText) {
+  console.log('🔍 updateMetaTags called with:', { book, chapter, verse, verseText: verseText ? verseText.substring(0, 50) + '...' : 'null' });
+  
   // Add null checks to prevent errors
   if (!book || !chapter) {
     console.log('updateMetaTags: Missing book or chapter, skipping meta tag update');
