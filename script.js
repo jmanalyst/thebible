@@ -477,16 +477,36 @@ document.addEventListener("DOMContentLoaded", () => {
         
         console.log('🔍 Verse clicked:', { book, chapter, verse });
         
-        // Update the verse picker
-        document.getElementById('verse').value = verse;
+        // Check if this verse is already selected
+        const isCurrentlySelected = verseLine.classList.contains('verse-selected');
+        
+        if (isCurrentlySelected) {
+          // Deselect the verse
+          console.log('🔍 Deselecting verse:', verse);
+          verseLine.classList.remove('verse-selected');
+          document.getElementById('verse').value = '';
+          currentVerse = 0;
+          
+          // Update meta tags for chapter only (no specific verse)
+          updateMetaTags(book, chapter, '', '');
+        } else {
+          // Select the verse
+          console.log('🔍 Selecting verse:', verse);
+          
+          // Remove selection from all other verses
+          document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
+          
+          // Select this verse
+          verseLine.classList.add('verse-selected');
+          document.getElementById('verse').value = verse;
+          currentVerse = parseInt(verse);
+          
+          // Update meta tags and URL for sharing
+          updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
+        }
+        
+        // Update pill labels
         updatePillLabels();
-        
-        // Update meta tags and URL for sharing
-        updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
-        
-        // Highlight the selected verse
-        document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
-        verseLine.classList.add('verse-selected');
       }
     });
     
