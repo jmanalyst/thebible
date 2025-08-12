@@ -1126,7 +1126,23 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
 app.get('/script.js', (req, res) => {
   console.log(`🔍 Manually serving script.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  res.sendFile(path.join(process.cwd(), 'script.js'));
+  
+  // Read and serve the script content directly to ensure it works on Vercel
+  try {
+    const fs = require('fs');
+    const scriptPath = path.join(process.cwd(), 'script.js');
+    
+    if (fs.existsSync(scriptPath)) {
+      const scriptContent = fs.readFileSync(scriptPath, 'utf8');
+      res.send(scriptContent);
+    } else {
+      console.error('❌ script.js not found at:', scriptPath);
+      res.status(404).send('Script file not found');
+    }
+  } catch (error) {
+    console.error('❌ Error reading script.js:', error);
+    res.status(500).send('Error loading script');
+  }
 });
 
 app.get('/script-obfuscated.js', (req, res) => {
