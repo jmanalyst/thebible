@@ -467,6 +467,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // Setup other event listeners
     document.getElementById("verse").addEventListener("click", openVersePicker);
     
+    // Add click handlers for individual verses in the chapter
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.verse-line')) {
+        const verseLine = e.target.closest('.verse-line');
+        const book = verseLine.dataset.book;
+        const chapter = verseLine.dataset.chapter;
+        const verse = verseLine.dataset.verse;
+        
+        console.log('🔍 Verse clicked:', { book, chapter, verse });
+        
+        // Update the verse picker
+        document.getElementById('verse').value = verse;
+        updatePillLabels();
+        
+        // Update meta tags and URL for sharing
+        updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
+        
+        // Highlight the selected verse
+        document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
+        verseLine.classList.add('verse-selected');
+      }
+    });
+    
     // Global translation change listener - catch any translation changes
     document.addEventListener('translationChanged', function(event) {
         console.log('Global translation change detected:', event.detail);
@@ -1200,12 +1223,20 @@ async function getChapter(book, chapter) {
     // SECURITY: Use secure endpoint instead of local data
     const chapterData = await getSecureChapter(book, chapter, currentTranslation);
     
-    if (chapterData && chapterData.verses && chapterData.verses.length > 0) {
-      // Update meta tags for social sharing
-      updateMetaTags(book, chapter, '', '');
-      
-      // Process verses from secure endpoint
-      const verseList = chapterData.verses.map(v => {
+          if (chapterData && chapterData.verses && chapterData.verses.length > 0) {
+        // Automatically set verse 1 when chapter loads
+        const firstVerse = chapterData.verses[0];
+        document.getElementById('verse').value = firstVerse.verse;
+        currentVerse = firstVerse.verse;
+        
+        // Update pill labels to show verse 1
+        updatePillLabels();
+        
+        // Update meta tags for social sharing with verse 1
+        updateMetaTags(book, chapter, firstVerse.verse, firstVerse.text);
+        
+        // Process verses from secure endpoint
+        const verseList = chapterData.verses.map(v => {
         let processedText = formatRedLetterText(v.text);
         processedText = formatTranslatorText(processedText);
         processedText = addTooltipsToVerseText(processedText);
