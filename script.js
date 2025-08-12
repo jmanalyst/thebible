@@ -2452,8 +2452,17 @@ function handleUrlParameters() {
   if (book && chapter) {
     console.log('🔗 URL parameters detected:', { book, chapter, verse });
     
-    // Set the input values
-    document.getElementById('book').value = book;
+    // Find the proper capitalized book name from the books array
+    const properBookName = books.find(b => b.toLowerCase() === book.toLowerCase());
+    if (!properBookName) {
+      console.error('❌ Book not found in books array:', book);
+      return false;
+    }
+    
+    console.log('🔗 Using proper book name:', { original: book, proper: properBookName });
+    
+    // Set the input values with proper capitalization
+    document.getElementById('book').value = properBookName;
     document.getElementById('chapter').value = chapter;
     if (verse) {
       document.getElementById('verse').value = verse;
@@ -2462,11 +2471,11 @@ function handleUrlParameters() {
     // Update pill labels
     updatePillLabels();
     
-    // Load the verse or chapter
+    // Load the verse or chapter with proper book name
     if (verse) {
-      getVerseFromRef(book, chapter, verse);
+      getVerseFromRef(properBookName, chapter, verse);
     } else {
-      getChapter(book, chapter);
+      getChapter(properBookName, chapter);
     }
     
     return true; // URL was handled
