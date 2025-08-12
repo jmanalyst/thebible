@@ -627,6 +627,44 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Debug endpoint to check file availability
+app.get('/api/debug-files', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    const cwd = process.cwd();
+    const dirname = __dirname;
+    
+    // List files in current working directory
+    const cwdFiles = fs.readdirSync(cwd);
+    
+    // List files in __dirname
+    const dirnameFiles = fs.readdirSync(dirname);
+    
+    // Check if specific files exist
+    const scriptExists = fs.existsSync(path.join(cwd, 'script.js'));
+    const indexExists = fs.existsSync(path.join(cwd, 'index.html'));
+    const publicExists = fs.existsSync(path.join(cwd, 'public'));
+    
+    res.json({
+      currentWorkingDirectory: cwd,
+      dirname: dirname,
+      cwdFiles: cwdFiles,
+      dirnameFiles: dirnameFiles,
+      scriptJsExists: scriptExists,
+      indexHtmlExists: indexExists,
+      publicDirExists: publicExists
+    });
+  } catch (error) {
+    res.json({
+      error: error.message,
+      currentWorkingDirectory: process.cwd(),
+      dirname: __dirname
+    });
+  }
+});
+
 // SECURE: Only serve specific chapters, never full translations
 app.get('/api/chapter/:book/:chapter', (req, res) => {
   const { book, chapter } = req.params;
@@ -879,8 +917,14 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
-// Serve static files
-app.use(express.static(process.cwd()));
+// Serve static files with debugging
+app.use(express.static(process.cwd(), {
+  setHeaders: (res, path) => {
+    console.log(`🔍 Serving static file: ${path}`);
+    console.log(`🔍 Current working directory: ${process.cwd()}`);
+    console.log(`🔍 Full path: ${path.join(process.cwd(), path)}`);
+  }
+}));
 
 // Serve the main page
 app.get('/', (req, res) => {
