@@ -36,7 +36,16 @@ app.use((req, res, next) => {
   next();
 });
 
-
+// Add cache control headers to prevent meta tag caching for HTML pages
+app.use((req, res, next) => {
+  // For HTML pages, prevent caching to ensure fresh meta tags
+  if (req.url === '/' || req.url === '/index.html' || req.url.endsWith('.html')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
 
 // Security headers middleware
 app.use((req, res, next) => {
