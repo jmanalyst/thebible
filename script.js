@@ -422,32 +422,20 @@ document.addEventListener("DOMContentLoaded", () => {
             // Step 2: NEW LOGIC to determine what to show on page load
             const urlHandled = handleUrlParameters();
 
-            // If a shared URL was not opened, then decide between restoring state or showing home
+            // If a shared URL was not opened, then always show home page
             if (!urlHandled) {
-                // Check if we've already been on the site in this session
-                const hasVisited = sessionStorage.getItem('hasVisited');
-                const wasOnHomePage = sessionStorage.getItem('wasOnHomePage');
-                console.log('🔍 Debug - hasVisited:', hasVisited, 'wasOnHomePage:', wasOnHomePage);
-                
-                if (hasVisited && !wasOnHomePage) {
-                    // This is a REFRESH while reading, so restore the last state
-                    console.log('🔄 This is a REFRESH while reading - restoring state');
-                    restoreState();
-                } else {
-                    // This is either a NEW VISIT or a refresh from home page, so show home
-                    console.log('🏠 This is a NEW VISIT or refresh from home - going home');
-                    goHome();
-                    // Show the KJV sample
-                    console.log('📖 Attempting to show KJV sample...');
-                    setTimeout(() => {
-                        console.log('⏰ Timeout fired, calling showTranslationSample()');
-                        showTranslationSample();
-                    }, 100);
-                }
+                // Always go to home page when visiting main URL
+                console.log('🏠 No URL parameters - going to home page');
+                goHome();
+                // Show the KJV sample
+                console.log('📖 Attempting to show KJV sample...');
+                setTimeout(() => {
+                    console.log('⏰ Timeout fired, calling showTranslationSample()');
+                    showTranslationSample();
+                }, 100);
             }
             
-            // Mark that this session has been active
-            sessionStorage.setItem('hasVisited', 'true');
+            // No need to track session state since we always go home
             
             // Step 3: Load the topics
             loadPublicTopics();
