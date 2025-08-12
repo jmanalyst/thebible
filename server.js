@@ -818,112 +818,12 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   
   console.log('🔍 Verse route called:', { book, chapter, verse });
   
-  // SECURITY: Load KJV data on-demand for meta tag generation only
-  let verseData = null;
-  try {
-    const filePath = path.join(__dirname, 'data', 'kjv.json');
-    const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const verses = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.verses) ? rawData.verses : []);
-    
-    if (verse) {
-      verseData = verses.find(v => {
-        // Handle both "Psalm" and "Psalms" (and other similar cases)
-        const bookName = v.book_name ? v.book_name.toLowerCase() : '';
-        const searchBook = book.toLowerCase();
-        
-        // Check if book names match (including singular/plural variations)
-        const bookMatch = bookName === searchBook || 
-                         bookName === searchBook + 's' || 
-                         bookName === searchBook.replace(/s$/, '');
-        
-        const chapterMatch = parseInt(v.chapter) === parseInt(chapter);
-        const verseMatch = parseInt(v.verse) === parseInt(verse);
-        
-        return bookMatch && chapterMatch && verseMatch;
-      });
-    } else {
-      // For chapter view, get first verse for description
-      verseData = verses.find(v => {
-        // Handle both "Psalm" and "Psalms" (and other similar cases)
-        const bookName = v.book_name ? v.book_name.toLowerCase() : '';
-        const searchBook = book.toLowerCase();
-        
-        // Check if book names match (including singular/plural variations)
-        const bookMatch = bookName === searchBook || 
-                         bookName === searchBook + 's' || 
-                         bookName === searchBook.replace(/s$/, '');
-        
-        const chapterMatch = parseInt(v.chapter) === parseInt(chapter);
-        
-        return bookMatch && chapterMatch;
-      });
-    }
-  } catch (error) {
-    console.error('Failed to load verse data for meta tags:', error);
-  }
+  // Instead of showing a redirect message, serve the main page with query parameters
+  // This allows the frontend to handle the navigation and meta tags
+  const redirectUrl = `/?book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}${verse ? `&verse=${encodeURIComponent(verse)}` : ''}`;
   
-  if (!verseData) {
-    console.log('❌ Verse not found for:', { book, chapter, verse });
-    return res.status(404).send('Verse not found');
-  }
-  
-  console.log('✅ Verse found:', { 
-    book_name: verseData.book_name, 
-    chapter: verseData.chapter, 
-    verse: verseData.verse,
-    text: verseData.text.substring(0, 50) + '...'
-  });
-  
-  // Generate meta tags
-  const metaTags = generateVerseMetaTags(
-    verseData.book_name, 
-    verseData.chapter, 
-    verse ? verseData.verse : null, 
-    verseData.text
-  );
-  
-  // Generate HTML with meta tags
-  const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${metaTags.title}</title>
-  <meta name="description" content="${metaTags.description}">
-  
-  <!-- Open Graph meta tags -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="${metaTags.ogUrl}">
-  <meta property="og:title" content="${metaTags.ogTitle}">
-  <meta property="og:description" content="${metaTags.ogDescription}">
-  <meta property="og:image" content="https://thelivingwordonline.com/hero.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:site_name" content="The Living Word Online">
-  
-  <!-- Twitter Card meta tags -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="${metaTags.twitterUrl}">
-  <meta property="twitter:title" content="${metaTags.twitterTitle}">
-  <meta property="twitter:description" content="${metaTags.twitterDescription}">
-  <meta property="twitter:image" content="https://thelivingwordonline.com/hero.png">
-  
-  <link rel="canonical" href="${metaTags.ogUrl}">
-  
-  <script>
-    // Redirect to main app with parameters after a delay
-    setTimeout(() => {
-      window.location.href = '/?book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}${verse ? `&verse=${encodeURIComponent(verse)}` : ''}';
-    }, 3000); // Wait 3 seconds before redirecting
-  </script>
-</head>
-<body>
-  <p>Redirecting to The Living Word Online...</p>
-</body>
-</html>`;
-  
-  res.send(html);
+  // Redirect immediately to the main page with parameters
+  res.redirect(redirectUrl);
 });
 
 // Serve static files manually since express.static isn't working on Vercel
