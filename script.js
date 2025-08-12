@@ -484,6 +484,26 @@ document.addEventListener("DOMContentLoaded", () => {
           // Deselect the verse
           console.log('🔍 Deselecting verse:', verse);
           verseLine.classList.remove('verse-selected');
+          
+          // Debug: Check if class was actually removed
+          console.log('🔍 After removing verse-selected class:', {
+            hasClass: verseLine.classList.contains('verse-selected'),
+            allClasses: Array.from(verseLine.classList)
+          });
+          
+          // Force reset any inline styles that might persist
+          verseLine.style.backgroundColor = '';
+          verseLine.style.borderLeft = '';
+          verseLine.style.paddingLeft = '';
+          verseLine.style.marginLeft = '';
+          verseLine.style.borderRadius = '';
+          
+          // Reset text decoration on the verse text
+          const verseText = verseLine.querySelector('.verse-text');
+          if (verseText) {
+            verseText.style.textDecoration = '';
+          }
+          
           document.getElementById('verse').value = '';
           currentVerse = 0;
           
