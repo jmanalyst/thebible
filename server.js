@@ -1129,6 +1129,12 @@ app.get('/script.js', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'script.js'));
 });
 
+app.get('/script-obfuscated.js', (req, res) => {
+  console.log(`🔍 Manually serving script-obfuscated.js`);
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(process.cwd(), 'script-obfuscated.js'));
+});
+
 app.get('/index.html', (req, res) => {
   console.log(`🔍 Manually serving index.html`);
   res.setHeader('Content-Type', 'text/html');
