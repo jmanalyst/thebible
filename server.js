@@ -944,6 +944,20 @@ app.get('/public/:file', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'public', fileName));
 });
 
+// Also handle direct requests to hero.png (in case it's referenced without /public/ prefix)
+app.get('/hero.png', (req, res) => {
+  console.log(`🔍 Manually serving hero.png directly`);
+  res.setHeader('Content-Type', 'image/png');
+  res.sendFile(path.join(process.cwd(), 'public', 'hero.png'));
+});
+
+// Handle favicon.ico requests
+app.get('/favicon.ico', (req, res) => {
+  console.log(`🔍 Manually serving favicon.ico`);
+  res.setHeader('Content-Type', 'image/x-icon');
+  res.sendFile(path.join(process.cwd(), 'public', 'hero.png')); // Using hero.png as favicon
+});
+
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'index.html'));
