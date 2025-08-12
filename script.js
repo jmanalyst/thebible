@@ -867,6 +867,31 @@ function addTooltipsToVerseText(text) {
   });
 }
 
+// Function to get clean verse text without tooltips for copying
+function getCleanVerseTextForCopy(verseElement) {
+  // Get the verse text element
+  const verseTextElement = verseElement.querySelector('.verse-text');
+  if (!verseTextElement) return '';
+  
+  // Clone the element to avoid modifying the original
+  const clonedElement = verseTextElement.cloneNode(true);
+  
+  // Remove all tooltip spans
+  const tooltipSpans = clonedElement.querySelectorAll('.tooltip-wrapper');
+  tooltipSpans.forEach(span => {
+    // Replace the tooltip wrapper with just the text content
+    span.replaceWith(span.textContent);
+  });
+  
+  // Get the clean text content
+  let cleanText = clonedElement.textContent;
+  
+  // Remove unwanted symbols for copy
+  cleanText = cleanText.replace(/[¶\[\]‹›]/g, '').trim();
+  
+  return cleanText;
+}
+
 const books = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi", "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
@@ -2226,10 +2251,8 @@ function setupSelectionMenu() {
         if (selectedVerses.size === 1) {
             // Single verse - use existing format
             const verse = Array.from(selectedVerses)[0];
-            // Use the displayed verse text instead of trying to access empty bibleData
-            let verseText = verse.querySelector('.verse-text').textContent;
-            // Remove unwanted symbols for copy
-            verseText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+            // Use clean verse text without tooltips
+            let verseText = getCleanVerseTextForCopy(verse);
             const verseRef = verse.dataset.verseRef;
             const book = verse.dataset.book;
             const chapter = verse.dataset.chapter;
@@ -2243,10 +2266,8 @@ function setupSelectionMenu() {
                 const book = verse.dataset.book;
                 const chapter = parseInt(verse.dataset.chapter);
                 const verseNum = parseInt(verse.dataset.verse);
-                // Use the displayed verse text instead of trying to access empty bibleData
-                let cleanOriginalText = verse.querySelector('.verse-text').textContent;
-                // Remove unwanted symbols for copy
-                cleanOriginalText = cleanOriginalText.replace(/[¶\[\]‹›]/g, '').trim();
+                // Use clean verse text without tooltips
+                let cleanOriginalText = getCleanVerseTextForCopy(verse);
                 return `${verse.dataset.verseRef}: "${cleanOriginalText}"`;
             });
             
@@ -2283,9 +2304,8 @@ shareButton.addEventListener('click', () => {
     if (selectedVerses.size === 1) {
         // Single verse - use existing format
         const verse = Array.from(selectedVerses)[0];
-        let verseText = verse.querySelector('.verse-text').textContent;
-        // Remove unwanted symbols for share
-        verseText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+        // Use clean verse text without tooltips
+        let verseText = getCleanVerseTextForCopy(verse);
         const verseRef = verse.dataset.verseRef;
         const book = verse.dataset.book;
         const chapter = verse.dataset.chapter;
@@ -2296,9 +2316,8 @@ shareButton.addEventListener('click', () => {
     } else {
         // Multiple verses - create a combined format
         const verses = Array.from(selectedVerses).map(verse => {
-            let verseText = verse.querySelector('.verse-text').textContent;
-            // Remove unwanted symbols for share
-            verseText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+            // Use clean verse text without tooltips
+            let verseText = getCleanVerseTextForCopy(verse);
             return `${verse.dataset.verseRef}: "${verseText}"`;
         });
         
