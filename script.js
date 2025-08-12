@@ -459,25 +459,48 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('click', function(e) {
       if (e.target.closest('.verse-line')) {
         const verseLine = e.target.closest('.verse-line');
+        
+        // Check if we're in multiple selection mode - if so, skip this listener completely
+        if (verseLine.classList.contains('menu-selected') || 
+            document.querySelector('#selection-menu:not(.hidden)') ||
+            document.querySelector('.verse-line.menu-selected')) {
+          console.log('🔍 Multiple selection mode active, skipping single verse handler');
+          return;
+        }
+        
         const book = verseLine.dataset.book;
         const chapter = verseLine.dataset.chapter;
         const verse = verseLine.dataset.verse;
         
         console.log('🔍 Verse clicked:', { book, chapter, verse });
         
-        // Always select the clicked verse (no more toggle)
-        console.log('🔍 Selecting verse:', verse);
+        // Check if this verse is already selected
+        const isAlreadySelected = verseLine.classList.contains('verse-selected');
         
-        // Remove selection from all other verses
-        document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
-        
-        // Select this verse
-        verseLine.classList.add('verse-selected');
-        document.getElementById('verse').value = verse;
-        currentVerse = parseInt(verse);
-        
-        // Update meta tags and URL for sharing
-        updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
+        if (isAlreadySelected) {
+          // Verse is already selected, so deselect it
+          console.log('🔍 Deselecting already selected verse:', verse);
+          verseLine.classList.remove('verse-selected');
+          document.getElementById('verse').value = '';
+          currentVerse = 0;
+          
+          // Update meta tags for chapter only (no specific verse)
+          updateMetaTags(book, chapter, '', '');
+        } else {
+          // Verse is not selected, so select it
+          console.log('🔍 Selecting verse:', verse);
+          
+          // Remove selection from all other verses
+          document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
+          
+          // Select this verse
+          verseLine.classList.add('verse-selected');
+          document.getElementById('verse').value = verse;
+          currentVerse = parseInt(verse);
+          
+          // Update meta tags and URL for sharing
+          updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
+        }
         
         // Update pill labels
         updatePillLabels();
@@ -2109,6 +2132,48 @@ function setupSelectionMenu() {
     let selectedVerses = new Set(); // Track multiple selected verses
     window.selectedVerses = selectedVerses; // Make it globally accessible for URL handling
 
+    // Add text selection event listener to detect when user selects text
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        if (selection.toString().trim()) {
+            // User has selected some text, find which verses contain this selection
+            const range = selection.getRangeAt(0);
+            const startContainer = range.startContainer;
+            const endContainer = range.endContainer;
+            
+            // Find the verse elements that contain the selection
+            const startVerse = startContainer.closest('.verse-line');
+            const endVerse = endContainer.closest('.verse-line');
+            
+            if (startVerse && endVerse) {
+                console.log('🔍 Text selection detected, activating multiple selection mode');
+                // Clear previous selections
+                selectedVerses.clear();
+                document.querySelectorAll('.verse-line.menu-selected').forEach(verse => {
+                    verse.classList.remove('menu-selected');
+                });
+                
+                // Add all verses between start and end (inclusive)
+                let currentVerse = startVerse;
+                while (currentVerse && currentVerse !== endVerse.nextSibling) {
+                    if (currentVerse.classList.contains('verse-line')) {
+                        currentVerse.classList.add('menu-selected');
+                        selectedVerses.add(currentVerse);
+                    }
+                    currentVerse = currentVerse.nextElementSibling;
+                }
+                
+                // Show the selection menu
+                showMenu();
+                updateMenuContent();
+            }
+        } else {
+            // No text selected, but don't automatically hide menu if verses are manually selected
+            // This prevents interference with manual deselection
+            console.log('🔍 No text selected, but keeping menu if verses are manually selected');
+        }
+    });
+
     const showMenu = () => {
         selectionMenu.classList.remove('hidden');
         
@@ -2157,13 +2222,30 @@ function setupSelectionMenu() {
     };
 
     const hideMenu = () => {
+        console.log('🔍 Hiding selection menu');
         selectionMenu.classList.add('hidden');
+        
         // Remove menu-selected class from all verses when hiding menu
         const menuSelectedVerses = document.querySelectorAll('.verse-line.menu-selected');
+        console.log('🔍 Removing menu-selected class from', menuSelectedVerses.length, 'verses');
         menuSelectedVerses.forEach(verse => {
             verse.classList.remove('menu-selected');
         });
-        selectedVerses.clear(); // Clear selected verses
+        
+        // Clear selected verses Set
+        const beforeClear = selectedVerses.size;
+        selectedVerses.clear();
+        console.log('🔍 Cleared', beforeClear, 'verses from selectedVerses Set');
+        
+        // Also clear any verse-selected classes that might have been left behind
+        const verseSelectedVerses = document.querySelectorAll('.verse-line.verse-selected');
+        if (verseSelectedVerses.length > 0) {
+            console.log('🔍 Cleaning up', verseSelectedVerses.length, 'leftover verse-selected classes');
+            verseSelectedVerses.forEach(verse => {
+                verse.classList.remove('verse-selected');
+            });
+        }
+        
         // Don't remove verse-selected class here as it's used for the full chapter view
         // The verse-selected class will be managed by the getVerseFromRef function
     };
@@ -2184,20 +2266,53 @@ function setupSelectionMenu() {
 
             // Toggle selection: if already selected, deselect it
             if (isMenuSelected) {
+                console.log('🔍 Deselecting verse:', clickedVerse.dataset.verseRef);
                 clickedVerse.classList.remove('menu-selected');
                 selectedVerses.delete(clickedVerse);
+                
+                console.log('🔍 Remaining selected verses:', selectedVerses.size);
+                
+                // If this was the last selected verse, hide the menu
+                if (selectedVerses.size === 0) {
+                    console.log('🔍 No more verses selected, hiding menu');
+                    hideMenu();
+                } else {
+                    // Update menu content for remaining selections
+                    console.log('🔍 Updating menu for remaining selections');
+                    updateMenuContent();
+                }
             } else {
                 // Add to selection
+                console.log('🔍 Adding verse to selection:', clickedVerse.dataset.verseRef);
+                
+                // Clear any existing single verse selection when entering multiple selection mode
+                if (selectedVerses.size === 0) {
+                    console.log('🔍 First multiple selection - clearing single verse selections');
+                    document.querySelectorAll('.verse-line.verse-selected').forEach(verse => {
+                        verse.classList.remove('verse-selected');
+                        // Also clear any inline styles that might interfere
+                        verse.style.backgroundColor = '';
+                        verse.style.borderLeft = '';
+                        verse.style.paddingLeft = '';
+                        verse.style.marginLeft = '';
+                        verse.style.borderRadius = '';
+                    });
+                    
+                    // Clear the verse picker and current verse
+                    if (document.getElementById('verse')) {
+                        document.getElementById('verse').value = '';
+                    }
+                    if (typeof currentVerse !== 'undefined') {
+                        currentVerse = 0;
+                    }
+                }
+                
                 clickedVerse.classList.add('menu-selected');
                 selectedVerses.add(clickedVerse);
-            }
-
-            // Show menu if we have any selections
-            if (selectedVerses.size > 0) {
+                
+                // Show menu and update content
                 showMenu();
                 updateMenuContent();
-            } else {
-                hideMenu();
             }
 
         } else {
