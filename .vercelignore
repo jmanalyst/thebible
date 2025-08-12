@@ -1,0 +1,14 @@
+# Ignore everything except essential files
+*
+
+# But include these specific files
+!server.js
+!package.json
+!package-lock.json
+!index.html
+!public/
+!data/
+!favicon.ico
+!robots.txt
+!CNAME
+!vercel.json
