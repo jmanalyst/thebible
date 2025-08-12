@@ -917,14 +917,32 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
-// Serve static files with debugging
-app.use(express.static(process.cwd(), {
-  setHeaders: (res, path) => {
-    console.log(`🔍 Serving static file: ${path}`);
-    console.log(`🔍 Current working directory: ${process.cwd()}`);
-    console.log(`🔍 Full path: ${path.join(process.cwd(), path)}`);
+// Serve static files manually since express.static isn't working on Vercel
+app.get('/script.js', (req, res) => {
+  console.log(`🔍 Manually serving script.js`);
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(process.cwd(), 'script.js'));
+});
+
+app.get('/index.html', (req, res) => {
+  console.log(`🔍 Manually serving index.html`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'index.html'));
+});
+
+app.get('/public/:file', (req, res) => {
+  const fileName = req.params.file;
+  console.log(`🔍 Manually serving public file: ${fileName}`);
+  
+  // Set appropriate content type based on file extension
+  if (fileName.endsWith('.png')) {
+    res.setHeader('Content-Type', 'image/png');
+  } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+    res.setHeader('Content-Type', 'image/jpeg');
   }
-}));
+  
+  res.sendFile(path.join(process.cwd(), 'public', fileName));
+});
 
 // Serve the main page
 app.get('/', (req, res) => {
