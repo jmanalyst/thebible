@@ -2523,28 +2523,36 @@ function updateMetaTags(book, chapter, verse, verseText) {
     metaDescription.setAttribute('content', description);
   }
   
-  // Update Open Graph tags
+  // Create the verse-specific URL for sharing
+  const verseUrl = `https://thelivingwordonline.com/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}`;
+  
+  // Update Open Graph tags with verse-specific URL
   const ogTitle = document.querySelector('meta[property="og:title"]');
   const ogDescription = document.querySelector('meta[property="og:description"]');
   const ogUrl = document.querySelector('meta[property="og:url"]');
   
   if (ogTitle) ogTitle.setAttribute('content', title);
   if (ogDescription) ogDescription.setAttribute('content', description);
-  if (ogUrl) ogUrl.setAttribute('content', currentUrl);
+  if (ogUrl) ogUrl.setAttribute('content', verseUrl);
   
-  // Update Twitter Card tags
+  // Update Twitter Card tags with verse-specific URL
   const twitterTitle = document.querySelector('meta[property="twitter:title"]');
   const twitterDescription = document.querySelector('meta[property="twitter:description"]');
   const twitterUrl = document.querySelector('meta[property="twitter:url"]');
   
   if (twitterTitle) twitterTitle.setAttribute('content', title);
   if (twitterDescription) twitterDescription.setAttribute('content', description);
-  if (twitterUrl) twitterUrl.setAttribute('content', currentUrl);
+  if (twitterUrl) twitterUrl.setAttribute('content', verseUrl);
   
-  // Update canonical URL
+  // Update canonical URL to verse-specific URL
   const canonicalLink = document.querySelector('link[rel="canonical"]');
   if (canonicalLink) {
-    canonicalLink.setAttribute('href', currentUrl);
+    canonicalLink.setAttribute('href', verseUrl);
+  }
+  
+  // Update the browser URL to the verse-specific route for sharing
+  if (window.history && window.history.pushState) {
+    window.history.pushState({}, title, verseUrl);
   }
   
 
