@@ -876,18 +876,33 @@ function getCleanVerseTextForCopy(verseElement) {
   // Clone the element to avoid modifying the original
   const clonedElement = verseTextElement.cloneNode(true);
   
-  // Remove all tooltip spans
-  const tooltipSpans = clonedElement.querySelectorAll('.tooltip-wrapper');
-  tooltipSpans.forEach(span => {
-    // Replace the tooltip wrapper with just the text content
-    span.replaceWith(span.textContent);
+  console.log('🔍 Original verse element HTML:', verseTextElement.innerHTML);
+  
+  // Remove all tooltip-related elements completely
+  const tooltipWrappers = clonedElement.querySelectorAll('.tooltip-wrapper');
+  console.log('🔍 Found tooltip wrappers:', tooltipWrappers.length);
+  
+  tooltipWrappers.forEach((wrapper, index) => {
+    // Get only the original word text, not the tooltip
+    const originalWord = wrapper.childNodes[0].textContent;
+    console.log(`🔍 Tooltip wrapper ${index}: original word = "${originalWord}"`);
+    wrapper.replaceWith(originalWord);
+  });
+  
+  // Also remove any remaining tooltip spans that might exist
+  const tooltipSpans = clonedElement.querySelectorAll('.tooltip');
+  console.log('🔍 Found tooltip spans:', tooltipSpans.length);
+  tooltipSpans.forEach(tooltip => {
+    tooltip.remove();
   });
   
   // Get the clean text content
   let cleanText = clonedElement.textContent;
+  console.log('🔍 Clean text after processing:', cleanText);
   
   // Remove unwanted symbols for copy
   cleanText = cleanText.replace(/[¶\[\]‹›]/g, '').trim();
+  console.log('🔍 Final clean text:', cleanText);
   
   return cleanText;
 }
