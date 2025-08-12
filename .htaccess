@@ -1,0 +1,77 @@
+# Bible Translation Security - Block direct access to all Bible data files
+# This provides server-level protection in addition to Node.js security
+
+# Block access to data directory
+<Directory "data">
+    Order Deny,Allow
+    Deny from all
+</Directory>
+
+# Block access to all JSON files in data directory
+<Files "*.json">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Block specific Bible translation files
+<Files "kjv.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "asv.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+
+
+<Files "rvg.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "rvg_2004.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "rv_1909.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "web.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Block access to script.js (serve obfuscated version instead)
+<Files "script.js">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Download-Options noopen
+    Header always set X-Permitted-Cross-Domain-Policies none
+</IfModule>
+
+# Block access to sensitive files
+<FilesMatch "\.(json|js|txt|md)$">
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteCond %{REQUEST_URI} ^/data/
+        RewriteRule .* - [F,L]
+    </IfModule>
+</FilesMatch>
+
+# Redirect all requests to data directory to 403
+RewriteEngine On
+RewriteRule ^data/.*$ - [F,L]
+RewriteRule ^.*\.json$ - [F,L]

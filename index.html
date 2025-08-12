@@ -148,6 +148,71 @@
   text-decoration: none !important;
 }
 
+/* Translation selector styling - removed since translation selector is gone */
+
+/* Notification styling */
+.translation-notification {
+  animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* Translation indicator styling */
+#current-translation {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Translation sample styling */
+.translation-sample {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.translation-sample .bg-theme-surface {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Results header styling */
+#result-section .border-b {
+  border-color: var(--color-border);
+}
+
+/* Responsive design for translation bar - removed since translation bar is gone */
+
 @keyframes verseSelected {
   0% {
     background-color: rgba(59, 130, 246, 0.3);
@@ -251,24 +316,21 @@
         <button onclick="goHome()" class="text-base sm:text-lg font-medium text-theme-text hover:text-theme-subtle-text transition">
             Home
         </button>
+        
 
+
+        
         <button onclick="toggleDarkMode()" id="theme-toggle" type="button" class="text-theme-text hover:text-theme-subtle-text text-xl">
-            <svg id="theme-toggle-sun-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 10.607a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-            <svg id="theme-toggle-moon-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            <svg id="theme-toggle-sun-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 10.607a1 1 0 010-1.414l.707-.707a1 1 0 111.414 1.414l-.707.707a1 1 0 01-1.414 0zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd">
+        </svg>
+        <svg id="theme-toggle-moon-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
         </button>
-        <script>
-            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.getElementById('theme-toggle-moon-icon').classList.remove('hidden');
-            } else {
-                document.getElementById('theme-toggle-sun-icon').classList.remove('hidden');
-            }
-        </script>
 
         <div class="relative" id="search-container">
-            <button onclick="toggleSearchDropdown()" title="Search">
+            <button onclick="toggleSearchDropdown()" title="Search (Ctrl+K)">
                 <svg class="w-6 h-6 text-theme-text" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             </button>
-            <div id="search-dropdown" class="absolute top-12 right-0 w-72 bg-theme-surface shadow-lg rounded-lg p-4 hidden z-50">
+            <div id="search-dropdown" class="fixed top-40 right-4 w-72 bg-theme-surface shadow-lg rounded-lg p-4 hidden z-[60]">
                 <form id="search-form" class="flex gap-2 mb-2">
                     <input id="searchQuery" type="text" placeholder="Search..." class="w-full border border-theme-border rounded px-3 py-2 text-sm bg-theme-bg text-theme-text focus:outline-none focus:ring focus:border-theme-accent" />
                     <button type="submit" class="bg-theme-text text-theme-bg px-4 py-2 rounded text-sm">Search</button>
@@ -284,6 +346,8 @@
     </div>
   </div>
 </div>
+
+<!-- Translation Bar section removed -->
 
 <section id="welcome-section" class="relative min-h-[60vh] flex flex-col justify-center items-center text-center px-4 pt-24 bg-cover bg-center bg-no-repeat" style="background-image: url('public/hero.png');">
   <div class="absolute inset-0 bg-black/10 dark:bg-black/10"></div>
@@ -308,6 +372,26 @@
 
 
 <div id="result-section" class="max-w-prose mx-auto px-4 py-6 hidden">
+  <!-- Results Header with Translation Info -->
+  <div class="sticky-header mb-6 pb-4 bg-theme-surface shadow-sm">
+          <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <h2 class="text-xl font-semibold text-theme-text">Bible Reading</h2>
+        </div>
+      <div class="flex items-center space-x-3">
+        <span class="text-sm text-theme-subtle-text">Translation:</span>
+        <select id="translation-dropdown-results" class="text-sm font-medium text-blue-600 dark:text-white bg-theme-border px-2 py-1 rounded border-none cursor-pointer hover:bg-theme-accent hover:text-white transition-colors">
+          <option value="kjv">KJV</option>
+          <option value="asv">ASV</option>
+          <option value="rvg">RVG</option>
+          <option value="rvg_2004">RVG 2004</option>
+          <option value="rv_1909">RV 1909</option>
+          <option value="web">WEB</option>
+        </select>
+
+      </div>
+    </div>
+  </div>
   <div id="result" class="text-base leading-relaxed whitespace-pre-wrap pb-24"></div>
 </div>
 
@@ -457,6 +541,20 @@
     </div>
   </div>
 </footer>
+
+<style>
+  .sticky-header {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 45px;
+    z-index: 1;
+  }
+  
+  /* Ensure sticky works properly */
+  #result-section {
+    overflow: visible;
+  }
+</style>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {

@@ -2,73 +2,483 @@
 
 let bibleData = [];
 let lastSearchQuery = "";
+let currentTranslation = "kjv";
+
+// Translation mapping
+const translations = {
+    kjv: { name: "King James Version", file: "kjv.json", display: "KJV" },
+    asv: { name: "American Standard Version", file: "asv.json", display: "ASV" },
+    rvg: { name: "Reina Valera Gómez", file: "rvg.json", display: "RVG" },
+    rvg_2004: { name: "Reina Valera Gómez 2004", file: "rvg_2004.json", display: "RVG 2004" },
+    rv_1909: { name: "Reina Valera 1909", file: "rv_1909.json", display: "RV 1909" },
+    web: { name: "World English Bible", file: "web.json", display: "WEB" }
+};
+
+// SECURE: Function to initialize a translation (no data loading)
+async function loadTranslation(translationKey) {
+    console.log('Initializing translation:', translationKey);
+    
+    if (!translations[translationKey]) {
+        console.error("Invalid translation key:", translationKey);
+        return;
+    }
+    
+    // Show loading state
+    updateTranslationDisplay('Loading...');
+    
+    try {
+        // SECURITY: We no longer load entire Bible files
+        // Instead, we just set the current translation and load content on-demand
+        
+        currentTranslation = translationKey;
+        localStorage.setItem('preferredTranslation', translationKey);
+        
+        // Clear any existing Bible data (security measure)
+        bibleData = [];
+        
+        // Update the UI to show current translation
+        updateTranslationDisplay();
+        
+        // Dispatch global event to trigger refresh
+        document.dispatchEvent(new CustomEvent('translationChanged', {
+            detail: { translation: translationKey, verseCount: 0 }
+        }));
+        
+        console.log(`${translations[translationKey].name} initialized. Content will be loaded on-demand.`);
+        
+        return { success: true, translation: translationKey };
+    } catch (error) {
+        console.error("Failed to initialize translation:", error);
+        // Revert to previous translation on error
+        updateTranslationDisplay();
+        showNotification(`Failed to initialize ${translations[translationKey].name}. Please try again.`, 5000);
+        throw error;
+    }
+}
+
+// NEW: Secure function to get a specific verse
+async function getSecureVerse(book, chapter, verse, translation = currentTranslation) {
+    try {
+        const response = await fetch(`/api/verse/${book}/${chapter}/${verse}?translation=${translation}`);
+        
+        if (!response.ok) {
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else if (response.status === 404) {
+                throw new Error('Verse not found.');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        }
+        
+        const verseData = await response.json();
+        return verseData;
+    } catch (error) {
+        console.error("Failed to get secure verse:", error);
+        throw error;
+    }
+}
+
+// NEW: Secure function to get a specific chapter
+async function getSecureChapter(book, chapter, translation = currentTranslation) {
+    try {
+        const response = await fetch(`/api/chapter/${book}/${chapter}?translation=${translation}`);
+        
+        if (!response.ok) {
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else if (response.status === 404) {
+                throw new Error('Chapter not found.');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        }
+        
+        const chapterData = await response.json();
+        return chapterData;
+    } catch (error) {
+        console.error("Failed to get secure chapter:", error);
+        throw error;
+    }
+}
+
+// Function to initialize the translation selector
+function initializeTranslationSelector() {
+    // No translation selector to initialize since it was removed
+    console.log('Translation selector initialization skipped - element was removed');
+}
+
+// Function to update the translation display in the UI
+function updateTranslationDisplay(loadingText = null) {
+    const displayElements = [
+        document.getElementById('current-translation'),
+        document.getElementById('current-translation-small'),
+        document.getElementById('current-translation-results')
+    ];
+    
+    displayElements.forEach(element => {
+        if (element) {
+            if (loadingText) {
+                element.textContent = loadingText;
+            } else if (translations[currentTranslation]) {
+                element.textContent = translations[currentTranslation].display;
+            }
+        }
+    });
+}
+
+// Function to show a temporary notification
+function showNotification(message, duration = 3000) {
+    // Remove existing notification if any
+    const existingNotification = document.querySelector('.translation-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'translation-notification fixed top-20 left-1/2 transform -translate-x-1/2 bg-theme-accent text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after duration
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, duration);
+}
+
+// Function to toggle the search dropdown
+function toggleSearchDropdown() {
+    const dropdown = document.getElementById('search-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+}
+
+// Close search dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const searchContainer = document.getElementById('search-container');
+    const dropdown = document.getElementById('search-dropdown');
+    
+    if (searchContainer && dropdown && !searchContainer.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(event) {
+    // Ctrl/Cmd + K to open search
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        toggleSearchDropdown();
+        const searchInput = document.getElementById('searchQuery');
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }
+    
+    // Ctrl/Cmd + T to toggle translation bar - removed since translation bar no longer exists
+    
+    // Escape to close search dropdown
+    if (event.key === 'Escape') {
+        const dropdown = document.getElementById('search-dropdown');
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+        }
+    }
+});
+
+// Function to load Genesis chapter 1 (for the Start Reading button)
+function loadGenesis1() {
+    // Set the form values directly
+    document.getElementById('book').value = 'Genesis';
+    document.getElementById('chapter').value = '1';
+    document.getElementById('verse').value = '';
+    
+    // Update pill labels
+    updatePillLabels();
+    
+    // Load the chapter with smooth transition
+    getChapter('Genesis', 1);
+}
+
+// Function to show a sample verse from the current translation
+function showTranslationSample() {
+    // Array of uplifting and inspiring Bible verses
+    const upliftingVerses = [
+        {
+            reference: "John 3:16",
+            text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."
+        },
+        {
+            reference: "Psalm 23:1-3",
+            text: "The LORD is my shepherd; I shall not want. He maketh me to lie down in green pastures: he leadeth me beside the still waters. He restoreth my soul: he leadeth me in the paths of righteousness for his name's sake."
+        },
+        {
+            reference: "Philippians 4:13",
+            text: "I can do all things through Christ which strengtheneth me."
+        },
+        {
+            reference: "Isaiah 40:31",
+            text: "But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint."
+        },
+        {
+            reference: "Romans 8:28",
+            text: "And we know that all things work together for good to them that love God, to them who are the called according to his purpose."
+        },
+        {
+            reference: "Jeremiah 29:11",
+            text: "For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end."
+        },
+        {
+            reference: "Matthew 11:28",
+            text: "Come unto me, all ye that labour and are heavy laden, and I will give you rest."
+        },
+        {
+            reference: "Joshua 1:9",
+            text: "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest."
+        }
+    ];
+    
+    // Select 1 random verse
+    const randomIndex = Math.floor(Math.random() * upliftingVerses.length);
+    const selectedVerse = upliftingVerses[randomIndex];
+    
+    const sampleHTML = `
+        <div class="text-center py-8">
+            <div class="bg-theme-surface border border-theme-border rounded-lg p-6 max-w-2xl mx-auto">
+                <p class="text-theme-subtle-text text-sm mb-2">${selectedVerse.reference}</p>
+                <p class="text-theme-text text-lg leading-relaxed italic">"${selectedVerse.text}"</p>
+            </div>
+        </div>
+    `;
+    
+    // Insert the sample after the welcome section
+    const welcomeSection = document.getElementById('welcome-section');
+    if (welcomeSection) {
+        // Remove any existing sample
+        const existingSample = document.querySelector('.translation-sample');
+        if (existingSample) {
+            existingSample.remove();
+        }
+        
+        // Add new sample
+        const sampleDiv = document.createElement('div');
+        sampleDiv.className = 'translation-sample';
+        sampleDiv.innerHTML = sampleHTML;
+        welcomeSection.parentNode.insertBefore(sampleDiv, welcomeSection.nextSibling);
+    }
+}
+
+// Function to clear the translation sample
+function clearTranslationSample() {
+    const existingSample = document.querySelector('.translation-sample');
+    if (existingSample) {
+        existingSample.remove();
+    }
+}
+
+// Debug function to test translation switching (call from browser console)
+function testTranslationSwitch(translationKey = 'asv') {
+    console.log('=== Testing Translation Switch ===');
+    console.log('Current translation:', currentTranslation);
+    
+    // Change translation
+    console.log('Changing to:', translationKey);
+    loadTranslation(translationKey).then(() => {
+        console.log('Translation loaded successfully');
+        console.log('New translation:', currentTranslation);
+        
+        // Test getting Genesis 1
+        console.log('Testing Genesis 1 with new translation...');
+        getChapter('Genesis', 1);
+    }).catch(error => {
+        console.error('Translation switch failed:', error);
+    });
+}
+
+// Force refresh function that definitely works
+let isRefreshing = false; // Prevent duplicate refreshes
+
+function forceRefreshCurrentView() {
+    if (isRefreshing) {
+        console.log('Refresh already in progress, skipping...');
+        return;
+    }
+    
+    isRefreshing = true;
+    console.log('=== FORCE REFRESH CURRENT VIEW ===');
+    
+    const currentBook = document.getElementById('book').value;
+    const currentChapter = document.getElementById('chapter').value;
+    const currentVerse = document.getElementById('verse').value;
+    
+    console.log('Current state:', { currentBook, currentChapter, currentVerse });
+    console.log('Current translation:', currentTranslation);
+    
+    // Show immediate loading state
+    const result = document.getElementById('result');
+    if (result) {
+        result.innerHTML = `
+            <div class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-theme-accent"></div>
+                <p class="mt-2 text-theme-subtle-text">Refreshing with ${translations[currentTranslation].name}...</p>
+            </div>
+        `;
+    }
+    
+    // Force refresh after a short delay
+    setTimeout(() => {
+        if (currentBook && currentChapter) {
+            if (currentVerse) {
+                console.log('Force refreshing verse:', currentBook, currentChapter, currentVerse);
+                getVerseFromRef(currentBook, currentChapter, currentVerse);
+            } else {
+                console.log('Force refreshing chapter:', currentBook, currentChapter);
+                getChapter(currentBook, currentChapter);
+            }
+        } else {
+            console.log('No book/chapter selected, cannot refresh');
+            // Try to restore from session storage if available
+            const savedState = sessionStorage.getItem('lastReadingState');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    if (state.book && state.chapter) {
+                        console.log('Restoring from session storage:', state);
+                        document.getElementById('book').value = state.book;
+                        document.getElementById('chapter').value = state.chapter;
+                        if (state.verse) {
+                            document.getElementById('verse').value = state.verse;
+                        }
+                        // Now try to refresh
+                        getChapter(state.book, state.chapter);
+                        isRefreshing = false;
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Failed to parse saved state');
+                }
+            }
+            
+            // Clear loading state
+            if (result) {
+                result.innerHTML = '<div class="text-center py-8 text-theme-subtle-text">No content to refresh</div>';
+            }
+        }
+        
+        // Reset refresh flag
+        isRefreshing = false;
+    }, 500);
+}
+
+// Function to force refresh the current view with new translation
+function refreshCurrentView() {
+    const currentBook = document.getElementById('book').value;
+    const currentChapter = document.getElementById('chapter').value;
+    const currentVerse = document.getElementById('verse').value;
+    
+    console.log('Refreshing current view:', { currentBook, currentChapter, currentVerse });
+    console.log('Current translation:', currentTranslation);
+    
+    if (currentBook && currentChapter) {
+        console.log('About to refresh with:', { currentBook, currentChapter, currentVerse, translation: currentTranslation });
+        if (currentVerse) {
+            // User was viewing a specific verse - refresh that verse
+            console.log('Refreshing specific verse');
+            getVerseFromRef(currentBook, currentChapter, currentVerse);
+        } else {
+            // User was viewing a chapter - refresh that chapter
+            console.log('Refreshing chapter');
+            getChapter(currentBook, currentChapter);
+        }
+    } else {
+        console.log('No book/chapter selected, skipping refresh');
+    }
+}
 
 
 
 // DOM Content
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Fetch Bible data first
-    fetch('public/kjv.json')
-      .then(res => res.json())
-     .then(data => {
-    // Step 1: Check and load the Bible data
-    if (Array.isArray(data)) {
-        bibleData = data;
-    } else if (Array.isArray(data.verses)) {
-        bibleData = data.verses;
-    } else {
-        console.error("Unexpected data format in kjv.json:", data);
-        return; // Stop if data is bad
-    }
-    console.log("Bible data loaded:", bibleData.length, "verses.");
-
-    // Step 2: NEW LOGIC to determine what to show on page load
-    const urlHandled = handleUrlParameters();
-
-    // If a shared URL was not opened, then decide between restoring state or showing home
-    if (!urlHandled) {
-        // Check if we've already been on the site in this session
-        if (sessionStorage.getItem('hasVisited')) {
-            // This is a REFRESH, so restore the last state
-            restoreState();
-        } else {
-            // This is a NEW VISIT, so go to the homepage
-            goHome();
-        }
-    }
+    // Initialize theme toggle icons based on current theme
+    initializeThemeIcons();
     
-    // Mark that this session has been active
-    sessionStorage.setItem('hasVisited', 'true');
+    // Load user's preferred translation or default to KJV
+    currentTranslation = localStorage.getItem('preferredTranslation') || 'kjv';
     
-    // Step 3: Load the topics
-    loadPublicTopics();
+    // Initialize the translation selector
+    initializeTranslationSelector();
+    
+    // Initialize translation bar visibility - removed since translation bar no longer exists
+    
+            // Load the preferred translation
+        loadTranslation(currentTranslation).then(() => {
+            // Step 2: NEW LOGIC to determine what to show on page load
+            const urlHandled = handleUrlParameters();
 
+            // If a shared URL was not opened, then decide between restoring state or showing home
+            if (!urlHandled) {
+                // Check if we've already been on the site in this session
+                const hasVisited = sessionStorage.getItem('hasVisited');
+                const wasOnHomePage = sessionStorage.getItem('wasOnHomePage');
+                console.log('🔍 Debug - hasVisited:', hasVisited, 'wasOnHomePage:', wasOnHomePage);
+                
+                if (hasVisited && !wasOnHomePage) {
+                    // This is a REFRESH while reading, so restore the last state
+                    console.log('🔄 This is a REFRESH while reading - restoring state');
+                    restoreState();
+                } else {
+                    // This is either a NEW VISIT or a refresh from home page, so show home
+                    console.log('🏠 This is a NEW VISIT or refresh from home - going home');
+                    goHome();
+                    // Show the KJV sample
+                    console.log('📖 Attempting to show KJV sample...');
+                    setTimeout(() => {
+                        console.log('⏰ Timeout fired, calling showTranslationSample()');
+                        showTranslationSample();
+                    }, 100);
+                }
+            }
+            
+            // Mark that this session has been active
+            sessionStorage.setItem('hasVisited', 'true');
+            
+            // Step 3: Load the topics
+            loadPublicTopics();
 
-
-
-      // ✅ Step 4: Load the daily devotion verse
-  const devotion = getDailyVerse(); // your custom function
-  const textEl = document.getElementById("devotion-text");
-  const refEl = document.getElementById("devotion-ref");
-  if (textEl && refEl) {
-    textEl.textContent = devotion.text;
-    refEl.textContent = `– ${devotion.verse}`;
-  }
-
-
-
-})
-
-
-
-
-             .catch(err => {
-         console.error("Failed to load kjv.json:", err);
-       });
+            // ✅ Step 4: Load the daily devotion verse
+            const devotion = getDailyVerse(); // your custom function
+            const textEl = document.getElementById("devotion-text");
+            const refEl = document.getElementById("devotion-ref");
+            if (textEl && refEl) {
+                textEl.textContent = devotion.text;
+                refEl.textContent = `– ${devotion.verse}`;
+            }
+        }).catch(err => {
+            console.error("Failed to load translation:", err);
+        });
 
     // Setup other event listeners
     document.getElementById("verse").addEventListener("click", openVersePicker);
+    
+    // Global translation change listener - catch any translation changes
+    document.addEventListener('translationChanged', function(event) {
+        console.log('Global translation change detected:', event.detail);
+        
+        // Update the results translation dropdown
+        updateResultsTranslationDropdown(event.detail.translation);
+        
+        // Refresh the current view with the new translation
+        setTimeout(() => {
+            refreshCurrentView();
+        }, 100);
+    });
 
     // MODIFIED: This block now checks where the search started from
          document.getElementById("search-form").addEventListener("submit", function (e) {
@@ -97,6 +507,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     setupSelectionMenu();
+
+    // Initialize the translation dropdown in results section
+    initializeResultsTranslationDropdown();
+    
+    // Initialize the main translation selector - removed since element no longer exists
 });
 
 // --- STATE MANAGEMENT (NEW) ---
@@ -116,6 +531,19 @@ function saveState() {
   // Only save if the result area is visible.
   if (state.isResultVisible) {
     localStorage.setItem('bibleAppState', JSON.stringify(state));
+    
+    // Also save to session storage for translation changes
+    const readingState = {
+      book: state.book,
+      chapter: state.chapter,
+      verse: state.verse,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem('lastReadingState', JSON.stringify(readingState));
+    console.log('Saved reading state to session storage:', readingState);
+    
+    // Clear the home page flag since user is now reading
+    sessionStorage.removeItem('wasOnHomePage');
   } else {
     clearState(); // Clear state if on the home screen.
   }
@@ -149,6 +577,9 @@ function restoreState() {
   }
   
   updatePillLabels();
+  
+  // Update the results translation dropdown
+  updateResultsTranslationDropdown(currentTranslation);
 
   // If the result section was visible, restore its content and show it.
   if (savedState.isResultVisible) {
@@ -178,6 +609,8 @@ function restoreState() {
 // Clears the saved state from localStorage.
 function clearState() {
   localStorage.removeItem('bibleAppState');
+  // Set the home page flag when clearing state (going home)
+  sessionStorage.setItem('wasOnHomePage', 'true');
 }
 
 
@@ -452,108 +885,117 @@ function prevVerse() {
   }
 }
 
-function getVerseFromRef(book, chapter, verse) {
+async function getVerseFromRef(book, chapter, verse) {
   console.log('🔍 getVerseFromRef called with:', { book, chapter, verse });
-  console.log('🔍 bibleData length:', bibleData.length);
-  console.log('🔍 Looking for verses matching:', { book: book.toLowerCase(), chapter: parseInt(chapter) });
   
   updateMetadata(book, chapter);
   currentBook = book;
   currentChapter = chapter;
   currentVerse = verse;
 
-  const result = document.getElementById("result");
-  result.innerHTML = "Loading...";
-  showResultArea();
-
-  // Get all verses in the chapter
-  const verses = bibleData.filter(v => {
-    // Handle both "Psalm" and "Psalms" (and other similar cases)
-    const bookName = v.book_name ? v.book_name.toLowerCase() : '';
-    const searchBook = book.toLowerCase();
-    
-    // Check if book names match (including singular/plural variations)
-    const bookMatches = bookName === searchBook || 
-                       bookName === searchBook + 's' || 
-                       bookName === searchBook.replace(/s$/, '');
-    
-    return bookMatches && v.chapter === parseInt(chapter);
+  // Set form values so translation changes work properly
+  const bookSelect = document.getElementById('book');
+  const chapterSelect = document.getElementById('chapter');
+  const verseSelect = document.getElementById('verse');
+  
+  if (bookSelect) bookSelect.value = book;
+  if (chapterSelect) chapterSelect.value = chapter;
+  if (verseSelect) verseSelect.value = verse;
+  
+  // Update pill labels
+  updatePillLabels();
+  
+  console.log('Form values set in getVerseFromRef:', {
+    book: bookSelect ? bookSelect.value : 'N/A',
+    chapter: chapterSelect ? chapterSelect.value : 'N/A',
+    verse: verseSelect ? verseSelect.value : 'N/A'
   });
-  
-  console.log('🔍 Found verses:', verses.length);
-  console.log('🔍 First few verses:', verses.slice(0, 3));
-  
-  // Debug: Check what the actual data structure looks like
-  console.log('🔍 Sample Bible data entries:');
-  console.log('- First entry:', bibleData[0]);
-  console.log('- Looking for book_name:', book.toLowerCase());
-  console.log('- Looking for chapter:', parseInt(chapter));
-  
-  // Check if there are any Psalms at all
-  const allPsalms = bibleData.filter(v => v.book_name && v.book_name.toLowerCase().includes('psalm'));
-  console.log('🔍 All entries with "psalm" in book_name:', allPsalms.length);
-  if (allPsalms.length > 0) {
-    console.log('🔍 Sample Psalm entry:', allPsalms[0]);
-  }
-  
-  // Update meta tags for social sharing
-  if (verses.length > 0) {
-    const selectedVerse = verses.find(v => v.verse === parseInt(verse));
-    if (selectedVerse) {
-      updateMetaTags(book, chapter, verse, selectedVerse.text);
-    } else {
-      updateMetaTags(book, chapter, null, null);
+
+  try {
+    // Fetch verses from API instead of using empty bibleData
+    const response = await fetch(`/api/chapter/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?translation=${currentTranslation}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    // Format all verses in the chapter
-    const verseList = verses.map(v => {
-      let processedText = formatRedLetterText(v.text);
-      processedText = formatTranslatorText(processedText);
-      processedText = addTooltipsToVerseText(processedText);
-      const finalText = cleanVerseText(processedText);
-
-      // Add a special class to the selected verse for highlighting
-      const isSelectedVerse = v.verse === parseInt(verse);
-      const selectedClass = isSelectedVerse ? 'verse-selected' : '';
-
-      return `<p class="verse-line p-2 -m-2 rounded-md mb-8 ${selectedClass}" data-verse-ref="${book} ${chapter}:${v.verse}" data-book="${book}" data-chapter="${chapter}" data-verse="${v.verse}"><sup class="font-semibold text-theme-subtle-text mr-1">${v.verse}</sup><span class="verse-text">${finalText}</span></p>`
-    }).join("");
-
-    result.innerHTML = `
-      <div class="max-w-sm mx-auto px-4 text-center">
-        <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
-      </div>
-      <div class="max-w-prose mx-auto px-4 text-left text-[16pt] leading-relaxed font-serif whitespace-pre-wrap">
-      ${verseList}
-      </div>
-      
-      <div class="fixed top-1/2 -translate-y-1/2 left-0 z-40">
-        <button onclick="prevChapter()" class="ml-1 lg:ml-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-      </div>
-
-      <div class="fixed top-1/2 -translate-y-1/2 right-0 z-40">
-        <button onclick="nextChapter()" class="mr-1 lg:mr-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
-           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </button>
-      </div>
-    `;
-
-    applySavedHighlights();
+    const data = await response.json();
+    const verses = data.verses || [];
     
-    // Scroll to the selected verse after a short delay to ensure rendering is complete
-    setTimeout(() => {
-      const selectedVerseElement = document.querySelector('.verse-selected');
-      if (selectedVerseElement) {
-        selectedVerseElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
-        });
+    console.log('🔍 Found verses:', verses.length);
+    console.log('🔍 First few verses:', verses.slice(0, 3));
+    
+    // Update meta tags for social sharing
+    if (verses.length > 0) {
+      const selectedVerse = verses.find(v => v.verse === parseInt(verse));
+      if (selectedVerse) {
+        updateMetaTags(book, chapter, verse, selectedVerse.text);
+      } else {
+        updateMetaTags(book, chapter, null, null);
       }
-    }, 100);
-  } else {
-    result.innerHTML = "Chapter not found.";
+      
+      // Format all verses in the chapter
+      const verseList = verses.map(v => {
+        let processedText = formatRedLetterText(v.text);
+        processedText = formatTranslatorText(processedText);
+        processedText = addTooltipsToVerseText(processedText);
+        const finalText = cleanVerseText(processedText);
+
+        // Add a special class to the selected verse for highlighting
+        const isSelectedVerse = v.verse === parseInt(verse);
+        const selectedClass = isSelectedVerse ? 'verse-selected' : '';
+
+        return `<p class="verse-line p-2 -m-2 rounded-md mb-8 ${selectedClass}" data-verse-ref="${book} ${chapter}:${v.verse}" data-book="${book}" data-chapter="${chapter}" data-verse="${v.verse}"><sup class="font-semibold text-theme-subtle-text mr-1">${v.verse}</sup><span class="verse-text">${finalText}</span></p>`
+      }).join("");
+
+      const completeContent = `
+        <div class="max-w-sm mx-auto px-4 text-center">
+          <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
+        </div>
+        <div class="max-w-prose mx-auto px-4 text-left text-[16pt] leading-relaxed font-serif whitespace-pre-wrap">
+        ${verseList}
+        </div>
+        
+        <div class="fixed top-1/2 -translate-y-1/2 left-0 z-40">
+          <button onclick="prevChapter()" class="ml-1 lg:ml-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          </button>
+        </div>
+
+        <div class="fixed top-1/2 -translate-y-1/2 right-0 z-40">
+          <button onclick="nextChapter()" class="mr-1 lg:mr-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+      `;
+
+      // Set the content first, then show the result area - no flicker!
+      const result = document.getElementById("result");
+      result.innerHTML = completeContent;
+      showResultArea();
+      
+      applySavedHighlights();
+      
+      // Scroll to the selected verse after a short delay to ensure rendering is complete
+      setTimeout(() => {
+        const selectedVerseElement = document.querySelector('.verse-selected');
+        if (selectedVerseElement) {
+          selectedVerseElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 100);
+    } else {
+      const result = document.getElementById("result");
+      result.innerHTML = "Chapter not found.";
+      showResultArea();
+    }
+  } catch (error) {
+    console.error('Error fetching chapter data:', error);
+    const result = document.getElementById("result");
+    result.innerHTML = "Error loading chapter. Please try again.";
+    showResultArea();
   }
   
   // MODIFIED: Save state after rendering the verse.
@@ -636,7 +1078,7 @@ function closeChapterPicker() {
 
 // openVersePicker function
 
-function openVersePicker() {
+async function openVersePicker() {
   const book = document.getElementById("book").value.trim();
   const chapter = document.getElementById("chapter").value.trim();
   if (!book || !chapter) return;
@@ -649,34 +1091,43 @@ function openVersePicker() {
   title.textContent = `Select Verse (${book} ${chapter})`;
   modal.classList.remove("hidden");
 
-  // Get verses from local data
-  const verses = bibleData.filter(v =>
-    v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
-    v.chapter === parseInt(chapter)
-  );
+  try {
+    // Fetch verses from API instead of using empty bibleData
+    const response = await fetch(`/api/chapter/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?translation=${currentTranslation}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const verses = data.verses || [];
 
-  if (verses.length === 0) {
-    grid.innerHTML = "<div class='col-span-7 text-theme-subtle-text'>No verses found</div>";
-    return;
+    if (verses.length === 0) {
+      grid.innerHTML = "<div class='col-span-7 text-theme-subtle-text'>No verses found</div>";
+      return;
+    }
+
+    grid.innerHTML = "";
+    verses.forEach(v => {
+      const btn = document.createElement("button");
+      btn.textContent = v.verse;
+      
+      // MODIFIED: Replaced old classes with new theme-aware classes
+      btn.className = "bg-theme-surface hover:bg-theme-accent hover:text-white rounded px-2 py-1";
+      
+      btn.onclick = () => {
+        document.getElementById("verse").value = v.verse;
+        closeVersePicker();
+        updatePillLabels();
+        maybeAutoFetch();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+      grid.appendChild(btn);
+    });
+  } catch (error) {
+    console.error('Error fetching verses for verse picker:', error);
+    grid.innerHTML = "<div class='col-span-7 text-theme-subtle-text'>Error loading verses</div>";
   }
-
-  grid.innerHTML = "";
-  verses.forEach(v => {
-    const btn = document.createElement("button");
-    btn.textContent = v.verse;
-    
-    // MODIFIED: Replaced old classes with new theme-aware classes
-    btn.className = "bg-theme-surface hover:bg-theme-accent hover:text-white rounded px-2 py-1";
-    
-    btn.onclick = () => {
-      document.getElementById("verse").value = v.verse;
-      closeVersePicker();
-      updatePillLabels();
-      maybeAutoFetch();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-    grid.appendChild(btn);
-  });
 }
 
 function closeVersePicker() {
@@ -717,59 +1168,88 @@ function getVerse() {
 // In script.js
 
 async function getChapter(book, chapter) {
+  console.log('getChapter called with:', { book, chapter });
+  console.log('Current translation:', currentTranslation);
+  
   updateMetadata(book, chapter);
   const result = document.getElementById("result");
-  result.innerHTML = "Loading...";
-  showResultArea();
-
+  
+  // Set form values first
   currentBook = book;
   currentChapter = parseInt(chapter);
   currentVerse = 0;
+  
+  const bookSelect = document.getElementById('book');
+  const chapterSelect = document.getElementById('chapter');
+  const verseSelect = document.getElementById('verse');
+  
+  if (bookSelect) bookSelect.value = book;
+  if (chapterSelect) chapterSelect.value = chapter;
+  if (verseSelect) verseSelect.value = '';
+  
+  // Update pill labels
+  updatePillLabels();
+  
+  console.log('Form values set:', {
+    book: bookSelect ? bookSelect.value : 'N/A',
+    chapter: chapterSelect ? chapterSelect.value : 'N/A',
+    verse: verseSelect ? verseSelect.value : 'N/A'
+  });
 
-  const verses = bibleData.filter(v =>
-    v.book_name && v.book_name.toLowerCase() === book.toLowerCase() &&
-    v.chapter === parseInt(chapter)
-  );
-
-   if (verses.length > 0) {
-    // Update meta tags for social sharing
-    updateMetaTags(book, chapter, null, null);
+  try {
+    // SECURITY: Use secure endpoint instead of local data
+    const chapterData = await getSecureChapter(book, chapter, currentTranslation);
     
-    // MODIFIED: This block now has a safer, clearer text-formatting process
-    const verseList = verses.map(v => {
-      let processedText = formatRedLetterText(v.text);
-      processedText = formatTranslatorText(processedText); // New, safer step for italics
-      processedText = addTooltipsToVerseText(processedText);
-      const finalText = cleanVerseText(processedText);
-
-      return `<p class="verse-line p-2 -m-2 rounded-md mb-8" data-verse-ref="${book} ${chapter}:${v.verse}" data-book="${book}" data-chapter="${chapter}" data-verse="${v.verse}"><sup class="font-semibold text-theme-subtle-text mr-1">${v.verse}</sup><span class="verse-text">${finalText}</span></p>`
-    }).join("");
-
-    result.innerHTML = `
-      <div class="max-w-sm mx-auto px-4 text-center">
-        <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
-      </div>
-      <div class="max-w-prose mx-auto px-4 text-left text-[16pt] leading-relaxed font-serif whitespace-pre-wrap">
-      ${verseList}
-      </div>
+    if (chapterData && chapterData.verses && chapterData.verses.length > 0) {
+      // Update meta tags for social sharing
+      updateMetaTags(book, chapter, null, null);
       
-      <div class="fixed top-1/2 -translate-y-1/2 left-0 z-40">
-        <button onclick="prevChapter()" class="ml-1 lg:ml-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-      </div>
+      // Process verses from secure endpoint
+      const verseList = chapterData.verses.map(v => {
+        let processedText = formatRedLetterText(v.text);
+        processedText = formatTranslatorText(processedText);
+        processedText = addTooltipsToVerseText(processedText);
+        const finalText = cleanVerseText(processedText);
 
-      <div class="fixed top-1/2 -translate-y-1/2 right-0 z-40">
-        <button onclick="nextChapter()" class="mr-1 lg:mr-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
-           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </button>
-      </div>
-    `;
+        return `<p class="verse-line p-2 -m-2 rounded-md mb-8" data-verse-ref="${book} ${chapter}:${v.verse}" data-book="${book}" data-chapter="${chapter}" data-verse="${v.verse}"><sup class="font-semibold text-theme-subtle-text mr-1">${v.verse}</sup><span class="verse-text">${finalText}</span></p>`
+      }).join("");
 
-    applySavedHighlights();
-    
-  } else {
-    result.innerHTML = "Chapter not found.";
+      // Prepare the complete content before showing anything
+      const completeContent = `
+        <div class="max-w-sm mx-auto px-4 text-center">
+          <h2 class="text-2xl font-bold mb-6 uppercase tracking-wide">${book} ${chapter}</h2>
+        </div>
+        <div class="max-w-prose mx-auto px-4 text-left text-[16pt] leading-relaxed font-serif whitespace-pre-wrap">
+        ${verseList}
+        </div>
+        
+        <div class="fixed top-1/2 -translate-y-1/2 left-0 z-40">
+          <button onclick="prevChapter()" class="ml-1 lg:ml-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          </button>
+        </div>
+
+        <div class="fixed top-1/2 -translate-y-1/2 right-0 z-40">
+          <button onclick="nextChapter()" class="mr-1 lg:mr-4 border border-theme-border text-theme-text shadow rounded-full w-10 h-10 hover:bg-theme-border transition duration-200 flex items-center justify-center">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+      `;
+      
+      // Set the content first, then show the result area - no flicker!
+      result.innerHTML = completeContent;
+      showResultArea();
+      
+      applySavedHighlights();
+      
+    } else {
+      result.innerHTML = "Chapter not found.";
+      showResultArea();
+    }
+  } catch (error) {
+    console.error("Failed to load chapter:", error);
+    result.innerHTML = `Error loading chapter: ${error.message}`;
+    showResultArea();
   }
   
   saveState();
@@ -853,6 +1333,15 @@ function showResultArea() {
   document.getElementById("welcome-section").classList.add("hidden");
   document.getElementById("result-section").classList.remove("hidden");
   document.getElementById("topics-wrapper").classList.add("hidden");
+  
+  // Clear translation sample when showing results
+  clearTranslationSample();
+  
+  // Clear the home page flag since we're now showing results
+  sessionStorage.removeItem('wasOnHomePage');
+  
+  // Don't call loadGenesis1() here - it creates an infinite loop!
+  // The calling function (getChapter, getVerseFromRef, etc.) will handle loading content
 }
 
 function goHome() {
@@ -889,6 +1378,15 @@ function goHome() {
   
   // Reset meta tags to default when going home
   updateMetaTags(null, null, null, null);
+  
+  // Show translation sample when returning home
+  showTranslationSample();
+  
+  // Refresh topics with current translation when returning home
+  loadPublicTopics();
+  
+  // Mark that we're on the home page
+  sessionStorage.setItem('wasOnHomePage', 'true');
 }
 
 function maybeAutoFetch() {
@@ -972,65 +1470,112 @@ function parseSpeechInput(input) {
 }
 
 function searchBible(query) {
-
+  if (!query || query.trim() === '') return;
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
-
   const result = document.getElementById("result");
   showResultArea();
-
-
   document.getElementById('search-close-button').classList.remove('hidden');
-
-
+  
+  // Clear the home page flag since we're now searching
+  sessionStorage.removeItem('wasOnHomePage');
 
   query = query.trim().toLowerCase();
-  if (!query) return;
   lastSearchQuery = query;
   const filter = document.querySelector('input[name="filter"]:checked').value;
   const currentBookName = document.getElementById("book").value;
-  let filteredData = [...bibleData];
-  if (filter === "ot") {
-    filteredData = filteredData.filter(v => {
-      const index = books.findIndex(b => b.toLowerCase() === v.book_name.toLowerCase());
-      return index > -1 && index < 39;
+
+  // Show loading state
+  result.innerHTML = `
+    <div class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-theme-accent"></div>
+      <p class="mt-2 text-theme-subtle-text">Searching for "${query}"...</p>
+    </div>
+  `;
+
+  // Search in the current translation
+  const currentTranslation = localStorage.getItem('preferredTranslation') || 'kjv';
+  
+  fetch(`/api/search?q=${encodeURIComponent(query)}&translation=${currentTranslation}&filter=${filter}&book=${encodeURIComponent(currentBookName)}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.results && data.results.length > 0) {
+        // Add translation info to each result
+        const resultsWithTranslation = data.results.map(verse => ({
+          ...verse,
+          translation: currentTranslation.toUpperCase()
+        }));
+        displaySearchResults(resultsWithTranslation, query);
+      } else {
+        displaySearchResults([], query);
+      }
+    })
+    .catch(error => {
+      console.error('Search error:', error);
+      result.innerHTML = `
+        <div class="text-center py-8">
+          <h3 class="text-lg font-semibold text-theme-text mb-4">Search Error</h3>
+          <p class="text-theme-subtle-text">An error occurred while searching. Please try again.</p>
+        </div>
+      `;
     });
-  } else if (filter === "nt") {
-    filteredData = filteredData.filter(v => {
-      const index = books.findIndex(b => b.toLowerCase() === v.book_name.toLowerCase());
-      return index >= 39;
-    });
-  } else if (filter === "book" && currentBookName) {
-    filteredData = filteredData.filter(v => v.book_name.toLowerCase() === currentBookName.toLowerCase());
-  }
-  const matches = filteredData.filter(v =>
-    v.text.toLowerCase().includes(query)
-  );
-  if (matches.length === 0) {
-    result.innerHTML = `No verses found for "${query}".`;
-    // Update meta tags for search with no results
-    updateMetaTags(null, null, null, null);
-  } else {
-    // Update meta tags for search results
-    const firstMatch = matches[0];
-    updateMetaTags(firstMatch.book_name, firstMatch.chapter, firstMatch.verse, firstMatch.text);
-    const rendered = matches.map(v => {
-      const regex = new RegExp(`(${query})`, 'gi');
-      const highlighted = v.text.replace(regex, '<mark>$1</mark>');
-      return `<div class="mb-3">
-        <p class="text-sm text-gray-500">${v.book_name} ${v.chapter}:${v.verse}</p>
-        <p class="text-base leading-relaxed">${highlighted}</p>
-      </div>`;
-    }).join("");
+}
+
+function displaySearchResults(results, query) {
+  const result = document.getElementById("result");
+  
+  if (results.length === 0) {
     result.innerHTML = `
-      <div class="relative pb-2 mb-4 border-b border-theme-border">
-          <h2 class="text-xl font-bold">Search Results</h2>
-          <p class="text-sm text-theme-subtle-text">${matches.length} verses found for "${query}"</p>
+      <div class="text-center py-8">
+        <h3 class="text-lg font-semibold text-theme-text mb-4">No Results Found</h3>
+        <p class="text-theme-subtle-text">No verses found for "${query}".</p>
+        <p class="text-theme-subtle-text mt-2">Try different keywords or check your spelling.</p>
       </div>
-      <div>${rendered}</div>
     `;
+    updateMetaTags(null, null, null, null);
+    return;
   }
-  // MODIFIED: Save state after rendering search results.
-  // saveState();
+
+  // Sort results by relevance (exact matches first, then partial matches)
+  const sortedResults = results.sort((a, b) => {
+    const aExact = a.text.toLowerCase().includes(query.toLowerCase());
+    const bExact = b.text.toLowerCase().includes(query.toLowerCase());
+    if (aExact && !bExact) return -1;
+    if (!aExact && bExact) return 1;
+    return 0;
+  });
+
+  // Update meta tags for search results
+  const firstResult = sortedResults[0];
+  updateMetaTags(firstResult.book_name, firstResult.chapter, firstResult.verse, firstResult.text);
+
+  // Render results
+  const rendered = sortedResults.map(verse => {
+    const regex = new RegExp(`(${query})`, 'gi');
+    const highlighted = verse.text.replace(regex, '<mark>$1</mark>');
+    return `
+      <div class="mb-4 p-4 border border-theme-border rounded-lg">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-sm font-medium text-theme-accent">${verse.book_name} ${verse.chapter}:${verse.verse}</p>
+          <span class="text-xs text-theme-subtle-text bg-theme-border px-2 py-1 rounded">${verse.translation}</span>
+        </div>
+        <p class="text-base leading-relaxed text-theme-text">${highlighted}</p>
+      </div>
+    `;
+  }).join("");
+
+  result.innerHTML = `
+    <div class="relative pb-2 mb-4 border-b border-theme-border">
+      <h2 class="text-xl font-bold text-theme-text">Search Results</h2>
+      <p class="text-sm text-theme-subtle-text">${results.length} verses found for "${query}"</p>
+    </div>
+    <div class="space-y-2">${rendered}</div>
+  `;
 }
 
 function toggleSearch() {
@@ -1075,8 +1620,138 @@ async function loadPublicTopics() {
   }
   container.innerHTML = "";
 
-  topics.forEach((topic, index) => {
+  // Helper function to fetch verse content from API
+  async function fetchVerseContent(book, chapter, verse) {
+    try {
+      const response = await fetch(`/api/verse/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}/${encodeURIComponent(verse)}?translation=${currentTranslation}`);
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.text || "(verse not found)";
+    } catch (error) {
+      console.error(`Error fetching verse ${book} ${chapter}:${verse}:`, error);
+      return "(verse not found)";
+    }
+  }
+
+  // Helper function to fetch verse range content from API
+  async function fetchVerseRangeContent(book, chapter, startVerse, endVerse) {
+    try {
+      let allVersesText = "";
+      for (let verse = parseInt(startVerse); verse <= parseInt(endVerse); verse++) {
+        const response = await fetch(`/api/verse/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}/${encodeURIComponent(verse)}?translation=${currentTranslation}`);
+        if (response.ok) {
+          const data = await response.json();
+          const verseText = data.text || "";
+          allVersesText += (allVersesText ? " " : "") + verseText;
+        }
+        // Add a small delay between API calls to be respectful to the server
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      return allVersesText || "(verses not found)";
+    } catch (error) {
+      console.error(`Error fetching verse range ${book} ${chapter}:${startVerse}-${endVerse}:`, error);
+      return "(verses not found)";
+    }
+  }
+
+  // Show topics immediately with loading placeholders, then fetch content asynchronously
+  for (let index = 0; index < topics.length; index++) {
+    const topic = topics[index];
     console.log(`Processing topic ${index + 1}:`, topic.title, "ID:", topic.id);
+    
+    const topicVerses = verses.filter(v => v.topic_id === topic.id);
+    const topicSubtopics = subtopics?.filter(s => s.topic_id === topic.id) || [];
+    
+    // Show topic immediately with loading state
+    const topicHTML = `
+      <div class="rounded p-4 bg-theme-surface">
+        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-theme-text hover:text-theme-accent flex justify-between items-center">
+          <span>${topic.title}</span>
+          <span id="toggle-icon-${topic.id}" class="text-xl">+</span>
+        </button>
+        <div id="topic-${topic.id}" class="ml-4 mt-2 text-sm text-theme-subtle-text hidden overflow-hidden transition-all duration-300 ease-in-out">
+          <div class="text-theme-subtle-text italic">Loading verses...</div>
+        </div>
+      </div>
+    `;
+    
+    container.innerHTML += topicHTML;
+  }
+  
+  // Now fetch all verse content asynchronously and update topics
+  await loadAllTopicContent(topics, verses, subtopics);
+}
+
+// Efficient function to load all topic content asynchronously
+async function loadAllTopicContent(topics, verses, subtopics) {
+  console.log("🚀 Starting efficient topic content loading...");
+  
+  // Create a cache for verse content to avoid duplicate API calls
+  const verseCache = new Map();
+  
+  // Helper function to get cached verse content or fetch it
+  async function getVerseContent(book, chapter, verse) {
+    const cacheKey = `${book}-${chapter}-${verse}`;
+    if (verseCache.has(cacheKey)) {
+      return verseCache.get(cacheKey);
+    }
+    
+    try {
+      const response = await fetch(`/api/verse/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}/${encodeURIComponent(verse)}?translation=${currentTranslation}`);
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.text || "(verse not found)";
+        verseCache.set(cacheKey, text);
+        return text;
+      } else {
+        const errorText = "(verse not found)";
+        verseCache.set(cacheKey, errorText);
+        return errorText;
+      }
+    } catch (error) {
+      console.error(`Error fetching verse ${book} ${chapter}:${verse}:`, error);
+      const errorText = "(verse not found)";
+      verseCache.set(cacheKey, errorText);
+      return errorText;
+    }
+  }
+  
+  // Helper function to get verse range content efficiently
+  async function getVerseRangeContent(book, chapter, startVerse, endVerse) {
+    const cacheKey = `${book}-${chapter}-${startVerse}-${endVerse}`;
+    if (verseCache.has(cacheKey)) {
+      return verseCache.get(cacheKey);
+    }
+    
+    try {
+      let allVersesText = "";
+      const versePromises = [];
+      
+      // Fetch all verses in the range concurrently
+      for (let verse = parseInt(startVerse); verse <= parseInt(endVerse); verse++) {
+        versePromises.push(getVerseContent(book, chapter, verse));
+      }
+      
+      const verseTexts = await Promise.all(versePromises);
+      allVersesText = verseTexts.join(" ");
+      
+      verseCache.set(cacheKey, allVersesText);
+      return allVersesText;
+    } catch (error) {
+      console.error(`Error fetching verse range ${book} ${chapter}:${startVerse}-${endVerse}:`, error);
+      const errorText = "(verses not found)";
+      verseCache.set(cacheKey, errorText);
+      return errorText;
+    }
+  }
+  
+  // Process all topics concurrently for better performance
+  const topicPromises = topics.map(async (topic) => {
     const topicVerses = verses.filter(v => v.topic_id === topic.id);
     const topicSubtopics = subtopics?.filter(s => s.topic_id === topic.id) || [];
     
@@ -1087,158 +1762,71 @@ async function loadPublicTopics() {
       acc[key].push(v);
       return acc;
     }, {});
-
+    
     // Build verse list based on subtopics table order
-    const verseList = topicSubtopics.map(subtopic => {
+    let verseList = "";
+    for (const subtopic of topicSubtopics) {
       const subtopicName = subtopic.title;
-      const verses = grouped[subtopicName] || [];
-      const items = verses.map(v => {
-        // Check if this is a verse range by looking for "(Range: X-Y)" in the note
+      const subtopicVerses = grouped[subtopicName] || [];
+      const items = [];
+      
+      for (const v of subtopicVerses) {
+        // Check if this is a verse range
         const rangeMatch = v.note && v.note.match(/\(Range: (\d+)-(\d+)\)/);
         if (rangeMatch) {
           const [, startVerse, endVerse] = rangeMatch;
           const verseRef = `${v.book} ${v.chapter}:${startVerse}-${endVerse}`;
           
-          console.log("Processing verse range:", { 
-            book: v.book, 
-            chapter: v.chapter, 
-            verse: v.verse, 
-            note: v.note, 
-            startVerse, 
-            endVerse, 
-            verseRef 
-          });
-          
-          // For ranges, show all verses in the range
-          let allVersesText = "";
-          for (let verseNum = parseInt(startVerse); verseNum <= parseInt(endVerse); verseNum++) {
-            const match = bibleData.find(b =>
-              b.book_name.toLowerCase() === v.book.toLowerCase() &&
-              b.chapter === parseInt(v.chapter) &&
-              b.verse === verseNum
-            );
-            
-            if (match) {
-              const verseResult = cleanVerseText(match.text);
-              let displayText = "";
-              if (typeof verseResult === 'object' && verseResult.text) {
-                displayText = verseResult.text;
-              } else {
-                displayText = typeof verseResult === 'string' ? verseResult : verseResult.text || verseResult;
-              }
-              displayText = displayText.replace(/[¶\[\]‹›]/g, '').trim();
-              
-              allVersesText += `<strong>${verseNum}:</strong> ${displayText} `;
-            }
-          }
-          
-          if (!allVersesText) {
-            allVersesText = "(verses not found)";
-          }
-          
-          return `<li><strong>${verseRef}</strong> – ${allVersesText}</li>`;
-        }
-        
-        const match = bibleData.find(b =>
-          b.book_name.toLowerCase() === v.book.toLowerCase() &&
-          b.chapter === parseInt(v.chapter) &&
-          b.verse === parseInt(v.verse)
-        );
-        const verseResult = match ? cleanVerseText(match.text) : "(verse not found)";
-        
-        // For topics, we want just the text without descriptions, and remove unwanted symbols
-        let displayText = "";
-        if (typeof verseResult === 'object' && verseResult.text) {
-          displayText = verseResult.text;
+          // For ranges, fetch all verses in the range efficiently
+          const allVersesText = await getVerseRangeContent(v.book, v.chapter, startVerse, endVerse);
+          items.push(`<li><strong>${verseRef}</strong> – ${allVersesText}</li>`);
         } else {
-          displayText = typeof verseResult === 'string' ? verseResult : verseResult.text || verseResult;
+          // For single verses, fetch from cache or API
+          const verseText = await getVerseContent(v.book, v.chapter, v.verse);
+          const cleanText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+          items.push(`<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${cleanText}</li>`);
         }
-        
-        // Remove additional symbols for topics display
-        displayText = displayText.replace(/[¶\[\]‹›]/g, '').trim();
-        
-        return `<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${displayText}</li>`;
-      }).join("");
-
-      return `<h4 class="mt-4 font-semibold text-lg text-theme-text">${subtopicName}</h4><ul class="list-disc pl-5">${items}</ul>`;
-    }).join("");
+      }
+      
+      verseList += `<h4 class="mt-4 font-semibold text-lg text-theme-text">${subtopicName}</h4><ul class="list-disc pl-5">${items.join("")}</ul>`;
+    }
     
     // Add any misc verses that don't belong to a subtopic
     if (grouped["Misc"] && grouped["Misc"].length > 0) {
-      const miscItems = grouped["Misc"].map(v => {
-        // Check if this is a verse range by looking for "(Range: X-Y)" in the note
+      const miscItems = [];
+      for (const v of grouped["Misc"]) {
         const rangeMatch = v.note && v.note.match(/\(Range: (\d+)-(\d+)\)/);
         if (rangeMatch) {
           const [, startVerse, endVerse] = rangeMatch;
           const verseRef = `${v.book} ${v.chapter}:${startVerse}-${endVerse}`;
           
-          // For ranges, show all verses in the range
-          let allVersesText = "";
-          for (let verseNum = parseInt(startVerse); verseNum <= parseInt(endVerse); verseNum++) {
-            const match = bibleData.find(b =>
-              b.book_name.toLowerCase() === v.book.toLowerCase() &&
-              b.chapter === parseInt(v.chapter) &&
-              b.verse === verseNum
-            );
-            
-            if (match) {
-              const verseResult = cleanVerseText(match.text);
-              let displayText = "";
-              if (typeof verseResult === 'object' && verseResult.text) {
-                displayText = verseResult.text;
-              } else {
-                displayText = typeof verseResult === 'string' ? verseResult : verseResult.text || verseResult;
-              }
-              displayText = displayText.replace(/[¶\[\]‹›]/g, '').trim();
-              
-              allVersesText += `<strong>${verseNum}:</strong> ${displayText} `;
-            }
-          }
-          
-          if (!allVersesText) {
-            allVersesText = "(verses not found)";
-          }
-          
-          return `<li><strong>${verseRef}</strong> – ${allVersesText}</li>`;
-        }
-        
-        const match = bibleData.find(b =>
-          b.book_name.toLowerCase() === v.book.toLowerCase() &&
-          b.chapter === parseInt(v.chapter) &&
-          b.verse === parseInt(v.verse)
-        );
-        const verseResult = match ? cleanVerseText(match.text) : "(verse not found)";
-        
-        let displayText = "";
-        if (typeof verseResult === 'object' && verseResult.text) {
-          displayText = verseResult.text;
+          const allVersesText = await getVerseRangeContent(v.book, v.chapter, startVerse, endVerse);
+          miscItems.push(`<li><strong>${verseRef}</strong> – ${allVersesText}</li>`);
         } else {
-          displayText = typeof verseResult === 'string' ? verseResult : verseResult.text || verseResult;
+          const verseText = await getVerseContent(v.book, v.chapter, v.verse);
+          const cleanText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+          miscItems.push(`<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${cleanText}</li>`);
         }
-        
-        displayText = displayText.replace(/[¶\[\]‹›]/g, '').trim();
-        
-        return `<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${displayText}</li>`;
-      }).join("");
+      }
       
-      verseList += `<ul class="list-disc pl-5">${miscItems}</ul>`;
+      verseList += `<ul class="list-disc pl-5">${miscItems.join("")}</ul>`;
     }
-
-    const topicHTML = `
-      <div class="rounded p-4 bg-theme-surface">
-        <button onclick="toggleTopic('${topic.id}')" class="text-lg font-semibold text-left w-full text-theme-text hover:text-theme-accent flex justify-between items-center">
-          <span>${topic.title}</span>
-          <span id="toggle-icon-${topic.id}" class="text-xl">+</span>
-        </button>
-        <div id="topic-${topic.id}" class="ml-4 mt-2 text-sm text-theme-subtle-text hidden overflow-hidden transition-all duration-300 ease-in-out">
-          ${verseList}
-        </div>
-      </div>
-    `;
     
-    console.log(`Generated HTML for topic ${topic.id}:`, topicHTML.substring(0, 200) + "...");
-    container.innerHTML += topicHTML;
+    return { topicId: topic.id, verseList };
   });
+  
+  // Wait for all topics to complete and update the UI
+  const results = await Promise.all(topicPromises);
+  
+  // Update each topic with its content
+  for (const result of results) {
+    const topicElement = document.getElementById(`topic-${result.topicId}`);
+    if (topicElement) {
+      topicElement.innerHTML = result.verseList;
+    }
+  }
+  
+  console.log("✅ All topic content loaded efficiently!");
 }
 
 window.toggleTopic = function(id) {
@@ -1317,7 +1905,7 @@ window.toggleTopic = function(id) {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  loadPublicTopics();
+  // Removed duplicate loadPublicTopics() call to prevent duplicate topics
 });
 
 let tooltipVisible = false;
@@ -1343,6 +1931,23 @@ document.addEventListener("keydown", function (e) {
 
 
 // DARK MODE
+
+// Initialize theme toggle icons based on current theme
+function initializeThemeIcons() {
+    const sunIcon = document.getElementById('theme-toggle-sun-icon');
+    const moonIcon = document.getElementById('theme-toggle-moon-icon');
+    
+    if (sunIcon && moonIcon) {
+        if (localStorage.getItem('color-theme') === 'dark' || 
+            (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        } else {
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+    }
+}
 
 function toggleDarkMode() {
     // toggle icons inside button
@@ -1548,25 +2153,25 @@ function setupSelectionMenu() {
         if (selectedVerses.size === 1) {
             // Single verse - use existing format
             const verse = Array.from(selectedVerses)[0];
-            const book = verse.dataset.book;
-            const chapter = parseInt(verse.dataset.chapter);
-            const verseNum = parseInt(verse.dataset.verse);
-            const originalVerse = bibleData.find(v => v.book_name === book && v.chapter === chapter && v.verse === verseNum);
-            let cleanOriginalText = originalVerse ? cleanVerseText(originalVerse.text) : verse.querySelector('.verse-text').textContent;
+            // Use the displayed verse text instead of trying to access empty bibleData
+            let verseText = verse.querySelector('.verse-text').textContent;
             // Remove unwanted symbols for copy
-            cleanOriginalText = cleanOriginalText.replace(/[¶\[\]‹›]/g, '').trim();
+            verseText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
             const verseRef = verse.dataset.verseRef;
+            const book = verse.dataset.book;
+            const chapter = verse.dataset.chapter;
+            const verseNum = verse.dataset.verse;
             const urlParams = new URLSearchParams({ book, chapter, verse: verseNum });
             shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
-            textToCopy = `"${cleanOriginalText}"\n- ${verseRef}\n\n${shareUrl}`;
+            textToCopy = `"${verseText}"\n- ${verseRef}\n\n${shareUrl}`;
         } else {
             // Multiple verses - create a combined format
             const verses = Array.from(selectedVerses).map(verse => {
                 const book = verse.dataset.book;
                 const chapter = parseInt(verse.dataset.chapter);
                 const verseNum = parseInt(verse.dataset.verse);
-                const originalVerse = bibleData.find(v => v.book_name === book && v.chapter === chapter && v.verse === verseNum);
-                let cleanOriginalText = originalVerse ? cleanVerseText(originalVerse.text) : verse.querySelector('.verse-text').textContent;
+                // Use the displayed verse text instead of trying to access empty bibleData
+                let cleanOriginalText = verse.querySelector('.verse-text').textContent;
                 // Remove unwanted symbols for copy
                 cleanOriginalText = cleanOriginalText.replace(/[¶\[\]‹›]/g, '').trim();
                 return `${verse.dataset.verseRef}: "${cleanOriginalText}"`;
@@ -1699,16 +2304,61 @@ function closeSearch() {
     const origin = sessionStorage.getItem('searchOrigin');
     
     if (origin === 'reader') {
-        restoreState();
+        // Return to the previous reading position
+        const lastReadingState = sessionStorage.getItem('lastReadingState');
+        if (lastReadingState) {
+            try {
+                const readingState = JSON.parse(lastReadingState);
+                console.log('🔄 Returning to previous reading position:', readingState);
+                
+                // Set the form values to the previous reading position
+                document.getElementById('book').value = readingState.book || '';
+                document.getElementById('chapter').value = readingState.chapter || '';
+                document.getElementById('verse').value = readingState.verse || '';
+                
+                // Update the pill labels
+                updatePillLabels();
+                
+                // Load the chapter or verse that was being read
+                if (readingState.verse) {
+                    getVerseFromRef(readingState.book, readingState.chapter, readingState.verse);
+                } else {
+                    getChapter(readingState.book, readingState.chapter);
+                }
+                
+                // Show the result area
+                showResultArea();
+                
+            } catch (error) {
+                console.error('Error restoring reading state:', error);
+                // Fallback to restoreState if there's an error
+                restoreState();
+            }
+        } else {
+            // Fallback to restoreState if no reading state is saved
+            restoreState();
+        }
     } else {
+        // If search started from home, go back to home
         goHome();
     }
     
-    sessionStorage.removeItem('searchOrigin'); // Clean up the flag
-
-
-
-     document.getElementById('search-close-button').classList.add('hidden');
+    // Clean up the search origin flag
+    sessionStorage.removeItem('searchOrigin');
+    
+    // Hide the search close button
+    document.getElementById('search-close-button').classList.add('hidden');
+    
+    // Clear the search results area
+    const result = document.getElementById("result");
+    if (result) {
+        result.innerHTML = `
+            <div class="text-center py-8">
+                <h2 class="text-xl font-bold text-theme-text">Bible Reading</h2>
+                <p class="text-theme-subtle-text mt-2">Select a book, chapter, and verse to begin reading.</p>
+            </div>
+        `;
+    }
 }
 
 
@@ -1765,18 +2415,15 @@ function getDailyVerse() {
     return saved.verse;
   }
 
-  // Pick a random verse
-  const random = bibleData[Math.floor(Math.random() * bibleData.length)];
-  const verseRef = `${random.book_name} ${random.chapter}:${random.verse}`;
-
-  const newVerse = {
+  // Use a default verse since we're not loading Bible data locally
+  const defaultVerse = {
     date: today,
-    verse: verseRef,
-    text: random.text
+    verse: "John 3:16",
+    text: "For God so loved the world, that he gave his only begotten Son, that whosoever believeth in him should not perish, but have everlasting life."
   };
 
-  localStorage.setItem("dailyDevotion", JSON.stringify(newVerse));
-  return newVerse;
+  localStorage.setItem("dailyDevotion", JSON.stringify(defaultVerse));
+  return defaultVerse;
 }
 
 
@@ -1828,10 +2475,8 @@ function formatTranslatorText(text) {
 
 
 function updateMetadata(book, chapter) {
-    const firstVerse = bibleData.find(v => v.book_name === book && v.chapter === parseInt(chapter) && v.verse === 1);
-    const descriptionContent = firstVerse 
-        ? `${book} ${chapter}: ${cleanVerseText(firstVerse.text).substring(0, 150)}...`
-        : `Read ${book} chapter ${chapter} from the Bible on The Living Word Online.`;
+    // Use generic description instead of trying to access empty bibleData
+    const descriptionContent = `Read ${book} chapter ${chapter} from the Bible on The Living Word Online.`;
 
     // Update the page title
     document.title = `${book} ${chapter} | The Living Word Online`;
@@ -1903,6 +2548,40 @@ function updateMetaTags(book, chapter, verse, verseText) {
   }
   
 
+}
+
+// Initialize the translation dropdown in results section
+function initializeResultsTranslationDropdown() {
+  const dropdown = document.getElementById('translation-dropdown-results');
+  if (dropdown) {
+    // Set the current translation
+    dropdown.value = currentTranslation;
+    
+    // Add change event listener
+    dropdown.addEventListener('change', function() {
+      const newTranslation = this.value;
+      console.log('Results dropdown translation changed to:', newTranslation);
+      
+      // Update the global translation
+      currentTranslation = newTranslation;
+      localStorage.setItem('preferredTranslation', newTranslation);
+      
+      // Update the main translation selector if it exists - removed since element no longer exists
+      
+      // Trigger translation change event
+      document.dispatchEvent(new CustomEvent('translationChanged', {
+        detail: { translation: newTranslation, verseCount: 0 }
+      }));
+    });
+  }
+}
+
+// Update the results translation dropdown value
+function updateResultsTranslationDropdown(translation) {
+  const dropdown = document.getElementById('translation-dropdown-results');
+  if (dropdown) {
+    dropdown.value = translation;
+  }
 }
 
 
