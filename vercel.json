@@ -36,6 +36,14 @@
       "dest": "/script-obfuscated.js"
     },
     {
+      "src": "/public/(.*)",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/data/(.*)",
+      "dest": "/data/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
