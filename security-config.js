@@ -64,6 +64,11 @@ const SecurityMiddleware = {
   isBlockedUrl: (url) => {
     const lowerUrl = url.toLowerCase();
     
+    // Special case: Always allow JavaScript files that are explicitly allowed FIRST
+    if (lowerUrl.endsWith('.js') && SECURITY_CONFIG.ALLOWED_JS_FILES.some(jsFile => lowerUrl.includes(jsFile))) {
+      return false;
+    }
+    
     // Check blocked directories
     if (SECURITY_CONFIG.BLOCKED_DIRECTORIES.some(dir => lowerUrl.startsWith(dir))) {
       return true;
@@ -74,17 +79,11 @@ const SecurityMiddleware = {
       return true;
     }
     
-      // Check blocked extensions (but allow API calls and JavaScript files)
-  if (SECURITY_CONFIG.BLOCKED_EXTENSIONS.some(ext => lowerUrl.endsWith(ext)) && 
-      !lowerUrl.includes('/api/') && 
-      !SECURITY_CONFIG.ALLOWED_JS_FILES.some(jsFile => lowerUrl.includes(jsFile))) {
-    return true;
-  }
-  
-  // Special case: Always allow JavaScript files that are explicitly allowed
-  if (lowerUrl.endsWith('.js') && SECURITY_CONFIG.ALLOWED_JS_FILES.some(jsFile => lowerUrl.includes(jsFile))) {
-    return false;
-  }
+    // Check blocked extensions (but allow API calls and JavaScript files)
+    if (SECURITY_CONFIG.BLOCKED_EXTENSIONS.some(ext => lowerUrl.endsWith(ext)) && 
+        !lowerUrl.includes('/api/')) {
+      return true;
+    }
     
     return false;
   },
