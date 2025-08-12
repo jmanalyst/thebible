@@ -642,12 +642,24 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
     }
     
     res.setHeader('Cache-Control', SECURITY_CONFIG.BIBLE_CACHE_CONTROL);
-    res.json(processedVerse);
-    
-  } catch (error) {
-    console.error(`❌ Error serving verse:`, error);
-    res.status(500).json({ error: 'Failed to serve verse' });
-  }
+      res.json(processedVerse);
+  
+} catch (error) {
+  console.error(`❌ Error serving verse:`, error);
+  res.status(500).json({ error: 'Failed to serve verse' });
+}
+});
+
+// Test endpoint to verify server is running
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server is running!', 
+    timestamp: new Date().toISOString(),
+    nodeEnv: process.env.NODE_ENV,
+    port: process.env.PORT,
+    currentDir: __dirname,
+    processCwd: process.cwd()
+  });
 });
 
 // SECURE: Only serve specific chapters, never full translations
@@ -900,18 +912,6 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
 </html>`;
   
   res.send(html);
-});
-
-// Test endpoint to verify server is running
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    message: 'Server is running!', 
-    timestamp: new Date().toISOString(),
-    nodeEnv: process.env.NODE_ENV,
-    port: process.env.PORT,
-    currentDir: __dirname,
-    processCwd: process.cwd()
-  });
 });
 
 // Serve static files
