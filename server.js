@@ -19,39 +19,17 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 app.use(cors());
 app.use(express.json());
 
-// COMPREHENSIVE SECURITY MIDDLEWARE: Block ALL access to Bible data files
+// TEMPORARILY DISABLED SECURITY MIDDLEWARE for debugging
 app.use((req, res, next) => {
   const url = req.url;
-  const userAgent = req.get('User-Agent') || '';
   const clientIP = req.ip || req.connection.remoteAddress;
   
-  // Check if URL should be blocked
-  if (SecurityMiddleware.isBlockedUrl(url)) {
-    SecurityMiddleware.logSecurityEvent('BLOCKED_ACCESS', `${url} from ${clientIP}`);
-    console.log(`🚫 BLOCKED: Attempted access to protected resource: ${url} from ${clientIP}`);
+  // Only block direct access to Bible data files
+  if (url.includes('/data/') && url.endsWith('.json')) {
+    console.log(`🚫 BLOCKED: Direct access to Bible data: ${url} from ${clientIP}`);
     return res.status(403).json({ 
       error: 'Access denied',
-      message: 'This resource is protected and cannot be accessed directly'
-    });
-  }
-  
-  // Check for suspicious User-Agents
-  if (SecurityMiddleware.isSuspiciousUserAgent(userAgent)) {
-    SecurityMiddleware.logSecurityEvent('SUSPICIOUS_ACTIVITY', `${userAgent} from ${clientIP}`);
-    console.log(`🚫 BLOCKED: Suspicious User-Agent: ${userAgent} from ${clientIP}`);
-    return res.status(403).json({ 
-      error: 'Access denied',
-      message: 'Suspicious activity detected'
-    });
-  }
-  
-  // Additional security checks
-  if (url.includes('..') || url.includes('//') || url.includes('\\')) {
-    SecurityMiddleware.logSecurityEvent('PATH_TRAVERSAL', `${url} from ${clientIP}`);
-    console.log(`🚫 BLOCKED: Path traversal attempt: ${url} from ${clientIP}`);
-    return res.status(403).json({ 
-      error: 'Access denied',
-      message: 'Invalid request path'
+      message: 'Direct access to Bible data files is not allowed'
     });
   }
   
