@@ -477,56 +477,58 @@ document.addEventListener("DOMContentLoaded", () => {
         
         console.log('🔍 Verse clicked:', { book, chapter, verse });
         
-        // Check if this verse is already selected
-        const isCurrentlySelected = verseLine.classList.contains('verse-selected');
+        // Always select the clicked verse (no more toggle)
+        console.log('🔍 Selecting verse:', verse);
         
-        if (isCurrentlySelected) {
-          // Deselect the verse
-          console.log('🔍 Deselecting verse:', verse);
-          verseLine.classList.remove('verse-selected');
+        // Remove selection from all other verses
+        document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
+        
+        // Select this verse
+        verseLine.classList.add('verse-selected');
+        document.getElementById('verse').value = verse;
+        currentVerse = parseInt(verse);
+        
+        // Update meta tags and URL for sharing
+        updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
+        
+        // Update pill labels
+        updatePillLabels();
+      } else {
+        // Click outside verses - deselect current selection
+        const currentlySelected = document.querySelector('.verse-line.verse-selected');
+        if (currentlySelected) {
+          console.log('🔍 Click outside - deselecting current verse');
           
-          // Debug: Check if class was actually removed
-          console.log('🔍 After removing verse-selected class:', {
-            hasClass: verseLine.classList.contains('verse-selected'),
-            allClasses: Array.from(verseLine.classList)
-          });
+          // Get book and chapter from the selected verse
+          const book = currentlySelected.dataset.book;
+          const chapter = currentlySelected.dataset.chapter;
           
-          // Force reset any inline styles that might persist
-          verseLine.style.backgroundColor = '';
-          verseLine.style.borderLeft = '';
-          verseLine.style.paddingLeft = '';
-          verseLine.style.marginLeft = '';
-          verseLine.style.borderRadius = '';
+          // Remove selection
+          currentlySelected.classList.remove('verse-selected');
           
-          // Reset text decoration on the verse text
-          const verseText = verseLine.querySelector('.verse-text');
+          // Force reset all inline styles
+          currentlySelected.style.backgroundColor = '';
+          currentlySelected.style.borderLeft = '';
+          currentlySelected.style.paddingLeft = '';
+          currentlySelected.style.marginLeft = '';
+          currentlySelected.style.borderRadius = '';
+          
+          // Reset text decoration
+          const verseText = currentlySelected.querySelector('.verse-text');
           if (verseText) {
             verseText.style.textDecoration = '';
           }
           
+          // Clear verse picker
           document.getElementById('verse').value = '';
           currentVerse = 0;
           
           // Update meta tags for chapter only (no specific verse)
           updateMetaTags(book, chapter, '', '');
-        } else {
-          // Select the verse
-          console.log('🔍 Selecting verse:', verse);
           
-          // Remove selection from all other verses
-          document.querySelectorAll('.verse-line').forEach(line => line.classList.remove('verse-selected'));
-          
-          // Select this verse
-          verseLine.classList.add('verse-selected');
-          document.getElementById('verse').value = verse;
-          currentVerse = parseInt(verse);
-          
-          // Update meta tags and URL for sharing
-          updateMetaTags(book, chapter, verse, verseLine.querySelector('.verse-text').textContent);
+          // Update pill labels
+          updatePillLabels();
         }
-        
-        // Update pill labels
-        updatePillLabels();
       }
     });
     
