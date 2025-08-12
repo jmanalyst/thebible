@@ -1800,6 +1800,11 @@ async function loadPublicTopics() {
         </button>
         <div id="topic-${topic.id}" class="ml-4 mt-2 text-sm text-theme-subtle-text hidden overflow-hidden transition-all duration-300 ease-in-out">
           <div class="text-theme-subtle-text italic">Loading verses...</div>
+          <div class="mt-2">
+            <div class="w-full bg-theme-border rounded-full h-2">
+              <div id="progress-${topic.id}" class="bg-theme-accent h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -1816,7 +1821,30 @@ async function loadAllTopicContent(topics, verses, subtopics) {
   console.log("🚀 Starting efficient topic content loading...");
   
   // Create a cache for verse content to avoid duplicate API calls
+  // Use localStorage for persistent caching across page reloads
   const verseCache = new Map();
+  
+  // Load cached verses from localStorage
+  try {
+    const cachedVerses = localStorage.getItem('bible_verse_cache');
+    if (cachedVerses) {
+      const parsed = JSON.parse(cachedVerses);
+      parsed.forEach(([key, value]) => verseCache.set(key, value));
+      console.log(`📚 Loaded ${verseCache.size} cached verses from localStorage`);
+    }
+  } catch (error) {
+    console.warn('Failed to load cached verses:', error);
+  }
+  
+  // Save cache to localStorage periodically
+  const saveCache = () => {
+    try {
+      const cacheArray = Array.from(verseCache.entries());
+      localStorage.setItem('bible_verse_cache', JSON.stringify(cacheArray));
+    } catch (error) {
+      console.warn('Failed to save verse cache:', error);
+    }
+  };
   
   // Helper function to get cached verse content or fetch it
   async function getVerseContent(book, chapter, verse) {
@@ -1831,6 +1859,10 @@ async function loadAllTopicContent(topics, verses, subtopics) {
         const data = await response.json();
         const text = data.text || "(verse not found)";
         verseCache.set(cacheKey, text);
+        // Save cache periodically (every 10 verses)
+        if (verseCache.size % 10 === 0) {
+          saveCache();
+        }
         return text;
       } else {
         const errorText = "(verse not found)";
@@ -1843,6 +1875,87 @@ async function loadAllTopicContent(topics, verses, subtopics) {
       verseCache.set(cacheKey, errorText);
       return errorText;
     }
+  }
+  
+  // NEW: Batch fetch function for multiple verses at once
+  async function getVersesBatch(verseRequests) {
+    // Filter out already cached verses
+    const uncachedRequests = [];
+    const cachedResults = new Map();
+    
+    for (const request of verseRequests) {
+      const cacheKey = `${request.book}-${request.chapter}-${request.verse}`;
+      if (verseCache.has(cacheKey)) {
+        cachedResults.set(cacheKey, verseCache.get(cacheKey));
+      } else {
+        uncachedRequests.push(request);
+      }
+    }
+    
+    // If all verses are cached, return immediately
+    if (uncachedRequests.length === 0) {
+      console.log('🚀 All verses found in cache!');
+      return cachedResults;
+    }
+    
+    // Batch fetch uncached verses
+    if (uncachedRequests.length > 0) {
+      try {
+        console.log(`🚀 Batch fetching ${uncachedRequests.length} uncached verses...`);
+        const response = await fetch('/api/verses/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            verses: uncachedRequests,
+            translation: currentTranslation
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`✅ Batch fetch successful: ${data.total_found}/${data.total_requested} verses found`);
+          
+          // Add new verses to cache and results
+          for (const verse of data.results) {
+            const cacheKey = `${verse.book_name}-${verse.chapter}-${verse.verse}`;
+            const text = verse.text || "(verse not found)";
+            verseCache.set(cacheKey, text);
+            cachedResults.set(cacheKey, text);
+          }
+          
+          // Handle any errors
+          for (const error of data.errors) {
+            const cacheKey = `${error.book}-${error.chapter}-${error.verse}`;
+            const errorText = "(verse not found)";
+            verseCache.set(cacheKey, errorText);
+            cachedResults.set(cacheKey, errorText);
+          }
+          
+          // Save cache after batch fetch
+          saveCache();
+        } else {
+          console.error('Batch fetch failed:', response.status);
+          // Fallback to individual fetches for failed batch
+          for (const request of uncachedRequests) {
+            const text = await getVerseContent(request.book, request.chapter, request.verse);
+            const cacheKey = `${request.book}-${request.chapter}-${request.verse}`;
+            cachedResults.set(cacheKey, text);
+          }
+        }
+      } catch (error) {
+        console.error('Batch fetch error, falling back to individual fetches:', error);
+        // Fallback to individual fetches
+        for (const request of uncachedRequests) {
+          const text = await getVerseContent(request.book, request.chapter, request.verse);
+          const cacheKey = `${request.book}-${request.chapter}-${request.verse}`;
+          cachedResults.set(cacheKey, text);
+        }
+      }
+    }
+    
+    return cachedResults;
   }
   
   // Helper function to get verse range content efficiently
@@ -1874,10 +1987,23 @@ async function loadAllTopicContent(topics, verses, subtopics) {
     }
   }
   
-  // Process all topics concurrently for better performance
+  // Process all topics concurrently for better performance with progressive loading
   const topicPromises = topics.map(async (topic) => {
     const topicVerses = verses.filter(v => v.topic_id === topic.id);
     const topicSubtopics = subtopics?.filter(s => s.topic_id === topic.id) || [];
+    
+    // Calculate total verses for progress tracking
+    const totalVerses = topicVerses.length;
+    let completedVerses = 0;
+    
+    // Update progress function
+    const updateProgress = () => {
+      const progressElement = document.getElementById(`progress-${topic.id}`);
+      if (progressElement) {
+        const percentage = Math.round((completedVerses / totalVerses) * 100);
+        progressElement.style.width = `${percentage}%`;
+      }
+    };
     
     // Group verses by subtopic
     const grouped = topicVerses.reduce((acc, v) => {
@@ -1887,54 +2013,123 @@ async function loadAllTopicContent(topics, verses, subtopics) {
       return acc;
     }, {});
     
-    // Build verse list based on subtopics table order
+    // Build verse list progressively using batch API for better performance
     let verseList = "";
+    
+    // Collect all verse requests for batch processing
+    const allVerseRequests = [];
+    const verseMap = new Map(); // Map to track which request belongs to which verse
+    
     for (const subtopic of topicSubtopics) {
       const subtopicName = subtopic.title;
       const subtopicVerses = grouped[subtopicName] || [];
-      const items = [];
       
       for (const v of subtopicVerses) {
         // Check if this is a verse range
         const rangeMatch = v.note && v.note.match(/\(Range: (\d+)-(\d+)\)/);
         if (rangeMatch) {
           const [, startVerse, endVerse] = rangeMatch;
-          const verseRef = `${v.book} ${v.chapter}:${startVerse}-${endVerse}`;
-          
-          // For ranges, fetch all verses in the range efficiently
-          const allVersesText = await getVerseRangeContent(v.book, v.chapter, startVerse, endVerse);
-          items.push(`<li><strong>${verseRef}</strong> – ${allVersesText}</li>`);
+          // Add each verse in the range to batch request
+          for (let verse = parseInt(startVerse); verse <= parseInt(endVerse); verse++) {
+            const request = { book: v.book, chapter: v.chapter, verse: verse.toString() };
+            allVerseRequests.push(request);
+            verseMap.set(`${v.book}-${v.chapter}-${verse}`, { subtopic: subtopicName, isRange: true, startVerse, endVerse, originalVerse: v });
+          }
         } else {
-          // For single verses, fetch from cache or API
-          const verseText = await getVerseContent(v.book, v.chapter, v.verse);
-          const cleanText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
-          items.push(`<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${cleanText}</li>`);
+          const request = { book: v.book, chapter: v.chapter, verse: v.verse };
+          allVerseRequests.push(request);
+          verseMap.set(`${v.book}-${v.chapter}-${v.verse}`, { subtopic: subtopicName, isRange: false, originalVerse: v });
         }
       }
-      
-      verseList += `<h4 class="mt-4 font-semibold text-lg text-theme-text">${subtopicName}</h4><ul class="list-disc pl-5">${items.join("")}</ul>`;
     }
     
-    // Add any misc verses that don't belong to a subtopic
+    // Add misc verses
     if (grouped["Misc"] && grouped["Misc"].length > 0) {
-      const miscItems = [];
       for (const v of grouped["Misc"]) {
         const rangeMatch = v.note && v.note.match(/\(Range: (\d+)-(\d+)\)/);
         if (rangeMatch) {
           const [, startVerse, endVerse] = rangeMatch;
-          const verseRef = `${v.book} ${v.chapter}:${startVerse}-${endVerse}`;
-          
-          const allVersesText = await getVerseRangeContent(v.book, v.chapter, startVerse, endVerse);
-          miscItems.push(`<li><strong>${verseRef}</strong> – ${allVersesText}</li>`);
+          for (let verse = parseInt(startVerse); verse <= parseInt(endVerse); verse++) {
+            const request = { book: v.book, chapter: v.chapter, verse: verse.toString() };
+            allVerseRequests.push(request);
+            verseMap.set(`${v.book}-${v.chapter}-${verse}`, { subtopic: "Misc", isRange: true, startVerse, endVerse, originalVerse: v });
+          }
         } else {
-          const verseText = await getVerseContent(v.book, v.chapter, v.verse);
-          const cleanText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
-          miscItems.push(`<li><strong>${v.book} ${v.chapter}:${v.verse}</strong> – ${cleanText}</li>`);
+          const request = { book: v.book, chapter: v.chapter, verse: v.verse };
+          allVerseRequests.push(request);
+          verseMap.set(`${v.book}-${v.chapter}-${v.verse}`, { subtopic: "Misc", isRange: false, originalVerse: v });
         }
       }
-      
-      verseList += `<ul class="list-disc pl-5">${miscItems.join("")}</ul>`;
     }
+    
+    // Batch fetch all verses at once
+    console.log(`🚀 Batch fetching ${allVerseRequests.length} verses for topic ${topic.title}...`);
+    const batchResults = await getVersesBatch(allVerseRequests);
+    
+    // Now build the verse list from batch results
+    const subtopicGroups = new Map();
+    
+    for (const [cacheKey, verseText] of batchResults) {
+      const [book, chapter, verse] = cacheKey.split('-');
+      const verseInfo = verseMap.get(cacheKey);
+      
+      if (verseInfo) {
+        const { subtopic, isRange, startVerse, endVerse, originalVerse } = verseInfo;
+        
+        if (!subtopicGroups.has(subtopic)) {
+          subtopicGroups.set(subtopic, []);
+        }
+        
+        if (isRange) {
+          // Handle range verses
+          const rangeKey = `${book}-${chapter}-${startVerse}-${endVerse}`;
+          if (!subtopicGroups.get(subtopic).find(item => item.rangeKey === rangeKey)) {
+            // Collect all verses in this range
+            let rangeText = "";
+            for (let v = parseInt(startVerse); v <= parseInt(endVerse); v++) {
+              const vCacheKey = `${book}-${chapter}-${v}`;
+              const vText = batchResults.get(vCacheKey) || "(verse not found)";
+              rangeText += (rangeText ? " " : "") + vText.replace(/[¶\[\]‹›]/g, '').trim();
+            }
+            
+            const verseRef = `${book} ${chapter}:${startVerse}-${endVerse}`;
+            subtopicGroups.get(subtopic).push({
+              type: 'range',
+              rangeKey,
+              html: `<li><strong>${verseRef}</strong> – ${rangeText}</li>`,
+              verseCount: parseInt(endVerse) - parseInt(startVerse) + 1
+            });
+          }
+        } else {
+          // Handle single verses
+          const cleanText = verseText.replace(/[¶\[\]‹›]/g, '').trim();
+          const verseRef = `${book} ${chapter}:${verse}`;
+          subtopicGroups.get(subtopic).push({
+            type: 'single',
+            html: `<li><strong>${verseRef}</strong> – ${cleanText}</li>`,
+            verseCount: 1
+          });
+        }
+      }
+    }
+    
+    // Build the final HTML
+    for (const [subtopicName, verses] of subtopicGroups) {
+      if (subtopicName !== "Misc") {
+        verseList += `<h4 class="mt-4 font-semibold text-lg text-theme-text">${subtopicName}</h4>`;
+      }
+      verseList += `<ul class="list-disc pl-5">`;
+      
+      for (const verse of verses) {
+        verseList += verse.html;
+        completedVerses += verse.verseCount;
+        updateProgress();
+      }
+      
+      verseList += `</ul>`;
+    }
+    
+    // Misc verses are now handled in the main loop above
     
     return { topicId: topic.id, verseList };
   });

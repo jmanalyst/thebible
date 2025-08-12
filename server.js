@@ -624,6 +624,162 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
 }
 });
 
+// BATCH API: Fetch multiple verses at once for better performance
+app.post('/api/verses/batch', (req, res) => {
+  const { verses, translation = 'kjv' } = req.body;
+  
+  // Validate request body
+  if (!verses || !Array.isArray(verses) || verses.length === 0) {
+    return res.status(400).json({ error: 'Invalid request: verses array required' });
+  }
+  
+  if (verses.length > 50) {
+    return res.status(400).json({ error: 'Too many verses requested. Maximum 50 verses per batch.' });
+  }
+  
+  // Validate translation using security config
+  if (!SecurityMiddleware.isValidTranslation(translation)) {
+    console.log(`❌ Invalid translation in batch request:`, { translation });
+    return res.status(400).json({ error: 'Invalid translation' });
+  }
+  
+  // Rate limiting for batch requests (more strict)
+  const clientIP = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  
+  if (!req.app.locals.rateLimit) {
+    req.app.locals.rateLimit = {};
+  }
+  
+  if (!req.app.locals.rateLimit[clientIP]) {
+    req.app.locals.rateLimit[clientIP] = { 
+      count: 0, 
+      resetTime: now + SECURITY_CONFIG.RATE_LIMIT.WINDOW_MS,
+      firstRequest: now,
+      burstCount: 0
+    };
+  }
+  
+  // Batch requests count as multiple individual requests for rate limiting
+  const requestCount = Math.min(verses.length, 10); // Cap at 10 for rate limiting purposes
+  
+  if (now > req.app.locals.rateLimit[clientIP].resetTime) {
+    req.app.locals.rateLimit[clientIP] = { 
+      count: 0, 
+      resetTime: now + SECURITY_CONFIG.RATE_LIMIT.WINDOW_MS,
+      firstRequest: now,
+      burstCount: 0
+    };
+  }
+  
+  if (req.app.locals.rateLimit[clientIP].count + requestCount > SECURITY_CONFIG.RATE_LIMIT.MAX_REQUESTS) {
+    SecurityMiddleware.logSecurityEvent('RATE_LIMIT_VIOLATIONS', `IP ${clientIP} exceeded rate limit for batch verses`);
+    console.log(`🚫 RATE LIMITED: IP ${clientIP} exceeded rate limit for batch verses`);
+    return res.status(429).json({ error: 'Rate limit exceeded' });
+  }
+  
+  req.app.locals.rateLimit[clientIP].count += requestCount;
+  
+  try {
+    // Try multiple possible paths for Vercel compatibility
+    const possiblePaths = [
+      path.join(__dirname, 'data', `${translation}.json`),
+      path.join(process.cwd(), 'data', `${translation}.json`),
+      `./data/${translation}.json`
+    ];
+    
+    let filePath = null;
+    let rawData = null;
+    
+    // Try each possible path
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        filePath = testPath;
+        rawData = JSON.parse(fs.readFileSync(testPath, 'utf8'));
+        break;
+      }
+    }
+    
+    if (!filePath || !rawData) {
+      console.error(`❌ Batch: Translation file not found:`, translation);
+      return res.status(404).json({ error: 'Translation file not found' });
+    }
+    
+    // Handle different data structures
+    let allVerses = [];
+    if (Array.isArray(rawData)) {
+      allVerses = rawData;
+    } else if (rawData.verses && Array.isArray(rawData.verses)) {
+      allVerses = rawData.verses;
+    } else {
+      throw new Error('Invalid data format');
+    }
+    
+    // Process all requested verses
+    const results = [];
+    const errors = [];
+    
+    for (const verseRequest of verses) {
+      const { book, chapter, verse } = verseRequest;
+      
+      if (!book || !chapter || !verse) {
+        errors.push({ book, chapter, verse, error: 'Missing parameters' });
+        continue;
+      }
+      
+      if (isNaN(parseInt(chapter)) || isNaN(parseInt(verse))) {
+        errors.push({ book, chapter, verse, error: 'Invalid chapter or verse' });
+        continue;
+      }
+      
+      // Get the correct book name for this translation
+      const translatedBookName = getBookNameForTranslation(book, translation);
+      
+      // Find specific verse
+      const verseData = allVerses.find(v => 
+        v.book_name && v.book_name.toLowerCase() === translatedBookName.toLowerCase() &&
+        parseInt(v.chapter) === parseInt(chapter) &&
+        parseInt(v.verse) === parseInt(verse)
+      );
+      
+      if (verseData) {
+        results.push({
+          book_name: verseData.book_name,
+          chapter: verseData.chapter,
+          verse: verseData.verse,
+          text: formatRedLetterText(verseData.text),
+          translation: translation,
+          request_id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        });
+      } else {
+        errors.push({ book, chapter, verse, error: 'Verse not found' });
+      }
+    }
+    
+    const response = {
+      results,
+      errors,
+      total_requested: verses.length,
+      total_found: results.length,
+      total_errors: errors.length,
+      translation,
+      timestamp: new Date().toISOString(),
+      batch_id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    };
+    
+    if (SECURITY_CONFIG.LOGGING.SUCCESSFUL_REQUESTS) {
+      console.log(`✅ Batch verses served: ${results.length}/${verses.length} verses (${translation}) to ${clientIP}`);
+    }
+    
+    res.setHeader('Cache-Control', SECURITY_CONFIG.BIBLE_CACHE_CONTROL);
+    res.json(response);
+    
+  } catch (error) {
+    console.error(`❌ Error serving batch verses:`, error);
+    res.status(500).json({ error: 'Failed to serve batch verses' });
+  }
+});
+
 // Test endpoint to verify server is running
 app.get('/api/test', (req, res) => {
   res.json({ 
