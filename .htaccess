@@ -46,7 +46,7 @@
     Deny from all
 </Files>
 
-# Block access to script.js (serve obfuscated version instead)
+# Block access to script.js (serve protected version instead)
 <Files "script.js">
     Order Deny,Allow
     Deny from all
