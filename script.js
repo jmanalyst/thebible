@@ -931,7 +931,7 @@ async function getVerseFromRef(book, chapter, verse) {
       if (selectedVerse) {
         updateMetaTags(book, chapter, verse, selectedVerse.text);
       } else {
-        updateMetaTags(book, chapter, null, null);
+        updateMetaTags(book, chapter, '', '');
       }
       
       // Format all verses in the chapter
@@ -1202,7 +1202,7 @@ async function getChapter(book, chapter) {
     
     if (chapterData && chapterData.verses && chapterData.verses.length > 0) {
       // Update meta tags for social sharing
-      updateMetaTags(book, chapter, null, null);
+      updateMetaTags(book, chapter, '', '');
       
       // Process verses from secure endpoint
       const verseList = chapterData.verses.map(v => {
@@ -1377,7 +1377,7 @@ function goHome() {
   clearState();
   
   // Reset meta tags to default when going home
-  updateMetaTags(null, null, null, null);
+  resetMetaTagsToDefault();
   
   // Show translation sample when returning home
   showTranslationSample();
@@ -2490,6 +2490,12 @@ function updateMetadata(book, chapter) {
 
 // Function to update Open Graph meta tags for social sharing
 function updateMetaTags(book, chapter, verse, verseText) {
+  // Add null checks to prevent errors
+  if (!book || !chapter) {
+    console.log('updateMetaTags: Missing book or chapter, skipping meta tag update');
+    return;
+  }
+  
   const currentUrl = window.location.href;
   const cleanedText = verseText ? cleanVerseText(verseText) : '';
   
@@ -2523,8 +2529,9 @@ function updateMetaTags(book, chapter, verse, verseText) {
     metaDescription.setAttribute('content', description);
   }
   
-  // Create the verse-specific URL for sharing
-  const verseUrl = `https://thelivingwordonline.com/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}`;
+  // Create the verse-specific URL for sharing - use current origin to avoid domain mismatch
+  const currentOrigin = window.location.origin;
+  const verseUrl = `${currentOrigin}/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}`;
   
   // Update Open Graph tags with verse-specific URL
   const ogTitle = document.querySelector('meta[property="og:title"]');
@@ -2554,8 +2561,51 @@ function updateMetaTags(book, chapter, verse, verseText) {
   if (window.history && window.history.pushState) {
     window.history.pushState({}, title, verseUrl);
   }
-  
+}
 
+// Function to reset meta tags to default values
+function resetMetaTagsToDefault() {
+  const defaultTitle = 'The Living Word Online - Bible Study & Scripture Search';
+  const defaultDescription = 'Search, read, and reflect on verses from the Bible. Access to 6 different Bible translations including KJV, ASV, RVG, and more.';
+  const defaultUrl = window.location.origin;
+  
+  // Update page title
+  document.title = defaultTitle;
+  
+  // Update meta description
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute('content', defaultDescription);
+  }
+  
+  // Update Open Graph tags
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  
+  if (ogTitle) ogTitle.setAttribute('content', defaultTitle);
+  if (ogDescription) ogDescription.setAttribute('content', defaultDescription);
+  if (ogUrl) ogUrl.setAttribute('content', defaultUrl);
+  
+  // Update Twitter Card tags
+  const twitterTitle = document.querySelector('meta[property="twitter:title"]');
+  const twitterDescription = document.querySelector('meta[property="twitter:description"]');
+  const twitterUrl = document.querySelector('meta[property="twitter:url"]');
+  
+  if (twitterTitle) twitterTitle.setAttribute('content', defaultTitle);
+  if (twitterDescription) twitterDescription.setAttribute('content', defaultDescription);
+  if (twitterUrl) twitterUrl.setAttribute('content', defaultUrl);
+  
+  // Update canonical URL
+  const canonicalLink = document.querySelector('link[rel="canonical"]');
+  if (canonicalLink) {
+    canonicalLink.setAttribute('href', defaultUrl);
+  }
+  
+  // Reset browser URL to home
+  if (window.history && window.history.pushState) {
+    window.history.pushState({}, defaultTitle, '/');
+  }
 }
 
 // Initialize the translation dropdown in results section
