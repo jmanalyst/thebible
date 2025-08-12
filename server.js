@@ -58,20 +58,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files with additional security
-app.use(express.static(path.join(process.cwd()), {
-  setHeaders: (res, path) => {
-    // Block access to any JSON files (Bible data)
-    if (path.endsWith('.json')) {
-      res.setHeader('Content-Type', 'text/plain');
-      res.setHeader('Content-Length', '0');
-      return res.status(403).send('Access denied');
-    }
-    
-    // Allow JavaScript files to be served normally
-    // (script.js is needed for frontend functionality)
-  }
-}));
+
 
 // Security headers middleware
 app.use((req, res, next) => {
@@ -913,9 +900,6 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   
   res.send(html);
 });
-
-// Serve static files from the root of the deployment
-app.use(express.static(process.cwd()));
 
 // Serve the main page
 app.get('/', (req, res) => {
