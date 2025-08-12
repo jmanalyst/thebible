@@ -902,6 +902,21 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
+// Test endpoint to verify server is running
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server is running!', 
+    timestamp: new Date().toISOString(),
+    nodeEnv: process.env.NODE_ENV,
+    port: process.env.PORT,
+    currentDir: __dirname,
+    processCwd: process.cwd()
+  });
+});
+
+// Serve static files
+app.use(express.static(__dirname));
+
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
