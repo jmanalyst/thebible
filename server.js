@@ -567,6 +567,20 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
   
   try {
     const filePath = path.join(__dirname, 'data', `${translation}.json`);
+    console.log(`🔍 Attempting to read file: ${filePath}`);
+    console.log(`🔍 Current directory: ${__dirname}`);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      return res.status(404).json({ 
+        error: 'Translation file not found',
+        translation: translation,
+        filePath: filePath,
+        currentDir: __dirname
+      });
+    }
+    
     const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     
     // Handle different data structures
@@ -669,6 +683,20 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
   
   try {
     const filePath = path.join(__dirname, 'data', `${translation}.json`);
+    console.log(`🔍 Attempting to read file: ${filePath}`);
+    console.log(`🔍 Current directory: ${__dirname}`);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      return res.status(404).json({ 
+        error: 'Translation file not found',
+        translation: translation,
+        filePath: filePath,
+        currentDir: __dirname
+      });
+    }
+    
     const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     
     // Handle different data structures
@@ -691,6 +719,7 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
     );
     
     if (chapterVerses.length === 0) {
+      console.log(`❌ No verses found for ${book} ${chapter} in ${translation}`);
       return res.status(404).json({ error: 'Chapter not found' });
     }
     
