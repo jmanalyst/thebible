@@ -56,104 +56,46 @@ async function loadTranslation(translationKey) {
     }
 }
 
-// NEW: Secure function to get a specific verse (GitHub Pages compatible)
+// NEW: Secure function to get a specific verse
 async function getSecureVerse(book, chapter, verse, translation = currentTranslation) {
     try {
-        // For GitHub Pages, load the Bible data directly from JSON files
-        const response = await fetch(`./data/${translation}.json`);
+        const response = await fetch(`/api/verse/${book}/${chapter}/${verse}?translation=${translation}`);
+        
         if (!response.ok) {
-            throw new Error(`Failed to fetch ${translation}.json: ${response.status}`);
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else if (response.status === 404) {
+                throw new Error('Verse not found.');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
         }
         
-        const data = await response.json();
-        
-        // Handle different data structures
-        let verses = [];
-        if (Array.isArray(data)) {
-            verses = data;
-        } else if (data.verses && Array.isArray(data.verses)) {
-            verses = data.verses;
-        } else {
-            throw new Error('Invalid data format');
-        }
-        
-        // Get the correct book name for this translation
-        const translatedBookName = getBookNameForTranslation(book, translation);
-        
-        // Find specific verse
-        const verseData = verses.find(v => 
-            v.book_name && v.book_name.toLowerCase() === translatedBookName.toLowerCase() &&
-            parseInt(v.chapter) === parseInt(chapter) &&
-            parseInt(v.verse) === parseInt(verse)
-        );
-        
-        if (!verseData) {
-            throw new Error('Verse not found');
-        }
-        
-        // Return the verse data in the expected format
-        return {
-            book_name: verseData.book_name,
-            chapter: verseData.chapter,
-            verse: verseData.verse,
-            text: verseData.text,
-            translation: translation
-        };
-        
+        const verseData = await response.json();
+        return verseData;
     } catch (error) {
         console.error("Failed to get secure verse:", error);
         throw error;
     }
 }
 
-// NEW: Secure function to get a specific chapter (GitHub Pages compatible)
+// NEW: Secure function to get a specific chapter
 async function getSecureChapter(book, chapter, translation = currentTranslation) {
     try {
-        // For GitHub Pages, load the Bible data directly from JSON files
-        const response = await fetch(`./data/${translation}.json`);
+        const response = await fetch(`/api/chapter/${book}/${chapter}?translation=${translation}`);
+        
         if (!response.ok) {
-            throw new Error(`Failed to fetch ${translation}.json: ${response.status}`);
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else if (response.status === 404) {
+                throw new Error('Chapter not found.');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
         }
         
-        const data = await response.json();
-        
-        // Handle different data structures
-        let verses = [];
-        if (Array.isArray(data)) {
-            verses = data;
-        } else if (data.verses && Array.isArray(data.verses)) {
-            verses = data.verses;
-        } else {
-            throw new Error('Invalid data format');
-        }
-        
-        // Get the correct book name for this translation
-        const translatedBookName = getBookNameForTranslation(book, translation);
-        
-        // Find specific chapter verses
-        const chapterVerses = verses.filter(v => 
-            v.book_name && v.book_name.toLowerCase() === translatedBookName.toLowerCase() &&
-            parseInt(v.chapter) === parseInt(chapter)
-        );
-        
-        if (chapterVerses.length === 0) {
-            throw new Error('Chapter not found');
-        }
-        
-        // Return the chapter data in the expected format
-        return {
-            book: book,
-            chapter: chapter,
-            translation: translation,
-            verses: chapterVerses.map(verse => ({
-                book_name: verse.book_name,
-                chapter: verse.chapter,
-                verse: verse.verse,
-                text: verse.text,
-                translation: translation
-            }))
-        };
-        
+        const chapterData = await response.json();
+        return chapterData;
     } catch (error) {
         console.error("Failed to get secure chapter:", error);
         throw error;
