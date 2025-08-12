@@ -955,13 +955,30 @@ app.get('/public/*.json', (req, res) => {
   res.status(403).json({ error: 'Access denied' });
 });
 
-// For Vercel deployment
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT} in ${NODE_ENV} mode`);
-    console.log(`🔒 Bible data protection: ACTIVE`);
-    console.log(`📊 All translations accessible through secure endpoints only`);
-  });
-}
+// For Vercel deployment - always start the server
+app.listen(PORT, () => {
+  console.log(`🚀 Bible server running on port ${PORT}`);
+  console.log(`🌐 Server URL: http://localhost:${PORT}`);
+  console.log(`📖 Available translations: ${Object.keys(SECURITY_CONFIG.ALLOWED_TRANSLATIONS).join(', ')}`);
+  console.log(`🔒 Security features: Rate limiting, file access control, request validation`);
+  console.log(`📊 Logging: ${SECURITY_CONFIG.LOGGING.SUCCESSFUL_REQUESTS ? 'Enabled' : 'Disabled'}`);
+  console.log(`⏰ Rate limit: ${SECURITY_CONFIG.RATE_LIMIT.MAX_REQUESTS} requests per ${SECURITY_CONFIG.RATE_LIMIT.WINDOW_MS/1000}s`);
+  console.log(`💥 Burst limit: ${SECURITY_CONFIG.RATE_LIMIT.MAX_BURST} requests per ${SECURITY_CONFIG.RATE_LIMIT.BURST_WINDOW_MS/1000}s`);
+  console.log(`📁 Current directory: ${__dirname}`);
+  console.log(`📁 Process working directory: ${process.cwd()}`);
+  console.log(`📁 Data directory check: ${fs.existsSync(path.join(__dirname, 'data')) ? 'EXISTS' : 'MISSING'}`);
+  console.log(`📁 KJV file check: ${fs.existsSync(path.join(__dirname, 'data', 'kjv.json')) ? 'EXISTS' : 'MISSING'}`);
+  
+  // List all files in data directory
+  try {
+    const dataDir = path.join(__dirname, 'data');
+    if (fs.existsSync(dataDir)) {
+      const files = fs.readdirSync(dataDir);
+      console.log(`📁 Data directory contents: ${files.join(', ')}`);
+    }
+  } catch (error) {
+    console.log(`❌ Error reading data directory: ${error.message}`);
+  }
+});
 
 module.exports = app; 
