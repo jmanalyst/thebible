@@ -901,6 +901,9 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
+// Serve static files
+app.use(express.static(process.cwd()));
+
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'index.html'));
