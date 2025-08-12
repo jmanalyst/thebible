@@ -874,11 +874,19 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
     text: verseData.text.substring(0, 50) + '...'
   });
   
-  // Generate meta tags
+  console.log('🔍 Meta tag generation params:', {
+    requestedBook: book,
+    requestedChapter: chapter,
+    requestedVerse: verse,
+    foundVerse: verseData.verse,
+    willUseVerse: verse ? parseInt(verse) : null
+  });
+  
+  // Generate meta tags - use the requested verse parameter, not the found verse data
   const metaTags = generateVerseMetaTags(
     verseData.book_name, 
     verseData.chapter, 
-    verse ? verseData.verse : null, 
+    verse ? parseInt(verse) : null, 
     verseData.text
   );
   
