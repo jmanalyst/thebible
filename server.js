@@ -59,7 +59,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static files with additional security
-app.use(express.static(path.join(__dirname), {
+app.use(express.static(path.join(process.cwd()), {
   setHeaders: (res, path) => {
     // Block access to any JSON files (Bible data)
     if (path.endsWith('.json')) {
@@ -914,12 +914,12 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
-// Serve static files
-app.use(express.static(__dirname));
+// Serve static files from the root of the deployment
+app.use(express.static(process.cwd()));
 
 // Serve the main page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 // COMPREHENSIVE PROTECTION: Block ALL possible access to Bible translation files
