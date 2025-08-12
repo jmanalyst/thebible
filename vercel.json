@@ -6,6 +6,11 @@
       "use": "@vercel/node"
     }
   ],
+  "functions": {
+    "server.js": {
+      "includeFiles": "script.js,index.html,data/**/*,favicon.ico,robots.txt,CNAME"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
