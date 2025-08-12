@@ -566,22 +566,40 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
   }
   
   try {
-    const filePath = path.join(__dirname, 'data', `${translation}.json`);
-    console.log(`🔍 Attempting to read file: ${filePath}`);
-    console.log(`🔍 Current directory: ${__dirname}`);
+    // Try multiple possible paths for Vercel compatibility
+    const possiblePaths = [
+      path.join(__dirname, 'data', `${translation}.json`),
+      path.join(process.cwd(), 'data', `${translation}.json`),
+      `./data/${translation}.json`
+    ];
     
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      console.error(`❌ File not found: ${filePath}`);
+    console.log(`🔍 Attempting to read file with paths:`, possiblePaths);
+    console.log(`🔍 Current directory: ${__dirname}`);
+    console.log(`🔍 Process working directory: ${process.cwd()}`);
+    
+    let filePath = null;
+    let rawData = null;
+    
+    // Try each possible path
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        filePath = testPath;
+        console.log(`✅ Found file at: ${filePath}`);
+        rawData = JSON.parse(fs.readFileSync(testPath, 'utf8'));
+        break;
+      }
+    }
+    
+    if (!filePath || !rawData) {
+      console.error(`❌ File not found in any of these paths:`, possiblePaths);
       return res.status(404).json({ 
         error: 'Translation file not found',
         translation: translation,
-        filePath: filePath,
-        currentDir: __dirname
+        possiblePaths: possiblePaths,
+        currentDir: __dirname,
+        processCwd: process.cwd()
       });
     }
-    
-    const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     
     // Handle different data structures
     let verses = [];
@@ -682,22 +700,40 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
   }
   
   try {
-    const filePath = path.join(__dirname, 'data', `${translation}.json`);
-    console.log(`🔍 Attempting to read file: ${filePath}`);
-    console.log(`🔍 Current directory: ${__dirname}`);
+    // Try multiple possible paths for Vercel compatibility
+    const possiblePaths = [
+      path.join(__dirname, 'data', `${translation}.json`),
+      path.join(process.cwd(), 'data', `${translation}.json`),
+      `./data/${translation}.json`
+    ];
     
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      console.error(`❌ File not found: ${filePath}`);
+    console.log(`🔍 Attempting to read file with paths:`, possiblePaths);
+    console.log(`🔍 Current directory: ${__dirname}`);
+    console.log(`🔍 Process working directory: ${process.cwd()}`);
+    
+    let filePath = null;
+    let rawData = null;
+    
+    // Try each possible path
+    for (const testPath of possiblePaths) {
+      if (fs.existsSync(testPath)) {
+        filePath = testPath;
+        console.log(`✅ Found file at: ${filePath}`);
+        rawData = JSON.parse(fs.readFileSync(testPath, 'utf8'));
+        break;
+      }
+    }
+    
+    if (!filePath || !rawData) {
+      console.error(`❌ File not found in any of these paths:`, possiblePaths);
       return res.status(404).json({ 
         error: 'Translation file not found',
         translation: translation,
-        filePath: filePath,
-        currentDir: __dirname
+        possiblePaths: possiblePaths,
+        currentDir: __dirname,
+        processCwd: process.cwd()
       });
     }
-    
-    const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     
     // Handle different data structures
     let verses = [];
