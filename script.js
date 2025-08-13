@@ -194,6 +194,11 @@ document.addEventListener('keydown', function(event) {
 
 // Function to load Genesis chapter 1 (for the Start Reading button)
 function loadGenesis1() {
+    console.log('🚀 loadGenesis1() called - immediately clearing any sample verse');
+    
+    // IMMEDIATELY clear any existing sample verse before doing anything else
+    clearTranslationSample();
+    
     // Set the form values directly
     document.getElementById('book').value = 'Genesis';
     document.getElementById('chapter').value = '1';
@@ -507,12 +512,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Show the KJV sample only when on home page
                 console.log('📖 Attempting to show KJV sample...');
                 setTimeout(() => {
-                    // Only show sample if we're still on the home page
-                    if (document.getElementById('welcome-section') && !document.getElementById('welcome-section').classList.contains('hidden')) {
+                    // Only show sample if we're still on the home page AND no navigation has started
+                    const welcomeSection = document.getElementById('welcome-section');
+                    const resultSection = document.getElementById('result-section');
+                    const isOnHomePage = welcomeSection && !welcomeSection.classList.contains('hidden');
+                    const isOnBiblePage = resultSection && !resultSection.classList.contains('hidden');
+                    
+                    if (isOnHomePage && !isOnBiblePage) {
                         console.log('⏰ Timeout fired, calling showTranslationSample()');
                         showTranslationSample();
                     } else {
                         console.log('⏰ Timeout fired but not on home page, skipping sample');
+                        console.log('⏰ welcome-section visible:', isOnHomePage);
+                        console.log('⏰ result-section visible:', isOnBiblePage);
                     }
                 }, 100);
             }
