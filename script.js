@@ -427,11 +427,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Always go to home page when visiting main URL
                 console.log('🏠 No URL parameters - going to home page');
                 goHome();
-                // Show the KJV sample
+                // Show the KJV sample only when on home page
                 console.log('📖 Attempting to show KJV sample...');
                 setTimeout(() => {
-                    console.log('⏰ Timeout fired, calling showTranslationSample()');
-                    showTranslationSample();
+                    // Only show sample if we're still on the home page
+                    if (document.getElementById('welcome-section') && !document.getElementById('welcome-section').classList.contains('hidden')) {
+                        console.log('⏰ Timeout fired, calling showTranslationSample()');
+                        showTranslationSample();
+                    } else {
+                        console.log('⏰ Timeout fired but not on home page, skipping sample');
+                    }
                 }, 100);
             }
             
