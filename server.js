@@ -1228,7 +1228,9 @@ app.get('**/asv.json', (req, res) => {
     res.status(403).json({ error: 'Direct access to Bible data files is not allowed' });
 });
 
-
+app.get('**/net.json', (req, res) => {
+    res.status(403).json({ error: 'Direct access to Bible data files is not allowed' });
+});
 
 app.get('**/rvg.json', (req, res) => {
     res.status(403).json({ error: 'Direct access to Bible data files is not allowed' });
