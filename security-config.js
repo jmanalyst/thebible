@@ -20,7 +20,7 @@ const SECURITY_CONFIG = {
   ],
   
   // Allowed JavaScript files (needed for frontend functionality)
-  ALLOWED_JS_FILES: ['script.js'],
+  ALLOWED_JS_FILES: ['script.js', 'script-obfuscated.js', 'script.full-obf.js'],
   
   // Suspicious User-Agent patterns
   SUSPICIOUS_USER_AGENTS: [
