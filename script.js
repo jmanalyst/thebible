@@ -284,24 +284,64 @@ function showTranslationSample() {
 // Function to clear the translation sample
 function clearTranslationSample() {
     console.log('🧹 clearTranslationSample() called');
+    
+    // Method 1: Remove by class
     const existingSample = document.querySelector('.translation-sample');
     if (existingSample) {
-        console.log('✅ Found and removing existing sample:', existingSample);
+        console.log('✅ Found and removing existing sample by class:', existingSample);
         existingSample.remove();
     } else {
-        console.log('❌ No sample found to remove');
+        console.log('❌ No sample found by class selector');
     }
     
-    // Double-check: look for any remaining samples
+    // Method 2: Look for any remaining samples by class
     const remainingSamples = document.querySelectorAll('.translation-sample');
     if (remainingSamples.length > 0) {
-        console.log('⚠️ Warning: Still found', remainingSamples.length, 'samples after removal');
+        console.log('⚠️ Warning: Still found', remainingSamples.length, 'samples by class after removal');
         remainingSamples.forEach((sample, index) => {
-            console.log('⚠️ Remaining sample', index, ':', sample);
+            console.log('⚠️ Removing remaining sample', index, ':', sample);
             sample.remove();
         });
-    } else {
+    }
+    
+    // Method 3: Look for sample verse content by text content (more aggressive)
+    const allDivs = document.querySelectorAll('div');
+    let samplesFoundByContent = 0;
+    
+    allDivs.forEach((div, index) => {
+        // Check if this div contains sample verse text
+        const hasSampleText = div.textContent && (
+            div.textContent.includes('The LORD is my shepherd') ||
+            div.textContent.includes('Come unto me, all ye that labour') ||
+            div.textContent.includes('For God so loved the world') ||
+            div.textContent.includes('I can do all things through Christ') ||
+            div.textContent.includes('But they that wait upon the LORD') ||
+            div.textContent.includes('And we know that all things work together') ||
+            div.textContent.includes('Have not I commanded thee?') ||
+            div.textContent.includes('He maketh me to lie down in green pastures')
+        );
+        
+        if (hasSampleText && div.classList.contains('text-center') && div.classList.contains('py-8')) {
+            console.log('🔍 Found potential sample verse by content at index', index, ':', div);
+            console.log('🔍 Sample text:', div.textContent.substring(0, 100) + '...');
+            div.remove();
+            samplesFoundByContent++;
+        }
+    });
+    
+    if (samplesFoundByContent > 0) {
+        console.log('✅ Removed', samplesFoundByContent, 'samples found by content');
+    }
+    
+    // Final check: look for any remaining samples
+    const finalCheck = document.querySelectorAll('.translation-sample');
+    if (finalCheck.length === 0) {
         console.log('✅ All samples successfully removed');
+    } else {
+        console.log('❌ Still have', finalCheck.length, 'samples after all removal attempts');
+        finalCheck.forEach((sample, index) => {
+            console.log('❌ Final remaining sample', index, ':', sample);
+        });
     }
 }
 
@@ -1482,15 +1522,26 @@ function prevChapter() {
 }
 
 function showResultArea() {
+  console.log('🔄 showResultArea() called - hiding home page, showing results');
+  
   document.getElementById("welcome-section").classList.add("hidden");
   document.getElementById("result-section").classList.remove("hidden");
   document.getElementById("topics-wrapper").classList.add("hidden");
   
-  // Clear translation sample when showing results
+  // Clear translation sample when showing results - call multiple times to ensure removal
+  console.log('🧹 First attempt to clear sample');
   clearTranslationSample();
+  
+  // Wait a bit and clear again to catch any delayed samples
+  setTimeout(() => {
+    console.log('🧹 Second attempt to clear sample (delayed)');
+    clearTranslationSample();
+  }, 50);
   
   // Clear the home page flag since we're now showing results
   sessionStorage.removeItem('wasOnHomePage');
+  
+  console.log('✅ Result area shown, sample should be cleared');
   
   // Don't call loadGenesis1() here - it creates an infinite loop!
   // The calling function (getChapter, getVerseFromRef, etc.) will handle loading content
