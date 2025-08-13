@@ -12,6 +12,14 @@
       "dest": "/server.js"
     },
     {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/hero.png",
+      "dest": "/public/hero.png"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
