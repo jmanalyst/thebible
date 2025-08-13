@@ -15,6 +15,7 @@
 !data/
 !data/*.json
 !favicon.ico
+!hero.png
 !robots.txt
 !CNAME
 !vercel.json

@@ -21,7 +21,7 @@
     },
     {
       "src": "/hero.png",
-      "dest": "/public/hero.png"
+      "dest": "/hero.png"
     },
     {
       "src": "/(.*)",
