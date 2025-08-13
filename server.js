@@ -1122,30 +1122,11 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
-// Serve static files manually since express.static isn't working on Vercel
+// Serve script.js file
 app.get('/script.js', (req, res) => {
   console.log(`🔍 Manually serving script.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  
-  // Always serve embedded content to ensure it works on Vercel
-  const embeddedScript = `
-    // Embedded script content for Vercel deployment
-    console.log('Script loaded from embedded content');
-    
-    // Your main functionality will be loaded from the HTML script tag
-    // This is a fallback to ensure the page loads
-    
-    // Basic functionality to prevent errors
-    window.maybeAutoFetch = function() {
-      console.log('Auto fetch function called');
-    };
-    
-    window.goHomeApp = function() {
-      console.log('Go home function called');
-    };
-  `;
-  
-  res.send(embeddedScript);
+  res.sendFile(path.join(process.cwd(), 'script.js'));
 });
 
 
