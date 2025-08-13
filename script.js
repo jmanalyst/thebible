@@ -279,8 +279,8 @@ function showTranslationSample() {
     `;
     
     // Insert the sample after the welcome section
-    const welcomeSection = document.getElementById('welcome-section');
-    if (welcomeSection) {
+    const welcomeSectionForSample = document.getElementById('welcome-section');
+    if (welcomeSectionForSample) {
         // Remove any existing sample
         const existingSample = document.querySelector('.translation-sample');
         if (existingSample) {
@@ -291,7 +291,7 @@ function showTranslationSample() {
         const sampleDiv = document.createElement('div');
         sampleDiv.className = 'translation-sample';
         sampleDiv.innerHTML = sampleHTML;
-        welcomeSection.parentNode.insertBefore(sampleDiv, welcomeSection.nextSibling);
+        welcomeSectionForSample.parentNode.insertBefore(sampleDiv, welcomeSectionForSample.nextSibling);
     }
 }
 
