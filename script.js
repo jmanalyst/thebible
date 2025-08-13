@@ -215,6 +215,20 @@ function showTranslationSample() {
         topicsHidden: document.getElementById('topics-wrapper')?.classList.contains('hidden')
     });
     
+    // CRITICAL FIX: Only show sample verse when we're actually on the home page
+    const welcomeSection = document.getElementById('welcome-section');
+    const resultSection = document.getElementById('result-section');
+    
+    if (!welcomeSection || welcomeSection.classList.contains('hidden') || 
+        (resultSection && !resultSection.classList.contains('hidden'))) {
+        console.log('🚫 NOT on home page - refusing to show sample verse');
+        console.log('🚫 welcome-section hidden:', welcomeSection?.classList.contains('hidden'));
+        console.log('🚫 result-section visible:', resultSection && !resultSection.classList.contains('hidden'));
+        return; // Don't show sample verse if not on home page
+    }
+    
+    console.log('✅ On home page - proceeding to show sample verse');
+    
     // Array of uplifting and inspiring Bible verses
     const upliftingVerses = [
         {
