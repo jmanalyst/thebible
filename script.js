@@ -208,6 +208,13 @@ function loadGenesis1() {
 
 // Function to show a sample verse from the current translation
 function showTranslationSample() {
+    console.log('📖 showTranslationSample() called');
+    console.log('📍 Current page state:', {
+        welcomeHidden: document.getElementById('welcome-section')?.classList.contains('hidden'),
+        resultHidden: document.getElementById('result-section')?.classList.contains('hidden'),
+        topicsHidden: document.getElementById('topics-wrapper')?.classList.contains('hidden')
+    });
+    
     // Array of uplifting and inspiring Bible verses
     const upliftingVerses = [
         {
@@ -276,9 +283,25 @@ function showTranslationSample() {
 
 // Function to clear the translation sample
 function clearTranslationSample() {
+    console.log('🧹 clearTranslationSample() called');
     const existingSample = document.querySelector('.translation-sample');
     if (existingSample) {
+        console.log('✅ Found and removing existing sample:', existingSample);
         existingSample.remove();
+    } else {
+        console.log('❌ No sample found to remove');
+    }
+    
+    // Double-check: look for any remaining samples
+    const remainingSamples = document.querySelectorAll('.translation-sample');
+    if (remainingSamples.length > 0) {
+        console.log('⚠️ Warning: Still found', remainingSamples.length, 'samples after removal');
+        remainingSamples.forEach((sample, index) => {
+            console.log('⚠️ Remaining sample', index, ':', sample);
+            sample.remove();
+        });
+    } else {
+        console.log('✅ All samples successfully removed');
     }
 }
 
