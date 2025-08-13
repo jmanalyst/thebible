@@ -12,6 +12,7 @@
 !index.html
 !public/
 !data/
+!data/*.json
 !favicon.ico
 !robots.txt
 !CNAME
