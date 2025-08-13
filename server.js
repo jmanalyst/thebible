@@ -1258,7 +1258,7 @@ app.get('/public/*.json', (req, res) => {
   res.status(403).json({ error: 'Access denied' });
 });
 
-// For Vercel deployment - always start the server (updated)
+// For Vercel deployment - always start the server (force redeploy)
 app.listen(PORT, () => {
   console.log(`🚀 Bible server running on port ${PORT}`);
   console.log(`🌐 Server URL: http://localhost:${PORT}`);
