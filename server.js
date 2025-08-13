@@ -1193,21 +1193,21 @@ app.get('/public/:file', (req, res) => {
 app.get('/hero.png', (req, res) => {
   console.log(`🔍 Manually serving hero.png directly`);
   res.setHeader('Content-Type', 'image/png');
-  res.sendFile(path.join(process.cwd(), 'public', 'hero.png'));
+  res.sendFile(path.join(__dirname, 'public', 'hero.png'));
 });
 
 // Handle favicon.ico requests
 app.get('/favicon.ico', (req, res) => {
   console.log(`🔍 Manually serving favicon.ico`);
   res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(process.cwd(), 'favicon.ico'));
+  res.sendFile(path.join(__dirname, 'favicon.ico'));
 });
 
 // Handle favicon.png requests (browser fallback)
 app.get('/favicon.png', (req, res) => {
   console.log(`🔍 Manually serving favicon.png (redirecting to favicon.ico)`);
   res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(process.cwd(), 'favicon.ico'));
+  res.sendFile(path.join(__dirname, 'favicon.ico'));
 });
 
 // Serve the main page
