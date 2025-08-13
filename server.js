@@ -1162,57 +1162,16 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   res.send(html);
 });
 
-// Serve static files manually since express.static isn't working on Vercel
+// Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve script.js
 app.get('/script.js', (req, res) => {
   console.log(`🔍 Manually serving script.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  res.sendFile(path.join(process.cwd(), 'script.js'));
-});
-
-app.get('/index.html', (req, res) => {
-  console.log(`🔍 Manually serving index.html`);
-  res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'index.html'));
-});
-
-app.get('/public/:file', (req, res) => {
-  const fileName = req.params.file;
-  console.log(`🔍 Manually serving public file: ${fileName}`);
-  
-  // Set appropriate content type based on file extension
-  if (fileName.endsWith('.png')) {
-    res.setHeader('Content-Type', 'image/png');
-  } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
-    res.setHeader('Content-Type', 'image/jpeg');
-  }
-  
-  res.sendFile(path.join(process.cwd(), 'public', fileName));
-});
-
-// Also handle direct requests to hero.png (in case it's referenced without /public/ prefix)
-app.get('/hero.png', (req, res) => {
-  console.log(`🔍 Manually serving hero.png directly`);
-  res.setHeader('Content-Type', 'image/png');
-  res.sendFile(path.join(__dirname, 'public', 'hero.png'));
-});
-
-// Handle favicon.ico requests
-app.get('/favicon.ico', (req, res) => {
-  console.log(`🔍 Manually serving favicon.ico`);
-  res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(__dirname, 'favicon.ico'));
-});
-
-// Handle favicon.png requests (browser fallback)
-app.get('/favicon.png', (req, res) => {
-  console.log(`🔍 Manually serving favicon.png (redirecting to favicon.ico)`);
-  res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(__dirname, 'favicon.ico'));
-});
-
-// Serve the main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'index.html'));
+  res.sendFile(path.join(__dirname, 'script.js'));
 });
 
 // COMPREHENSIVE PROTECTION: Block ALL possible access to Bible translation files
