@@ -1200,7 +1200,14 @@ app.get('/hero.png', (req, res) => {
 app.get('/favicon.ico', (req, res) => {
   console.log(`🔍 Manually serving favicon.ico`);
   res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(process.cwd(), 'public', 'hero.png')); // Using hero.png as favicon
+  res.sendFile(path.join(process.cwd(), 'favicon.ico'));
+});
+
+// Handle favicon.png requests (browser fallback)
+app.get('/favicon.png', (req, res) => {
+  console.log(`🔍 Manually serving favicon.png (redirecting to favicon.ico)`);
+  res.setHeader('Content-Type', 'image/x-icon');
+  res.sendFile(path.join(process.cwd(), 'favicon.ico'));
 });
 
 // Serve the main page
