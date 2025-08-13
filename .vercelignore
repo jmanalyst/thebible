@@ -4,6 +4,9 @@
 # But include these specific files
 !server.js
 !security-config.js
+!script.js
+!script-obfuscated.js
+!script.full-obf.js
 !package.json
 !package-lock.json
 !index.html
