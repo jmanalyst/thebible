@@ -513,6 +513,21 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Initialize translation bar visibility - removed since translation bar no longer exists
     
+    // AGGRESSIVE INITIALIZATION: Check if we're already on a Bible page and set flag
+    const currentPath = window.location.pathname;
+    const isOnBiblePath = currentPath.includes('/genesis/') || currentPath.includes('/ruth/') || 
+                          currentPath.includes('/john/') || currentPath.includes('/matthew/') ||
+                          currentPath.includes('/psalm/') || currentPath.includes('/romans/') ||
+                          currentPath.includes('/philippians/') || currentPath.includes('/isaiah/') ||
+                          currentPath.includes('/jeremiah/') || currentPath.includes('/joshua/');
+    
+    if (isOnBiblePath) {
+        console.log('🚫 Page loaded on Bible path:', currentPath, '- setting isTransitioningFromHome = true');
+        isTransitioningFromHome = true;
+    } else {
+        console.log('🏠 Page loaded on home path:', currentPath, '- keeping isTransitioningFromHome = false');
+    }
+    
             // Load the preferred translation
         loadTranslation(currentTranslation).then(() => {
             // Step 2: NEW LOGIC to determine what to show on page load
@@ -532,19 +547,39 @@ document.addEventListener("DOMContentLoaded", () => {
                         return;
                     }
                     
-                    // Only show sample if we're still on the home page AND no navigation has started
+                    // AGGRESSIVE CHECK: Look for any signs that we're not on home page
                     const welcomeSection = document.getElementById('welcome-section');
                     const resultSection = document.getElementById('result-section');
                     const isOnHomePage = welcomeSection && !welcomeSection.classList.contains('hidden');
                     const isOnBiblePage = resultSection && !resultSection.classList.contains('hidden');
                     
-                    if (isOnHomePage && !isOnBiblePage) {
-                        console.log('⏰ Timeout fired, calling showTranslationSample()');
+                    // Check if URL has changed from home page
+                    const currentPath = window.location.pathname;
+                    const isOnHomePath = currentPath === '/' || currentPath === '/index.html';
+                    const isOnBiblePath = currentPath.includes('/genesis/') || currentPath.includes('/ruth/') || 
+                                        currentPath.includes('/john/') || currentPath.includes('/matthew/') ||
+                                        currentPath.includes('/psalm/') || currentPath.includes('/romans/') ||
+                                        currentPath.includes('/philippians/') || currentPath.includes('/isaiah/') ||
+                                        currentPath.includes('/jeremiah/') || currentPath.includes('/joshua/');
+                    
+                    console.log('⏰ Timeout fired - checking all conditions:');
+                    console.log('⏰ Global flag:', isTransitioningFromHome);
+                    console.log('⏰ welcome-section visible:', isOnHomePage);
+                    console.log('⏰ result-section visible:', isOnBiblePage);
+                    console.log('⏰ Current path:', currentPath);
+                    console.log('⏰ Is home path:', isOnHomePath);
+                    console.log('⏰ Is Bible path:', isOnBiblePath);
+                    
+                    // Only show sample if ALL conditions indicate we're on home page
+                    if (isOnHomePage && !isOnBiblePage && isOnHomePath && !isOnBiblePath) {
+                        console.log('⏰ All conditions met - calling showTranslationSample()');
                         showTranslationSample();
                     } else {
-                        console.log('⏰ Timeout fired but not on home page, skipping sample');
-                        console.log('⏰ welcome-section visible:', isOnHomePage);
-                        console.log('⏰ result-section visible:', isOnBiblePage);
+                        console.log('⏰ Conditions not met - skipping sample');
+                        if (!isOnHomePage) console.log('⏰ Reason: welcome-section not visible');
+                        if (isOnBiblePage) console.log('⏰ Reason: result-section visible');
+                        if (!isOnHomePath) console.log('⏰ Reason: not on home path');
+                        if (isOnBiblePath) console.log('⏰ Reason: on Bible path');
                     }
                 }, 100);
             }
