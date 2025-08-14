@@ -203,6 +203,23 @@ function loadGenesis1() {
     // IMMEDIATELY clear any existing sample verse before doing anything else
     clearTranslationSample();
     
+    // AGGRESSIVE REMOVAL: Also hide the welcome section immediately to prevent flicker
+    const welcomeSection = document.getElementById('welcome-section');
+    if (welcomeSection) {
+        // Add smooth transition before hiding
+        welcomeSection.style.transition = 'opacity 0.2s ease-out';
+        welcomeSection.style.opacity = '0';
+        
+        // Hide after transition
+        setTimeout(() => {
+            welcomeSection.classList.add('hidden');
+            welcomeSection.style.opacity = '1'; // Reset for future use
+            console.log('🚫 Welcome section hidden with smooth transition');
+        }, 200);
+        
+        console.log('🚫 Starting smooth transition to hide welcome section');
+    }
+    
     // Set the form values directly
     document.getElementById('book').value = 'Genesis';
     document.getElementById('chapter').value = '1';
