@@ -361,9 +361,9 @@
     </h1>
     <p class="text-base sm:text-1xl lg:text-2xl text-gray-100 mb-2 max-w-xl mx-auto text-center">Search, read, and reflect on verses from the Bible.</p>
         <div class="text-center">
-          <button onclick="loadGenesis1()" class="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
-            Start Reading
-          </button>
+                          <button onclick="setTransitionFlagImmediately(); loadGenesis1()" class="bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-8 rounded-lg transition duration-300 transform hover:scale-105">
+                    Start Reading
+                </button>
         </div>
   </div>
 </section>
@@ -587,11 +587,6 @@
       }, 100);
     });
     
-    function showResultArea() {
-      document.getElementById("welcome-section").classList.add("hidden");
-      document.getElementById("result-section").classList.remove("hidden");
-    }
-    window.showResultArea = showResultArea;
     function toggleSearchDropdown() {
       const dropdown = document.getElementById("search-dropdown");
       dropdown.classList.toggle("hidden");
@@ -603,31 +598,6 @@
         dropdown.classList.add("hidden");
       }
     });
-    function loadGenesis1() {
-      document.getElementById("book").value = "Genesis";
-      document.getElementById("chapter").value = "1";
-      document.getElementById("verse").value = "";
-      window.scrollTo({ top: 0, behavior: "smooth"})
-      document.getElementById("pill-book").textContent = "Genesis";
-      document.getElementById("pill-chapter").textContent = "1";
-      document.getElementById("pill-verse").textContent = "Verse";
-      if (typeof maybeAutoFetch === "function") {
-        maybeAutoFetch();
-      }
-      showResultArea();
-    }
-    function goHome() {
-        if (typeof window.goHomeApp === 'function') {
-            window.goHomeApp();
-        } else {
-            // Fallback for original function if script.js hasn't loaded
-            document.getElementById("welcome-section").classList.remove("hidden");
-            document.getElementById("result-section").classList.add("hidden");
-            document.getElementById("topics-wrapper").classList.remove("hidden");
-            const flickerFixStyle = document.getElementById('flicker-fix-style');
-            if (flickerFixStyle) flickerFixStyle.remove();
-        }
-    }
 </script>
 </body>
 </html>

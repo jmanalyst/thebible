@@ -210,12 +210,16 @@ function loadGenesis1() {
     // IMMEDIATELY clear any existing sample verse before doing anything else
     clearTranslationSample();
     
-    // AGGRESSIVE REMOVAL: Also hide the welcome section immediately to prevent flicker
-    const welcomeSection = document.getElementById('welcome-section');
-    if (welcomeSection) {
-        // Hide immediately to prevent any sample verse from being visible
-        welcomeSection.classList.add('hidden');
-        console.log('🚫 Welcome section hidden immediately to prevent flicker');
+    // IMMEDIATELY hide Bible topics to prevent them from showing on Bible page
+    const topicsWrapper = document.getElementById("topics-wrapper");
+    if (topicsWrapper) {
+        topicsWrapper.classList.add("hidden");
+        topicsWrapper.style.display = 'none';
+        topicsWrapper.style.visibility = 'hidden';
+        topicsWrapper.style.opacity = '0';
+        topicsWrapper.style.height = '0';
+        topicsWrapper.style.overflow = 'hidden';
+        console.log('🚫 Bible topics hidden immediately in loadGenesis1()');
     }
     
     // Set the form values directly
@@ -228,6 +232,47 @@ function loadGenesis1() {
     
     // Load the chapter with smooth transition
     getChapter('Genesis', 1);
+}
+
+// AGGRESSIVE PROTECTION: Set global flag immediately when Start Reading button is clicked
+function setTransitionFlagImmediately() {
+    console.log('🚫 Start Reading button clicked - setting transition flag immediately');
+    isTransitioningFromHome = true;
+    
+    // Also cancel any existing timeout
+    if (window.sampleTimeoutId) {
+        clearTimeout(window.sampleTimeoutId);
+        console.log('🚫 Cancelled sample verse timeout immediately on button click');
+        window.sampleTimeoutId = null;
+    }
+    
+    // CSS-BASED FLICKER PREVENTION: Add style to hide any sample verse immediately
+    addSampleVerseHideStyle();
+}
+
+// CSS-BASED FLICKER PREVENTION: Add style to hide sample verse immediately
+function addSampleVerseHideStyle() {
+    // Remove any existing style
+    const existingStyle = document.getElementById('sample-verse-hide-style');
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+    
+    // Create new style that hides sample verse immediately
+    const style = document.createElement('style');
+    style.id = 'sample-verse-hide-style';
+    style.textContent = `
+        .translation-sample {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+    `;
+    
+    document.head.appendChild(style);
+    console.log('🚫 Added CSS style to hide sample verse immediately');
 }
 
 // Function to show a sample verse from the current translation
@@ -320,11 +365,29 @@ function showTranslationSample() {
             existingSample.remove();
         }
         
-        // Add new sample
+        // Add new sample with immediate visibility check
         const sampleDiv = document.createElement('div');
         sampleDiv.className = 'translation-sample';
         sampleDiv.innerHTML = sampleHTML;
+        
+        // AGGRESSIVE FLICKER PREVENTION: Check if we should be transitioning
+        if (isTransitioningFromHome) {
+            console.log('🚫 Sample verse created but isTransitioningFromHome = true, hiding immediately');
+            sampleDiv.style.display = 'none'; // Hide immediately
+        }
+        
         welcomeSectionForSample.parentNode.insertBefore(sampleDiv, welcomeSectionForSample.nextSibling);
+        
+        // Double-check: If we're transitioning, remove it completely
+        if (isTransitioningFromHome) {
+            console.log('🚫 Removing sample verse immediately after creation');
+            setTimeout(() => {
+                if (sampleDiv.parentNode) {
+                    sampleDiv.remove();
+                    console.log('🚫 Sample verse removed after creation');
+                }
+            }, 0);
+        }
     }
 }
 
@@ -563,13 +626,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log('📖 Attempting to show KJV sample...');
                 // Store timeout ID so we can cancel it if needed
                 const sampleTimeoutId = setTimeout(() => {
-                    // Check global flag first - if we're transitioning, NEVER show sample
+                    // ULTRA-AGGRESSIVE CHECK: Check global flag FIRST and return immediately if transitioning
                     if (isTransitioningFromHome) {
-                        console.log('🚫 Timeout fired but isTransitioningFromHome = true, skipping sample');
+                        console.log('🚫 Timeout fired but isTransitioningFromHome = true, skipping sample immediately');
                         return;
                     }
                     
-                    // AGGRESSIVE CHECK: Look for any signs that we're not on home page
+                    // DOUBLE-CHECK: Look for any signs that we're not on home page
                     const welcomeSection = document.getElementById('welcome-section');
                     const resultSection = document.getElementById('result-section');
                     const isOnHomePage = welcomeSection && !welcomeSection.classList.contains('hidden');
@@ -1657,9 +1720,22 @@ function prevChapter() {
 function showResultArea() {
   console.log('🔄 showResultArea() called - hiding home page, showing results');
   
+  // Hide home page elements
   document.getElementById("welcome-section").classList.add("hidden");
   document.getElementById("result-section").classList.remove("hidden");
-  document.getElementById("topics-wrapper").classList.add("hidden");
+  
+  // AGGRESSIVE TOPICS HIDING: Ensure Bible topics are completely hidden
+  const topicsWrapper = document.getElementById("topics-wrapper");
+  if (topicsWrapper) {
+    topicsWrapper.classList.add("hidden");
+    // Also add additional CSS to ensure it's completely hidden
+    topicsWrapper.style.display = 'none';
+    topicsWrapper.style.visibility = 'hidden';
+    topicsWrapper.style.opacity = '0';
+    topicsWrapper.style.height = '0';
+    topicsWrapper.style.overflow = 'hidden';
+    console.log('🚫 Bible topics completely hidden with aggressive CSS');
+  }
   
   // Clear translation sample when showing results - call multiple times to ensure removal
   console.log('🧹 First attempt to clear sample');
@@ -1674,13 +1750,17 @@ function showResultArea() {
   // Clear the home page flag since we're now showing results
   sessionStorage.removeItem('wasOnHomePage');
   
-  console.log('✅ Result area shown, sample should be cleared');
+  console.log('✅ Result area shown, sample should be cleared and topics hidden');
   
   // Don't call loadGenesis1() here - it creates an infinite loop!
   // The calling function (getChapter, getVerseFromRef, etc.) will handle loading content
 }
 
 function goHome() {
+  console.log('🏠 goHome() called - returning to homepage');
+  console.log('🏠 Button click detected!');
+  console.log('🏠 Current location:', window.location.href);
+  
   // MODIFIED: Find and remove the temporary flicker-fix style tag.
   const flickerFixStyle = document.getElementById('flicker-fix-style');
   if (flickerFixStyle) {
@@ -1689,17 +1769,78 @@ function goHome() {
 
   document.getElementById('search-close-button').classList.add('hidden');
 
-
-    // --- NEW: Clean the URL in the address bar ---
-  // This removes the ?book=... part without reloading the page.
-  const cleanUrl = window.location.pathname; 
-  history.replaceState({}, '', cleanUrl);
-  // --- End of new code ---
-
+  // --- ENHANCED: Always go to homepage URL ---
+  // Check current URL and navigate to homepage if needed
+  const currentUrl = window.location.href;
+  const currentPath = window.location.pathname;
+  const currentSearch = window.location.search;
+  const currentHash = window.location.hash;
+  
+  console.log('🏠 Current URL:', currentUrl);
+  console.log('🏠 Current path:', currentPath);
+  console.log('🏠 Current search:', currentSearch);
+  console.log('🏠 Current hash:', currentHash);
+  
+  // Determine the clean homepage URL
+  let homepageUrl;
+  if (currentPath === '/' || currentPath === '/index.html') {
+    // Already on homepage, just clean any query parameters
+    homepageUrl = window.location.origin + '/';
+    console.log('🏠 Already on homepage, cleaning query params');
+  } else {
+    // On a different page, go to homepage
+    homepageUrl = window.location.origin + '/';
+    console.log('🏠 Navigating from', currentPath, 'to homepage');
+  }
+  
+  // Update the URL to homepage (without page reload)
+  if (currentUrl !== homepageUrl) {
+    console.log('🏠 Updating URL from', currentUrl, 'to', homepageUrl);
+    
+    // Method 1: Try replaceState first
+    try {
+      history.replaceState({}, '', homepageUrl);
+      console.log('🏠 URL updated with replaceState');
+    } catch (e) {
+      console.log('🏠 replaceState failed, trying alternative method');
+    }
+    
+    // Method 2: Force URL update if needed
+    if (window.location.pathname !== '/') {
+      console.log('🏠 Force updating URL to homepage');
+      // Use a more direct approach
+      const newUrl = window.location.origin + '/';
+      window.history.replaceState({}, '', newUrl);
+      
+      // Verify the change
+      if (window.location.pathname === '/') {
+        console.log('🏠 URL successfully updated to homepage');
+      } else {
+        console.log('🏠 URL update failed, trying window.location.href');
+        // Last resort: directly set the href
+        window.location.href = newUrl;
+      }
+    }
+  } else {
+    console.log('🏠 URL already correct');
+  }
+  // --- End of enhanced URL handling ---
 
   document.getElementById("welcome-section").classList.remove("hidden");
   document.getElementById("result-section").classList.add("hidden");
-  document.getElementById("topics-wrapper").classList.remove("hidden"); 
+  
+  // RESTORE TOPICS: Show Bible topics when returning home
+  const topicsWrapper = document.getElementById("topics-wrapper");
+  if (topicsWrapper) {
+    topicsWrapper.classList.remove("hidden");
+    // Remove any aggressive CSS hiding
+    topicsWrapper.style.display = '';
+    topicsWrapper.style.visibility = '';
+    topicsWrapper.style.opacity = '';
+    topicsWrapper.style.height = '';
+    topicsWrapper.style.overflow = '';
+    console.log('🏠 Bible topics restored and visible on home page');
+  } 
 
   // Optional: Reset input fields
   document.getElementById("book").value = "";
@@ -1723,6 +1864,17 @@ function goHome() {
   
   // Mark that we're on the home page
   sessionStorage.setItem('wasOnHomePage', 'true');
+  
+  // Reset the global transition flag since we're going home
+  isTransitioningFromHome = false;
+  console.log('🏠 Reset isTransitioningFromHome = false');
+  
+  // Remove the sample verse hide style when going home
+  const hideStyle = document.getElementById('sample-verse-hide-style');
+  if (hideStyle) {
+      hideStyle.remove();
+      console.log('🏠 Removed sample verse hide style');
+  }
 }
 
 function maybeAutoFetch() {
