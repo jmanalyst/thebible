@@ -207,32 +207,11 @@ function loadGenesis1() {
     isTransitioningFromHome = true;
     console.log('🚫 Set isTransitioningFromHome = true to prevent sample verse');
     
-    // IMMEDIATELY clear any existing sample verse before doing anything else
-    clearTranslationSample();
+    // DON'T clear sample verse yet - let showResultArea() handle it when everything changes together
+    console.log('🎭 Keeping sample verse visible until everything changes together');
     
-    // IMMEDIATELY hide Bible topics to prevent them from showing on Bible page
-    const topicsWrapper = document.getElementById("topics-wrapper");
-    if (topicsWrapper) {
-        topicsWrapper.classList.add("hidden");
-        topicsWrapper.style.display = 'none';
-        topicsWrapper.style.visibility = 'hidden';
-        topicsWrapper.style.opacity = '0';
-        topicsWrapper.style.height = '0';
-        topicsWrapper.style.overflow = 'hidden';
-        console.log('🚫 Bible topics hidden immediately in loadGenesis1()');
-    }
-    
-    // IMMEDIATELY hide footer to prevent flicker during transition
-    const footer = document.querySelector('footer');
-    if (footer) {
-        footer.classList.add("hidden");
-        footer.style.display = 'none';
-        footer.style.visibility = 'hidden';
-        footer.style.opacity = '0';
-        footer.style.height = '0';
-        footer.style.overflow = 'hidden';
-        console.log('🚫 Footer hidden immediately in loadGenesis1()');
-    }
+    // DON'T hide topics and footer yet - wait for content to be ready
+    console.log('🎭 Keeping Bible topics and footer visible until content is ready');
     
     // Set the form values directly
     document.getElementById('book').value = 'Genesis';
@@ -258,8 +237,8 @@ function setTransitionFlagImmediately() {
         window.sampleTimeoutId = null;
     }
     
-    // CSS-BASED FLICKER PREVENTION: Add style to hide any sample verse immediately
-    addSampleVerseHideStyle();
+    // DON'T hide sample verse immediately - let it change with everything else
+    console.log('🎭 Keeping sample verse visible until everything changes together');
 }
 
 // CSS-BASED FLICKER PREVENTION: Add style to hide sample verse immediately
@@ -634,53 +613,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Always go to home page when visiting main URL
                 console.log('🏠 No URL parameters - going to home page');
                 goHome();
-                // Show the KJV sample only when on home page
-                console.log('📖 Attempting to show KJV sample...');
+                // Show the KJV sample with proper timing management
+                console.log('📖 Setting up sample verse with proper timing...');
+                
                 // Store timeout ID so we can cancel it if needed
                 const sampleTimeoutId = setTimeout(() => {
-                    // ULTRA-AGGRESSIVE CHECK: Check global flag FIRST and return immediately if transitioning
+                    // Check if we're still on home page and not transitioning
                     if (isTransitioningFromHome) {
-                        console.log('🚫 Timeout fired but isTransitioningFromHome = true, skipping sample immediately');
+                        console.log('🚫 Sample verse timeout cancelled - transitioning to Bible page');
                         return;
                     }
                     
-                    // DOUBLE-CHECK: Look for any signs that we're not on home page
+                    // Check if we're still on home page
                     const welcomeSection = document.getElementById('welcome-section');
                     const resultSection = document.getElementById('result-section');
                     const isOnHomePage = welcomeSection && !welcomeSection.classList.contains('hidden');
                     const isOnBiblePage = resultSection && !resultSection.classList.contains('hidden');
                     
-                    // Check if URL has changed from home page
-                    const currentPath = window.location.pathname;
-                    const isOnHomePath = currentPath === '/' || currentPath === '/index.html';
-                    const isOnBiblePath = currentPath.includes('/genesis/') || currentPath.includes('/ruth/') || 
-                                        currentPath.includes('/john/') || currentPath.includes('/matthew/') ||
-                                        currentPath.includes('/psalm/') || currentPath.includes('/romans/') ||
-                                        currentPath.includes('/philippians/') || currentPath.includes('/isaiah/') ||
-                                        currentPath.includes('/jeremiah/') || currentPath.includes('/joshua/');
-                    
-                    console.log('⏰ Timeout fired - checking all conditions:');
-                    console.log('⏰ Global flag:', isTransitioningFromHome);
-                    console.log('⏰ welcome-section visible:', isOnHomePage);
-                    console.log('⏰ result-section visible:', isOnBiblePage);
-                    console.log('⏰ Current path:', currentPath);
-                    console.log('⏰ Is home path:', isOnHomePath);
-                    console.log('⏰ Is Bible path:', isOnBiblePath);
-                    
-                    // Only show sample if ALL conditions indicate we're on home page
-                    if (isOnHomePage && !isOnBiblePage && isOnHomePath && !isOnBiblePath) {
-                        console.log('⏰ All conditions met - calling showTranslationSample()');
+                    if (isOnHomePage && !isOnBiblePage) {
+                        console.log('⏰ Sample verse timeout fired - showing sample verse');
                         showTranslationSample();
                     } else {
-                        console.log('⏰ Conditions not met - skipping sample');
-                        if (!isOnHomePage) console.log('⏰ Reason: welcome-section not visible');
-                        if (isOnBiblePage) console.log('⏰ Reason: result-section visible');
-                        if (!isOnHomePath) console.log('⏰ Reason: not on home path');
-                        if (isOnBiblePath) console.log('⏰ Reason: on Bible path');
+                        console.log('⏰ Sample verse timeout fired but not on home page - skipping');
                     }
                 }, 100);
                 
-                // Store the timeout ID globally so we can cancel it
+                // Store the timeout ID globally so it can be cancelled
                 window.sampleTimeoutId = sampleTimeoutId;
             }
             
@@ -719,10 +677,16 @@ document.addEventListener("DOMContentLoaded", () => {
                                   currentPath.includes('/philippians/') || currentPath.includes('/isaiah/') ||
                                   currentPath.includes('/jeremiah/') || currentPath.includes('/joshua/');
             
+            // If we're going to home page, DON'T clear sample verse - let goHome() handle it
+            const isGoingHome = currentPath === '/' || currentPath === '/index.html';
+            
             if (isOnBiblePath) {
                 console.log('🧹 URL changed to Bible path - immediately clearing sample verse');
                 clearTranslationSample();
                 isTransitioningFromHome = true;
+            } else if (isGoingHome) {
+                console.log('🏠 URL changed to home path - NOT clearing sample verse (let goHome() handle it)');
+                // Don't clear sample verse when going home
             }
         }
     });
@@ -1762,15 +1726,9 @@ function showResultArea() {
     console.log('🚫 Footer hidden to prevent flicker during transition');
   }
   
-  // Clear translation sample when showing results - call multiple times to ensure removal
-  console.log('🧹 First attempt to clear sample');
+  // Clear translation sample when showing results
+  console.log('🧹 Clearing sample verse');
   clearTranslationSample();
-  
-  // Wait a bit and clear again to catch any delayed samples
-  setTimeout(() => {
-    console.log('🧹 Second attempt to clear sample (delayed)');
-    clearTranslationSample();
-  }, 50);
   
   // Clear the home page flag since we're now showing results
   sessionStorage.removeItem('wasOnHomePage');
@@ -1894,8 +1852,11 @@ function goHome() {
   // Reset meta tags to default when going home
   resetMetaTagsToDefault();
   
-  // Show translation sample when returning home
-  showTranslationSample();
+  // Show translation sample when returning home (with small delay to ensure DOM is ready)
+  setTimeout(() => {
+    console.log('🏠 Delayed sample verse restoration');
+    showTranslationSample();
+  }, 50);
   
   // Refresh topics with current translation when returning home
   loadPublicTopics();
