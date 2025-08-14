@@ -222,6 +222,18 @@ function loadGenesis1() {
         console.log('🚫 Bible topics hidden immediately in loadGenesis1()');
     }
     
+    // IMMEDIATELY hide footer to prevent flicker during transition
+    const footer = document.querySelector('footer');
+    if (footer) {
+        footer.classList.add("hidden");
+        footer.style.display = 'none';
+        footer.style.visibility = 'hidden';
+        footer.style.opacity = '0';
+        footer.style.height = '0';
+        footer.style.overflow = 'hidden';
+        console.log('🚫 Footer hidden immediately in loadGenesis1()');
+    }
+    
     // Set the form values directly
     document.getElementById('book').value = 'Genesis';
     document.getElementById('chapter').value = '1';
@@ -1737,6 +1749,19 @@ function showResultArea() {
     console.log('🚫 Bible topics completely hidden with aggressive CSS');
   }
   
+  // FOOTER FLICKER PREVENTION: Hide footer during transition to prevent flicker
+  const footer = document.querySelector('footer');
+  if (footer) {
+    footer.classList.add("hidden");
+    // Also add CSS to ensure it's completely hidden
+    footer.style.display = 'none';
+    footer.style.visibility = 'hidden';
+    footer.style.opacity = '0';
+    footer.style.height = '0';
+    footer.style.overflow = 'hidden';
+    console.log('🚫 Footer hidden to prevent flicker during transition');
+  }
+  
   // Clear translation sample when showing results - call multiple times to ensure removal
   console.log('🧹 First attempt to clear sample');
   clearTranslationSample();
@@ -1840,6 +1865,19 @@ function goHome() {
     topicsWrapper.style.height = '';
     topicsWrapper.style.overflow = '';
     console.log('🏠 Bible topics restored and visible on home page');
+  }
+  
+  // RESTORE FOOTER: Show footer when returning home
+  const footer = document.querySelector('footer');
+  if (footer) {
+    footer.classList.remove("hidden");
+    // Remove any aggressive CSS hiding
+    footer.style.display = '';
+    footer.style.visibility = '';
+    footer.style.opacity = '';
+    footer.style.height = '';
+    footer.style.overflow = '';
+    console.log('🏠 Footer restored and visible on home page');
   } 
 
   // Optional: Reset input fields
