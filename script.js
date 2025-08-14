@@ -196,6 +196,13 @@ document.addEventListener('keydown', function(event) {
 function loadGenesis1() {
     console.log('🚀 loadGenesis1() called - immediately clearing any sample verse');
     
+    // CANCEL THE TIMEOUT immediately to prevent sample verse from appearing
+    if (window.sampleTimeoutId) {
+        clearTimeout(window.sampleTimeoutId);
+        console.log('🚫 Cancelled sample verse timeout to prevent flicker');
+        window.sampleTimeoutId = null;
+    }
+    
     // SET GLOBAL FLAG to prevent sample verse from appearing
     isTransitioningFromHome = true;
     console.log('🚫 Set isTransitioningFromHome = true to prevent sample verse');
@@ -206,18 +213,9 @@ function loadGenesis1() {
     // AGGRESSIVE REMOVAL: Also hide the welcome section immediately to prevent flicker
     const welcomeSection = document.getElementById('welcome-section');
     if (welcomeSection) {
-        // Add smooth transition before hiding
-        welcomeSection.style.transition = 'opacity 0.2s ease-out';
-        welcomeSection.style.opacity = '0';
-        
-        // Hide after transition
-        setTimeout(() => {
-            welcomeSection.classList.add('hidden');
-            welcomeSection.style.opacity = '1'; // Reset for future use
-            console.log('🚫 Welcome section hidden with smooth transition');
-        }, 200);
-        
-        console.log('🚫 Starting smooth transition to hide welcome section');
+        // Hide immediately to prevent any sample verse from being visible
+        welcomeSection.classList.add('hidden');
+        console.log('🚫 Welcome section hidden immediately to prevent flicker');
     }
     
     // Set the form values directly
@@ -563,7 +561,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 goHome();
                 // Show the KJV sample only when on home page
                 console.log('📖 Attempting to show KJV sample...');
-                setTimeout(() => {
+                // Store timeout ID so we can cancel it if needed
+                const sampleTimeoutId = setTimeout(() => {
                     // Check global flag first - if we're transitioning, NEVER show sample
                     if (isTransitioningFromHome) {
                         console.log('🚫 Timeout fired but isTransitioningFromHome = true, skipping sample');
@@ -605,6 +604,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (isOnBiblePath) console.log('⏰ Reason: on Bible path');
                     }
                 }, 100);
+                
+                // Store the timeout ID globally so we can cancel it
+                window.sampleTimeoutId = sampleTimeoutId;
             }
             
             // No need to track session state since we always go home
