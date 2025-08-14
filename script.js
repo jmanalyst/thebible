@@ -196,6 +196,10 @@ document.addEventListener('keydown', function(event) {
 function loadGenesis1() {
     console.log('🚀 loadGenesis1() called - immediately clearing any sample verse');
     
+    // SET GLOBAL FLAG to prevent sample verse from appearing
+    isTransitioningFromHome = true;
+    console.log('🚫 Set isTransitioningFromHome = true to prevent sample verse');
+    
     // IMMEDIATELY clear any existing sample verse before doing anything else
     clearTranslationSample();
     
@@ -219,6 +223,12 @@ function showTranslationSample() {
         resultHidden: document.getElementById('result-section')?.classList.contains('hidden'),
         topicsHidden: document.getElementById('topics-wrapper')?.classList.contains('hidden')
     });
+    
+    // GLOBAL FLAG CHECK: If we're transitioning from home, NEVER show sample
+    if (isTransitioningFromHome) {
+        console.log('🚫 GLOBAL FLAG: isTransitioningFromHome = true, refusing to show sample verse');
+        return;
+    }
     
     // CRITICAL FIX: Only show sample verse when we're actually on the home page
     const welcomeSection = document.getElementById('welcome-section');
@@ -383,8 +393,9 @@ function testTranslationSwitch(translationKey = 'asv') {
     });
 }
 
-// Force refresh function that definitely works
+// Global flags to control sample verse behavior
 let isRefreshing = false; // Prevent duplicate refreshes
+let isTransitioningFromHome = false; // Prevent sample verse during navigation
 
 function forceRefreshCurrentView() {
     if (isRefreshing) {
@@ -512,6 +523,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Show the KJV sample only when on home page
                 console.log('📖 Attempting to show KJV sample...');
                 setTimeout(() => {
+                    // Check global flag first - if we're transitioning, NEVER show sample
+                    if (isTransitioningFromHome) {
+                        console.log('🚫 Timeout fired but isTransitioningFromHome = true, skipping sample');
+                        return;
+                    }
+                    
                     // Only show sample if we're still on the home page AND no navigation has started
                     const welcomeSection = document.getElementById('welcome-section');
                     const resultSection = document.getElementById('result-section');
