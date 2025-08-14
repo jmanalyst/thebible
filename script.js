@@ -528,6 +528,12 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('🏠 Page loaded on home path:', currentPath, '- keeping isTransitioningFromHome = false');
     }
     
+    // FORCE REMOVE SAMPLE VERSE: If we're on a Bible path, immediately clear any sample verse
+    if (isOnBiblePath) {
+        console.log('🧹 Force removing sample verse on Bible path load');
+        clearTranslationSample();
+    }
+    
             // Load the preferred translation
         loadTranslation(currentTranslation).then(() => {
             // Step 2: NEW LOGIC to determine what to show on page load
@@ -603,6 +609,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Setup other event listeners
     document.getElementById("verse").addEventListener("click", openVersePicker);
+    
+    // URL CHANGE MONITOR: Watch for path changes and immediately clear sample verse
+    let lastPath = window.location.pathname;
+    const urlChangeObserver = new MutationObserver(() => {
+        const currentPath = window.location.pathname;
+        if (currentPath !== lastPath) {
+            console.log('🔗 URL path changed from', lastPath, 'to', currentPath);
+            lastPath = currentPath;
+            
+            // If we're now on a Bible path, immediately clear any sample verse
+            const isOnBiblePath = currentPath.includes('/genesis/') || currentPath.includes('/ruth/') || 
+                                  currentPath.includes('/john/') || currentPath.includes('/matthew/') ||
+                                  currentPath.includes('/psalm/') || currentPath.includes('/romans/') ||
+                                  currentPath.includes('/philippians/') || currentPath.includes('/isaiah/') ||
+                                  currentPath.includes('/jeremiah/') || currentPath.includes('/joshua/');
+            
+            if (isOnBiblePath) {
+                console.log('🧹 URL changed to Bible path - immediately clearing sample verse');
+                clearTranslationSample();
+                isTransitioningFromHome = true;
+            }
+        }
+    });
+    
+    // Start observing URL changes
+    urlChangeObserver.observe(document.body, { childList: true, subtree: true });
+    console.log('🔗 URL change monitor started');
     
     // Add click handlers for individual verses in the chapter
     document.addEventListener('click', function(e) {
