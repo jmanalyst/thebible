@@ -218,11 +218,14 @@ function loadGenesis1() {
 // Function to show a sample verse from the current translation
 function showTranslationSample() {
     console.log('📖 showTranslationSample() called');
+    console.log('📍 Current URL:', window.location.href);
+    console.log('📍 Current pathname:', window.location.pathname);
     console.log('📍 Current page state:', {
         welcomeHidden: document.getElementById('welcome-section')?.classList.contains('hidden'),
         resultHidden: document.getElementById('result-section')?.classList.contains('hidden'),
         topicsHidden: document.getElementById('topics-wrapper')?.classList.contains('hidden')
     });
+    console.log('📍 Global flag isTransitioningFromHome:', isTransitioningFromHome);
     
     // GLOBAL FLAG CHECK: If we're transitioning from home, NEVER show sample
     if (isTransitioningFromHome) {
