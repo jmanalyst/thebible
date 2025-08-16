@@ -19,6 +19,9 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (HTML, CSS, JS, images, etc.)
+app.use(express.static(path.join(process.cwd())));
+
 // TEMPORARILY DISABLED SECURITY MIDDLEWARE for debugging
 app.use((req, res, next) => {
   const url = req.url;
@@ -968,6 +971,11 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
   }
 });
 
+// Route to serve AdminPanel.html
+app.get('/AdminPanel.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'AdminPanel.html'));
+});
+
 // Route to serve Bible verses with pre-generated meta tags
 app.get('/:book/:chapter/:verse?', (req, res) => {
   const { book, chapter, verse } = req.params;
@@ -1135,6 +1143,27 @@ app.get('/index.html', (req, res) => {
   console.log(`🔍 Manually serving index.html`);
   res.setHeader('Content-Type', 'text/html');
   res.sendFile(path.join(process.cwd(), 'index.html'));
+});
+
+// Serve privacy.html
+app.get('/privacy.html', (req, res) => {
+  console.log(`🔍 Manually serving privacy.html`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'privacy.html'));
+});
+
+// Serve terms.html
+app.get('/terms.html', (req, res) => {
+  console.log(`🔍 Manually serving terms.html`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'terms.html'));
+});
+
+// Serve blog.html
+app.get('/blog.html', (req, res) => {
+  console.log(`🔍 Manually serving blog.html`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'blog.html'));
 });
 
 app.get('/public/:file', (req, res) => {
