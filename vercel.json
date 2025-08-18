@@ -29,5 +29,6 @@
       "memory": 1024,
       "maxDuration": 10
     }
-  }
+  },
+  "regions": ["iad1"]
 } 
