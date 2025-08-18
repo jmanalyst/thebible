@@ -4,9 +4,6 @@
 # But include these specific files
 !server.js
 !security-config.js
-!script.js
-!script-obfuscated.js
-!script.full-obf.js
 !package.json
 !package-lock.json
 !index.html
@@ -16,19 +13,15 @@
 !admin.js
 !privacy.html
 !terms.html
+!script.js
+!favicon.ico
+!robots.txt
+!vercel.json
+
+# Include data directory
+!data/
+!data/*.json
+
+# Include public directory
 !public/
 !public/*
-!data/
-!data/kjv.json
-!data/asv.json
-!data/net.json
-!data/rv_1909.json
-!data/rvg.json
-!data/rvg_2004.json
-!data/web.json
-!data/kjv_strongs.json
-!favicon.ico
-!hero.png
-!robots.txt
-!CNAME
-!vercel.json
