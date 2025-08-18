@@ -16,6 +16,10 @@
       "dest": "/server.js"
     },
     {
+      "src": "/blog.js",
+      "dest": "/blog.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
