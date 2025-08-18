@@ -29,6 +29,5 @@
       "memory": 1024,
       "maxDuration": 10
     }
-  },
-  "comment": "Force new deployment with working routes"
+  }
 } 
