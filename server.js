@@ -1373,4 +1373,4 @@ app.listen(PORT, () => {
   }
 });
 
-module.exports = app; 
+module.exports = app; // Force Vercel deployment - Mon Aug 18 12:31:51 CDT 2025
