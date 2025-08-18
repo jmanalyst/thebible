@@ -16,13 +16,6 @@
       "dest": "/server.js"
     },
     {
-      "src": "/blog.html",
-      "dest": "/blog.html",
-      "headers": {
-        "Content-Type": "text/html"
-      }
-    },
-    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
