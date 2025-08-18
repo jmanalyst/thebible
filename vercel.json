@@ -16,20 +16,22 @@
       "dest": "/server.js"
     },
     {
-      "src": "/privacy",
-      "dest": "/privacy.html"
-    },
-    {
-      "src": "/terms",
-      "dest": "/terms.html"
-    },
-    {
-      "src": "/blog",
-      "dest": "/blog.html"
-    },
-    {
       "src": "/(.*)",
       "dest": "/server.js"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/terms", 
+      "destination": "/terms.html"
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog.html"
     }
   ]
 } 
