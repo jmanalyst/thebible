@@ -1201,34 +1201,34 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
 app.get('/script.js', (req, res) => {
   console.log(`🔍 Manually serving script.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  res.sendFile(path.join(process.cwd(), 'script.js'));
+  res.sendFile(path.join(__dirname, 'script.js'));
 });
 
 // Serve blog.js file
 app.get('/blog.js', (req, res) => {
   console.log(`🔍 Manually serving blog.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  res.sendFile(path.join(process.cwd(), 'blog.js'));
+  res.sendFile(path.join(__dirname, 'blog.js'));
 });
 
 app.get('/index.html', (req, res) => {
   console.log(`🔍 Manually serving index.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Serve privacy (clean URL)
 app.get('/privacy', (req, res) => {
   console.log(`🔍 Manually serving privacy (clean URL)`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'privacy.html'));
+  res.sendFile(path.join(__dirname, 'privacy.html'));
 });
 
 // Serve privacy.html
 app.get('/privacy.html', (req, res) => {
   console.log(`🔍 Manually serving privacy.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'privacy.html'));
+  res.sendFile(path.join(__dirname, 'privacy.html'));
 });
 
 // Serve terms (clean URL)
@@ -1242,21 +1242,21 @@ app.get('/terms', (req, res) => {
 app.get('/terms.html', (req, res) => {
   console.log(`🔍 Manually serving terms.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'terms.html'));
+  res.sendFile(path.join(__dirname, 'terms.html'));
 });
 
 // Serve blog (clean URL)
 app.get('/blog', (req, res) => {
   console.log(`🔍 Manually serving blog (clean URL)`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'blog.html'));
+  res.sendFile(path.join(__dirname, 'blog.html'));
 });
 
 // Serve blog.html
 app.get('/blog.html', (req, res) => {
   console.log(`🔍 Manually serving blog.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'blog.html'));
+  res.sendFile(path.join(__dirname, 'blog.html'));
 });
 
 app.get('/public/:file', (req, res) => {
@@ -1270,33 +1270,33 @@ app.get('/public/:file', (req, res) => {
     res.setHeader('Content-Type', 'image/jpeg');
   }
   
-  res.sendFile(path.join(process.cwd(), 'public', fileName));
+  res.sendFile(path.join(__dirname, 'public', fileName));
 });
 
 // Also handle direct requests to hero.png (in case it's referenced without /public/ prefix)
 app.get('/hero.png', (req, res) => {
   console.log(`🔍 Manually serving hero.png directly`);
   res.setHeader('Content-Type', 'image/png');
-  res.sendFile(path.join(process.cwd(), 'public', 'hero.png'));
+  res.sendFile(path.join(__dirname, 'public', 'hero.png'));
 });
 
 // Handle favicon.ico requests
 app.get('/favicon.ico', (req, res) => {
   console.log(`🔍 Manually serving favicon.ico`);
   res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(process.cwd(), 'public', 'hero.png')); // Using hero.png as favicon
+  res.sendFile(path.join(__dirname, 'public', 'hero.png')); // Using hero.png as favicon
 });
 
 // Serve CSS files
 app.get('*.css', (req, res) => {
   console.log(`🔍 Manually serving CSS file: ${req.url}`);
   res.setHeader('Content-Type', 'text/css');
-  res.sendFile(path.join(process.cwd(), req.url));
+  res.sendFile(path.join(__dirname, req.url));
 });
 
 // Serve the main page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // COMPREHENSIVE PROTECTION: Block ALL possible access to Bible translation files
