@@ -811,6 +811,46 @@ app.get('/api/debug-files', (req, res) => {
     const dirnameFiles = fs.readdirSync(dirname);
     
     // Check if specific files exist
+    const privacyExists = fs.existsSync(path.join(cwd, 'privacy.html'));
+    const termsExists = fs.existsSync(path.join(cwd, 'terms.html'));
+    const blogExists = fs.existsSync(path.join(cwd, 'blog.html'));
+    const heroExists = fs.existsSync(path.join(cwd, 'public', 'hero.png'));
+    
+    res.json({
+      currentWorkingDirectory: cwd,
+      dirname: dirname,
+      cwdFiles: cwdFiles,
+      dirnameFiles: dirnameFiles,
+      privacyHtmlExists: privacyExists,
+      termsHtmlExists: termsExists,
+      blogHtmlExists: blogExists,
+      heroPngExists: heroExists
+    });
+  } catch (error) {
+    res.json({
+      error: error.message,
+      currentWorkingDirectory: process.cwd(),
+      dirname: __dirname
+    });
+  }
+});
+
+// Debug endpoint to check file availability
+app.get('/api/debug-files', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  try {
+    const cwd = process.cwd();
+    const dirname = __dirname;
+    
+    // List files in current working directory
+    const cwdFiles = fs.readdirSync(cwd);
+    
+    // List files in __dirname
+    const dirnameFiles = fs.readdirSync(dirname);
+    
+    // Check if specific files exist
     const scriptExists = fs.existsSync(path.join(cwd, 'script.js'));
     const indexExists = fs.existsSync(path.join(cwd, 'index.html'));
     const publicExists = fs.existsSync(path.join(cwd, 'public'));
