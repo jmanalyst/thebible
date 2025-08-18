@@ -16,10 +16,6 @@
       "dest": "/server.js"
     },
     {
-      "src": "/blog.js",
-      "dest": "/blog.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
@@ -36,6 +32,10 @@
     {
       "source": "/blog",
       "destination": "/blog.html"
+    },
+    {
+      "source": "/blog.js",
+      "destination": "/blog.js"
     }
   ]
 } 
