@@ -19,6 +19,33 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 app.use(cors());
 app.use(express.json());
 
+// Security middleware to block WordPress scanning and other malicious requests
+app.use((req, res, next) => {
+  const url = req.url.toLowerCase();
+  
+  // Block WordPress scanning attempts
+  if (url.includes('wp-') || url.includes('wordpress') || url.includes('setup-config') || 
+      url.includes('wp-admin') || url.includes('wp-includes') || url.includes('media/system')) {
+    console.log(`🚫 BLOCKED: WordPress scanning attempt: ${req.url} from ${req.ip}`);
+    return res.status(403).json({ 
+      error: 'Access denied',
+      message: 'WordPress scanning not allowed'
+    });
+  }
+  
+  // Block other common malicious patterns
+  if (url.includes('phpmyadmin') || url.includes('admin') || url.includes('config') ||
+      url.includes('backup') || url.includes('db') || url.includes('sql')) {
+    console.log(`🚫 BLOCKED: Malicious request: ${req.url} from ${req.ip}`);
+    return res.status(403).json({ 
+      error: 'Access denied',
+      message: 'Malicious request blocked'
+    });
+  }
+  
+  next();
+});
+
 // Serve static files (HTML, CSS, JS, images, etc.)
 app.use(express.static(path.join(process.cwd())));
 
