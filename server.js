@@ -1205,7 +1205,7 @@ app.get('/script.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'script.js'));
 });
 
-// Serve blog.js file - FIXED FOR VERCEL DEPLOYMENT
+// Serve blog.js file - FIXED FOR VERCEL DEPLOYMENT - Latest deployment
 app.get('/blog.js', (req, res) => {
   console.log(`🔍 Manually serving blog.js - Vercel deployment fix - ${new Date().toISOString()} - FORCE REDEPLOY`);
   console.log(`🔍 __dirname: ${__dirname}`);
