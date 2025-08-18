@@ -16,18 +16,6 @@
       "dest": "/server.js"
     },
     {
-      "src": "/privacy",
-      "dest": "/privacy.html"
-    },
-    {
-      "src": "/terms",
-      "dest": "/terms.html"
-    },
-    {
-      "src": "/blog",
-      "dest": "/blog.html"
-    },
-    {
       "src": "/blog.js",
       "dest": "/server.js"
     },
