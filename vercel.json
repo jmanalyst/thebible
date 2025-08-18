@@ -29,7 +29,7 @@
     },
     {
       "src": "/blog.js",
-      "dest": "/blog.js"
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",
