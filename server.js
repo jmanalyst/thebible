@@ -1207,7 +1207,7 @@ app.get('/script.js', (req, res) => {
 
 // Serve blog.js file - FIXED FOR VERCEL DEPLOYMENT
 app.get('/blog.js', (req, res) => {
-  console.log(`🔍 Manually serving blog.js - Vercel deployment fix - ${new Date().toISOString()}`);
+  console.log(`🔍 Manually serving blog.js - Vercel deployment fix - ${new Date().toISOString()} - FORCE REDEPLOY`);
   console.log(`🔍 __dirname: ${__dirname}`);
   console.log(`🔍 Full path: ${path.join(__dirname, 'blog.js')}`);
   console.log(`🔍 File exists: ${fs.existsSync(path.join(__dirname, 'blog.js'))}`);
