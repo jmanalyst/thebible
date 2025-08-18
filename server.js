@@ -1208,6 +1208,10 @@ app.get('/script.js', (req, res) => {
 // Serve blog.js file - FIXED FOR VERCEL DEPLOYMENT
 app.get('/blog.js', (req, res) => {
   console.log(`🔍 Manually serving blog.js - Vercel deployment fix`);
+  console.log(`🔍 __dirname: ${__dirname}`);
+  console.log(`🔍 Full path: ${path.join(__dirname, 'blog.js')}`);
+  console.log(`🔍 File exists: ${fs.existsSync(path.join(__dirname, 'blog.js'))}`);
+  
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(path.join(__dirname, 'blog.js'));
 });
@@ -1236,7 +1240,7 @@ app.get('/privacy.html', (req, res) => {
 app.get('/terms', (req, res) => {
   console.log(`🔍 Manually serving terms (clean URL)`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(process.cwd(), 'terms.html'));
+  res.sendFile(path.join(__dirname, 'terms.html'));
 });
 
 // Serve terms.html
