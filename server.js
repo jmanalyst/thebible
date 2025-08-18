@@ -1184,7 +1184,7 @@ app.get('/public/:file', (req, res) => {
 app.get('/hero.png', (req, res) => {
   console.log(`🔍 Manually serving hero.png directly`);
   res.setHeader('Content-Type', 'image/png');
-  res.sendFile(path.join(process.cwd(), 'hero.png'));
+  res.sendFile(path.join(process.cwd(), 'public', 'hero.png'));
 });
 
 // Handle favicon.ico requests
