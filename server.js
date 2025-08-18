@@ -1204,7 +1204,7 @@ app.get('/script.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'script.js'));
 });
 
-// Serve blog.js file
+// Serve blog.js file - FIXED FOR VERCEL DEPLOYMENT
 app.get('/blog.js', (req, res) => {
   console.log(`🔍 Manually serving blog.js - Vercel deployment fix`);
   res.setHeader('Content-Type', 'application/javascript');
