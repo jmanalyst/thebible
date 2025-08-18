@@ -1185,6 +1185,13 @@ app.get('/index.html', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
+// Serve privacy (clean URL)
+app.get('/privacy', (req, res) => {
+  console.log(`🔍 Manually serving privacy (clean URL)`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'privacy.html'));
+});
+
 // Serve privacy.html
 app.get('/privacy.html', (req, res) => {
   console.log(`🔍 Manually serving privacy.html`);
@@ -1192,11 +1199,25 @@ app.get('/privacy.html', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'privacy.html'));
 });
 
+// Serve terms (clean URL)
+app.get('/terms', (req, res) => {
+  console.log(`🔍 Manually serving terms (clean URL)`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'terms.html'));
+});
+
 // Serve terms.html
 app.get('/terms.html', (req, res) => {
   console.log(`🔍 Manually serving terms.html`);
   res.setHeader('Content-Type', 'text/html');
   res.sendFile(path.join(process.cwd(), 'terms.html'));
+});
+
+// Serve blog (clean URL)
+app.get('/blog', (req, res) => {
+  console.log(`🔍 Manually serving blog (clean URL)`);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(path.join(process.cwd(), 'blog.html'));
 });
 
 // Serve blog.html
