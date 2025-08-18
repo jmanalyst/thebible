@@ -1,3 +1,4 @@
+// FORCE VERCEL DEPLOYMENT - Updated server.js with __dirname fixes
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
