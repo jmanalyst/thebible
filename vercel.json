@@ -15,7 +15,18 @@
       "src": "/script.js",
       "dest": "/server.js"
     },
-
+    {
+      "src": "/privacy",
+      "dest": "/privacy.html"
+    },
+    {
+      "src": "/terms",
+      "dest": "/terms.html"
+    },
+    {
+      "src": "/blog",
+      "dest": "/blog.html"
+    },
     {
       "src": "/(.*)",
       "dest": "/server.js"
