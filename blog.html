@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | The Living Word Online</title>
+    <meta name="description" content="Read inspiring articles, Bible study tips, and spiritual insights from The Living Word Online.">
+    <meta property="og:title" content="Blog | The Living Word Online">
+    <meta property="og:description" content="Read inspiring articles, Bible study tips, and spiritual insights from The Living Word Online.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://thelivingwordonline.com/blog">
+    <meta property="og:image" content="https://thelivingwordonline.com/hero.png">
+    <meta property="twitter:title" content="Blog | The Living Word Online">
+    <meta property="twitter:description" content="Read inspiring articles, Bible study tips, and spiritual insights from The Living Word Online.">
+    <meta property="twitter:image" content="https://thelivingwordonline.com/hero.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js?v=20241215"></script>
+    <style>
+        /* Admin visibility control */
+        .admin-only {
+            display: none !important;
+        }
+        
+        /* Show admin elements when they have the 'show' class */
+        .admin-only.show {
+            display: block !important;
+        }
+        
+        /* Special handling for flex elements */
+        .admin-only.show.flex {
+            display: flex !important;
+        }
+        
+        /* Special handling for inline elements */
+        .admin-only.show.inline {
+            display: inline-block !important;
+        }
+        
+        /* Ensure edit/delete buttons are always visible when shown */
+        .admin-only.show button {
+            display: inline-block !important;
+        }
+        
+        /* Blog post text wrapping - prevent word breaking */
+        .blog-post {
+            word-wrap: normal;
+            overflow-wrap: normal;
+            hyphens: none;
+            background-color: white;
+        }
+        
+        .blog-post p {
+            word-wrap: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+            overflow: visible;
+        }
+        
+        .blog-post h3 {
+            word-wrap: normal;
+            overflow-wrap: normal;
+        }
+        
+        /* Ensure content doesn't overflow */
+        .prose {
+            word-wrap: normal;
+            overflow-wrap: normal;
+            max-width: 100%;
+        }
+        
+        .prose p {
+            word-wrap: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+            overflow: visible;
+        }
+        
+        /* Blog post container constraints */
+        .blog-post {
+            max-width: 100%;
+            box-sizing: border-box;
+            background-color: white;
+        }
+        
+        .blog-post .prose {
+            max-width: 100%;
+            overflow: visible;
+        }
+        
+        .blog-post .prose p {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Prevent word breaking */
+        .blog-post * {
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+        
+        /* Handle text without breaking words */
+        .blog-post p {
+            word-break: keep-all;
+            overflow-wrap: normal;
+        }
+        
+        /* Specific handling for content that might overflow */
+        .blog-post .prose {
+            word-break: keep-all;
+            overflow-wrap: normal;
+            hyphens: none;
+        }
+        
+        /* Light gray background for other sections */
+        .bg-theme-surface {
+            background-color: #f7f7f7 !important;
+        }
+        
+        /* Ensure sidebar sections have light gray background */
+        .sidebar-section {
+            background-color: #f7f7f7 !important;
+        }
+        
+        /* Search section background */
+        .search-section {
+            background-color: #f7f7f7 !important;
+        }
+        
+        /* Dark mode variables */
+        :root {
+            --color-theme-accent: #3b82f6;
+            --color-theme-accent-dark: #2563eb;
+            --color-theme-accent-hover: #1d4ed8;
+            --color-theme-text: #1f2937;
+            --color-theme-surface: #ffffff;
+            --color-theme-border: #e5e7eb;
+        }
+        
+        .dark {
+            --color-surface: #1f2937;
+            --color-text: #000000;
+            --color-subtle-text: #9ca3af;
+            --color-border: #374151;
+        }
+        
+        body {
+            background-color: #f7f7f7;
+            color: var(--color-text);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+        }
+        
+        .blog-post {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .blog-post:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-width {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .pagination-button {
+            transition: all 0.2s ease;
+        }
+
+        .pagination-button:hover {
+            background-color: var(--color-accent);
+            color: white;
+        }
+
+        /* YouTube embed styling */
+        .youtube-embed {
+            margin: 1rem 0;
+            clear: both;
+            display: block;
+            position: relative;
+        }
+        
+        .youtube-embed iframe {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .youtube-fallback {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background-color: #111827;
+        }
+        
+        .youtube-fallback:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s ease;
+        }
+        
+        /* Image embed styling */
+        .image-embed {
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .image-embed img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .image-embed img:hover {
+            transform: scale(1.02);
+        }
+        
+        .image-embed p {
+            margin-top: 0.5rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        /* Ensure iframes are visible */
+        iframe {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* Admin buttons layout fix */
+        .admin-buttons-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            clear: both;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .edit-post-btn,
+        .delete-post-btn {
+            background-color: #000000;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            transition: background-color 0.2s ease;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .edit-post-btn:hover,
+        .delete-post-btn:hover {
+            background-color: #374151;
+        }
+
+        /* Rich Text Toolbar Styles */
+        .format-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .format-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .format-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .format-btn[data-format="bold"] strong {
+            font-weight: 700;
+        }
+
+        .format-btn[data-format="italic"] em {
+            font-style: italic;
+        }
+
+        .format-btn[data-format="underline"] u {
+            text-decoration: underline;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'theme-primary': '#1e40af',
+                        'theme-accent': '#3b82f6',
+                        'theme-accent-hover': '#2563eb',
+                        'theme-text': '#1f2937',
+                        'theme-subtle-text': '#6b7280',
+                        'theme-surface': '#ffffff',
+                        'theme-border': '#e5e7eb'
+                    }
+                }
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="bg-theme-surface border-b border-theme-border sticky top-0 z-30">
+        <nav class="max-w-4xl mx-auto px-6">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Home Link -->
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold text-theme-text hover:text-theme-accent transition duration-200">
+                        The Living Word Online
+                    </a>
+                </div>
+                
+                <!-- Navigation Items -->
+                <div class="flex items-center space-x-6">
+                    <a href="index.html" class="text-theme-text hover:text-theme-accent transition duration-200">Home</a>
+                    <a href="blog.html" class="text-theme-accent font-medium">Blog</a>
+                    <!-- Theme toggle hidden for now -->
+                    <!-- <button onclick="toggleTheme()" class="text-theme-text hover:text-theme-accent transition duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </button> -->
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <!-- <section class="hero-gradient text-white py-20">
+        <div class="content-width px-6 text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                The Living Word Blog
+            </h1>
+            <p class="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
+                Seeking God every day through inspiring articles, Bible study tips, and spiritual insights.
+            </p>
+        </div>
+    </section> -->
+
+    <!-- Blog Posts Section -->
+    <section class="py-8 md:py-16">
+        <div class="w-full max-w-[904px] mx-auto px-4 md:px-6">
+            <div class="flex justify-between items-center mb-8 md:mb-12">
+                <h2 class="text-2xl md:text-1xl font-bold text-theme-text text-center">POSTS</h2>
+                <div class="flex items-center space-x-4">
+                    <button id="auth-button" class="bg-theme-accent hover:bg-theme-accent-dark text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        Login
+                    </button>
+                    <button id="admin-toggle" class="admin-only bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        Admin Panel
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Admin Panel (Hidden by default) -->
+            <div id="admin-panel" class="admin-only hidden bg-theme-surface rounded-xl p-6 mb-8 border border-theme-border">
+                <!-- Create Post Button -->
+                <div class="mb-6">
+                    <button id="create-post-btn" class="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        ✨ Create New Post
+                    </button>
+                </div>
+
+                <!-- Edit Post Modal (Hidden by default) -->
+                <div id="edit-post-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-theme-text">Edit Blog Post</h3>
+                            <button id="close-edit-modal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                        </div>
+                        <form id="edit-post-form" class="space-y-4">
+                            <input type="hidden" id="edit-post-id" name="id">
+                            <div>
+                                <label for="edit-post-title" class="block text-sm font-medium text-theme-text mb-2">Title</label>
+                                <input type="text" id="edit-post-title" name="title" required 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent">
+                            </div>
+                            <div>
+                                <label for="edit-post-excerpt" class="block text-sm font-medium text-theme-text mb-2">Excerpt (Optional)</label>
+                                <textarea id="edit-post-excerpt" name="excerpt" rows="2"
+                                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent"></textarea>
+                            </div>
+                            <div>
+                                <label for="edit-post-categories" class="block text-sm font-medium text-theme-text mb-2">Categories</label>
+                                <select id="edit-post-categories" name="categories" multiple class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent min-h-[100px]">
+                                    <!-- Categories will be populated dynamically -->
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
+                            </div>
+                                                    <div>
+                            <label for="edit-post-content" class="block text-sm font-medium text-theme-text mb-2">Content</label>
+                            
+                            <!-- Rich Text Toolbar -->
+                            <div class="mb-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+                                <div class="flex flex-wrap gap-1">
+                                    <button type="button" class="format-btn" data-format="bold" title="Bold (Ctrl+B)">
+                                        <strong>B</strong>
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="italic" title="Italic (Ctrl+I)">
+                                        <em>I</em>
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="underline" title="Underline (Ctrl+U)">
+                                        <u>U</u>
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="link" title="Insert Link">
+                                        🔗
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="quote" title="Blockquote">
+                                        💬
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="list" title="Bullet List">
+                                        📋
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="code" title="Code">
+                                        &lt;/&gt;
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <input type="text" id="edit-youtube-url" placeholder="Paste YouTube URL here and click 'Add Video'" 
+                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent text-sm">
+                                <button type="button" id="edit-add-video-btn" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    Add Video
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <input type="file" id="edit-image-upload" accept="image/*" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent text-sm">
+                                <button type="button" id="edit-upload-image-btn" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    Upload & Add Image
+                                </button>
+                            </div>
+                            <textarea id="edit-post-content" name="content" required rows="8"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Tip: Use the toolbar above to format text, paste YouTube URLs to embed videos, or upload images to add them to your post</p>
+                        </div>
+                            <div class="flex space-x-3 pt-4">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                    Update Post
+                                </button>
+                                <button type="button" id="cancel-edit-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Post Modal (Hidden by default) -->
+            <div id="create-post-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-theme-text">Create New Blog Post</h3>
+                        <button id="close-create-modal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                    </div>
+                    <form id="admin-post-form" class="space-y-4">
+                        <div>
+                            <label for="post-title" class="block text-sm font-medium text-theme-text mb-2">Title</label>
+                            <input type="text" id="post-title" name="title" required 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="post-excerpt" class="block text-sm font-medium text-theme-text mb-2">Excerpt (Optional)</label>
+                            <textarea id="post-excerpt" name="excerpt" rows="2"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent"></textarea>
+                        </div>
+                        <div>
+                            <label for="post-categories" class="block text-sm font-medium text-theme-text mb-2">Categories</label>
+                            <select id="post-categories" name="categories" multiple class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent min-h-[100px]">
+                                <!-- Categories will be populated dynamically -->
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
+                        </div>
+                                                <div>
+                            <label for="post-content" class="block text-sm font-medium text-theme-text mb-2">Content</label>
+                            
+                            <!-- Rich Text Toolbar -->
+                            <div class="mb-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+                                <div class="flex flex-wrap gap-1">
+                                    <button type="button" class="format-btn" data-format="bold" title="Bold (Ctrl+B)">
+                                        <strong>B</strong>
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="italic" title="Italic (Ctrl+I)">
+                                        <em>I</em>
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="underline" title="Underline (Ctrl+U)">
+                                        <u>U</u>
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="link" title="Insert Link">
+                                        🔗
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="quote" title="Blockquote">
+                                        💬
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="list" title="Bullet List">
+                                        📋
+                                    </button>
+                                    <button type="button" class="format-btn" data-format="code" title="Code">
+                                        &lt;/&gt;
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <input type="text" id="youtube-url" placeholder="Paste YouTube URL here and click 'Add Video'" 
+                                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent text-sm">
+                                <button type="button" id="add-video-btn" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    Add Video
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <input type="file" id="image-upload" accept="image/*" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent text-sm">
+                                <button type="button" id="upload-image-btn" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    Upload & Add Image
+                                </button>
+                            </div>
+                            <textarea id="post-content" name="content" required rows="8"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Tip: Use the toolbar above to format text, paste YouTube URLs to embed videos, or upload images to add them to your post</p>
+                        </div>
+                        <div class="flex space-x-3 pt-4">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                🚀 Publish Post
+                            </button>
+                            <button type="button" id="cancel-create-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Login Modal (Hidden by default) -->
+            <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl p-6 max-w-md w-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-theme-text">Login</h3>
+                        <button id="close-login-modal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+                    </div>
+                    <form id="login-form" class="space-y-4">
+                        <div>
+                            <label for="login-email" class="block text-sm font-medium text-theme-text mb-2">Email</label>
+                            <input type="email" id="login-email" name="email" required 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent"
+                                   placeholder="Enter your email">
+                        </div>
+                        <div>
+                            <label for="login-password" class="block text-sm font-medium text-theme-text mb-2">Password</label>
+                            <input type="password" id="login-password" name="password" required 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-theme-accent focus:border-transparent"
+                                   placeholder="Enter your password">
+                        </div>
+                        <div class="flex space-x-3 pt-4">
+                            <button type="submit" class="bg-theme-accent hover:bg-theme-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-colors flex-1">
+                                🔐 Login
+                            </button>
+                            <button type="button" id="cancel-login-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
+                <!-- Main Content - Blog Posts -->
+                <div class="w-full lg:w-[524px]">
+                    <!-- Dynamic Blog Posts Container -->
+                    <div id="blog-posts-container">
+                        <!-- Posts will be loaded here dynamically -->
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div id="blog-pagination" class="mt-8">
+                        <!-- Pagination will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Right Sidebar -->
+                <div class="w-full lg:w-[380px] lg:flex-shrink-0">
+                    <!-- App Promotion -->
+                    <!-- <div class="bg-theme-surface rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+                        <div class="flex items-center space-x-2 mb-2 md:mb-3">
+                            <div class="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded-lg"></div>
+                            <div class="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded-lg"></div>
+                        </div>
+                        <p class="text-theme-text text-xs md:text-sm leading-relaxed">
+                            
+                            Download the Living Word Bible App<br>
+                            and enjoy regular time with the Bible,<br>
+                            right when and where you need it.
+                        </p>
+                    </div> -->
+
+                    <!-- Language Selector -->
+                    <!-- <div class="bg-theme-surface rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+                        <select class="w-full p-2 border border-gray-300 rounded-lg bg-white dark:bg-gray-800 text-theme-text text-xs md:text-sm">
+                            <option>English</option>
+                            <option>Español</option>
+                            <option>Français</option>
+                            <option>Deutsch</option>
+                            <option>Português</option>
+                        </select>
+                    </div> -->
+
+                    <!-- Search Section -->
+                    <div class="bg-theme-surface rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+                        <h3 class="text-theme-text font-bold text-xs uppercase mb-2 md:mb-3">SEARCH</h3>
+                        <div class="flex">
+                            <input type="text" id="blog-search-input" placeholder="Search..." 
+                                   class="flex-1 p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-theme-accent text-xs md:text-sm">
+                            <button id="blog-search-button" class="p-2 bg-black text-white rounded-r-lg hover:bg-gray-800 transition duration-200">
+                                <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="white" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Archives Section -->
+                    <div class="bg-theme-surface rounded-xl p-3 md:p-4 mb-4 md:mb-6">
+                        <h3 class="text-theme-text font-bold text-xs uppercase mb-2 md:mb-3">ARCHIVES</h3>
+                        <div class="archives-section grid grid-cols-2 gap-1 md:space-y-1">
+                            <!-- Archives will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Categories Section -->
+                    <div class="bg-theme-surface rounded-xl p-3 md:p-4">
+                        <h3 class="text-theme-text font-bold text-xs uppercase mb-2 md:mb-3">CATEGORIES</h3>
+                        <div class="sidebar-categories-section">
+                            <!-- Categories will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pagination -->
+    <section class="py-16 border-t border-theme-border">
+        <div class="content-width px-6">
+            <div id="blog-pagination" class="flex justify-center items-center space-x-2">
+                <!-- Pagination will be populated dynamically by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <!-- <footer class="bg-gray-900 text-white py-12"> -->
+        <!-- <div class="max-w-6xl mx-auto px-6"> -->
+            <!-- <div class="grid grid-cols-1 md:grid-cols-2 gap-8"> -->
+                <!-- Mission Section -->
+                <!-- <div>
+                    <h3 class="text-lg font-bold mb-4">Our Mission</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Encouraging one another to grow in our relationship with God every day. 
+                        We believe in the power of God's Word to transform lives and bring hope to a world in need.
+                    </p>
+                </div> -->
+                
+                <!-- Useful Links Section -->
+                <!-- <div>
+                    <h3 class="text-lg font-bold mb-4">Useful Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="blog.html" class="text-gray-300 hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="privacy.html" class="text-gray-300 hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="terms.html" class="text-gray-300 hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Support</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div> -->
+            <!-- </div> -->
+            
+            <!-- <div class="border-t border-gray-800 mt-8 pt-8 text-center"> -->
+                <!-- <p class="text-gray-400">&copy; 2025 The Living Word Online. All rights reserved.</p> -->
+            <!-- </div> -->
+        <!-- </div> -->
+    <!-- </footer> -->
+
+    <!-- Load the blog functionality -->
+    <script src="blog.js"></script>
+</body>
+</html>
