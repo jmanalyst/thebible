@@ -46,8 +46,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files (HTML, CSS, JS, images, etc.)
-app.use(express.static(path.join(process.cwd())));
+// REMOVED: express.static middleware - we're manually serving all files
+// app.use(express.static(path.join(process.cwd())));
 
 // TEMPORARILY DISABLED SECURITY MIDDLEWARE for debugging
 app.use((req, res, next) => {
@@ -1285,6 +1285,13 @@ app.get('/favicon.ico', (req, res) => {
   console.log(`🔍 Manually serving favicon.ico`);
   res.setHeader('Content-Type', 'image/x-icon');
   res.sendFile(path.join(process.cwd(), 'public', 'hero.png')); // Using hero.png as favicon
+});
+
+// Serve CSS files
+app.get('*.css', (req, res) => {
+  console.log(`🔍 Manually serving CSS file: ${req.url}`);
+  res.setHeader('Content-Type', 'text/css');
+  res.sendFile(path.join(process.cwd(), req.url));
 });
 
 // Serve the main page
