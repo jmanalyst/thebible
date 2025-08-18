@@ -19,8 +19,7 @@
   "functions": {
     "server.js": {
       "memory": 1024,
-      "maxDuration": 10,
-      "maxLambdaSize": "15mb"
+      "maxDuration": 10
     }
   }
 } 
