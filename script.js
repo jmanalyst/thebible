@@ -2933,7 +2933,7 @@ function setupSelectionMenu() {
             const book = verse.dataset.book;
             const chapter = verse.dataset.chapter;
             const verseNum = verse.dataset.verse;
-            const urlParams = new URLSearchParams({ book, chapter, verse: verseNum });
+            const urlParams = new URLSearchParams({ book, chapter, verse: verseNum, translation: currentTranslation });
             shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
             textToCopy = `"${verseText}"\n- ${verseRef}\n\n${shareUrl}`;
         } else {
@@ -2952,7 +2952,7 @@ function setupSelectionMenu() {
             const chapter = parseInt(firstVerse.dataset.chapter);
             
             // Create URL with all selected verses
-            const urlParams = new URLSearchParams({ book, chapter });
+            const urlParams = new URLSearchParams({ book, chapter, translation: currentTranslation });
             const selectedVerseNumbers = Array.from(selectedVerses).map(verse => verse.dataset.verse).join(',');
             urlParams.set('verses', selectedVerseNumbers);
             shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
@@ -2986,7 +2986,7 @@ shareButton.addEventListener('click', () => {
         const book = verse.dataset.book;
         const chapter = verse.dataset.chapter;
         const verseNum = verse.dataset.verse;
-        const urlParams = new URLSearchParams({ book, chapter, verse: verseNum });
+        const urlParams = new URLSearchParams({ book, chapter, verse: verseNum, translation: currentTranslation });
         shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
         shareText = `"${verseText}" - ${verseRef}\n${shareUrl}`;
     } else {
@@ -3002,7 +3002,7 @@ shareButton.addEventListener('click', () => {
         const chapter = parseInt(firstVerse.dataset.chapter);
         
         // Create URL with all selected verses
-        const urlParams = new URLSearchParams({ book, chapter });
+        const urlParams = new URLSearchParams({ book, chapter, translation: currentTranslation });
         const selectedVerseNumbers = Array.from(selectedVerses).map(verse => verse.dataset.verse).join(',');
         urlParams.set('verses', selectedVerseNumbers);
         shareUrl = `${window.location.origin}${window.location.pathname}?${urlParams.toString()}`;
@@ -3143,9 +3143,29 @@ function handleUrlParameters() {
   const book = urlParams.get('book');
   const chapter = urlParams.get('chapter');
   const verse = urlParams.get('verse');
+  const translation = urlParams.get('translation');
+  
+  // Handle translation parameter first if present
+  if (translation) {
+    console.log('🔗 Translation parameter detected:', translation);
+    // Update current translation and UI
+    currentTranslation = translation;
+    localStorage.setItem('preferredTranslation', translation);
+    
+    // Update the translation selector UI
+    const translationSelector = document.getElementById('translation-selector');
+    if (translationSelector) {
+      translationSelector.value = translation;
+    }
+    
+    // Load the specified translation
+    loadTranslation(translation).catch(err => {
+      console.error("Failed to load translation from URL:", err);
+    });
+  }
   
   if (book && chapter) {
-    console.log('🔗 URL parameters detected:', { book, chapter, verse });
+    console.log('🔗 URL parameters detected:', { book, chapter, verse, translation });
     
     // Find the proper capitalized book name from the books array
     const properBookName = books.find(b => b.toLowerCase() === book.toLowerCase());
@@ -3310,7 +3330,7 @@ function updateMetaTags(book, chapter, verse, verseText) {
   
   // Create the verse-specific URL for sharing - use current origin to avoid domain mismatch
   const currentOrigin = window.location.origin;
-  const verseUrl = `${currentOrigin}/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}`;
+  const verseUrl = `${currentOrigin}/${book.toLowerCase()}/${chapter}${verse ? `/${verse}` : ''}?translation=${currentTranslation}`;
   
   // Update Open Graph tags with verse-specific URL
   const ogTitle = document.querySelector('meta[property="og:title"]');
