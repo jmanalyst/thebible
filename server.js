@@ -367,7 +367,7 @@ function getDailyVerse() {
   
   // SECURITY: Load KJV data on-demand for daily verse only
   try {
-    const filePath = path.join(__dirname, 'data', 'kjv.json');
+    const filePath = path.join(process.cwd(), 'data', 'kjv.json');
     const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     const verses = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.verses) ? rawData.verses : []);
     
@@ -440,7 +440,7 @@ app.get('/api/search', (req, res) => {
   }
 
   try {
-    const filePath = path.join(__dirname, 'data', `${translation}.json`);
+    const filePath = path.join(process.cwd(), 'data', `${translation}.json`);
     const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     
     // Handle different data structures
@@ -572,13 +572,13 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
   try {
     // Try multiple possible paths for Vercel compatibility
     const possiblePaths = [
-      path.join(__dirname, 'data', `${translation}.json`),
+      path.join(process.cwd(), 'data', `${translation}.json`),
       path.join(process.cwd(), 'data', `${translation}.json`),
       `./data/${translation}.json`
     ];
     
     console.log(`🔍 Attempting to read file with paths:`, possiblePaths);
-    console.log(`🔍 Current directory: ${__dirname}`);
+    console.log(`🔍 Current directory: ${process.cwd()}`);
     console.log(`🔍 Process working directory: ${process.cwd()}`);
     
     let filePath = null;
@@ -600,7 +600,7 @@ app.get('/api/verse/:book/:chapter/:verse', (req, res) => {
         error: 'Translation file not found',
         translation: translation,
         possiblePaths: possiblePaths,
-        currentDir: __dirname,
+        currentDir: process.cwd(),
         processCwd: process.cwd()
       });
     }
@@ -713,7 +713,7 @@ app.post('/api/verses/batch', (req, res) => {
   try {
     // Try multiple possible paths for Vercel compatibility
     const possiblePaths = [
-      path.join(__dirname, 'data', `${translation}.json`),
+      path.join(process.cwd(), 'data', `${translation}.json`),
       path.join(process.cwd(), 'data', `${translation}.json`),
       `./data/${translation}.json`
     ];
@@ -817,7 +817,7 @@ app.get('/api/test', (req, res) => {
     timestamp: new Date().toISOString(),
     nodeEnv: process.env.NODE_ENV,
     port: process.env.PORT,
-    currentDir: __dirname,
+    currentDir: process.cwd(),
     processCwd: process.cwd()
   });
 });
@@ -829,12 +829,12 @@ app.get('/api/debug-files', (req, res) => {
   
   try {
     const cwd = process.cwd();
-    const dirname = __dirname;
+    const dirname = process.cwd();
     
     // List files in current working directory
     const cwdFiles = fs.readdirSync(cwd);
     
-    // List files in __dirname
+    // List files in process.cwd()
     const dirnameFiles = fs.readdirSync(dirname);
     
     // Check if specific files exist
@@ -857,7 +857,7 @@ app.get('/api/debug-files', (req, res) => {
     res.json({
       error: error.message,
       currentWorkingDirectory: process.cwd(),
-      dirname: __dirname
+      dirname: process.cwd()
     });
   }
 });
@@ -869,12 +869,12 @@ app.get('/api/debug-files', (req, res) => {
   
   try {
     const cwd = process.cwd();
-    const dirname = __dirname;
+    const dirname = process.cwd();
     
     // List files in current working directory
     const cwdFiles = fs.readdirSync(cwd);
     
-    // List files in __dirname
+    // List files in process.cwd()
     const dirnameFiles = fs.readdirSync(dirname);
     
     // Check if specific files exist
@@ -895,7 +895,7 @@ app.get('/api/debug-files', (req, res) => {
     res.json({
       error: error.message,
       currentWorkingDirectory: process.cwd(),
-      dirname: __dirname
+      dirname: process.cwd()
     });
   }
 });
@@ -952,13 +952,13 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
   try {
     // Try multiple possible paths for Vercel compatibility
     const possiblePaths = [
-      path.join(__dirname, 'data', `${translation}.json`),
+      path.join(process.cwd(), 'data', `${translation}.json`),
       path.join(process.cwd(), 'data', `${translation}.json`),
       `./data/${translation}.json`
     ];
     
     console.log(`🔍 Attempting to read file with paths:`, possiblePaths);
-    console.log(`🔍 Current directory: ${__dirname}`);
+    console.log(`🔍 Current directory: ${process.cwd()}`);
     console.log(`🔍 Process working directory: ${process.cwd()}`);
     
     let filePath = null;
@@ -980,7 +980,7 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
         error: 'Translation file not found',
         translation: translation,
         possiblePaths: possiblePaths,
-        currentDir: __dirname,
+        currentDir: process.cwd(),
         processCwd: process.cwd()
       });
     }
@@ -1040,7 +1040,7 @@ app.get('/api/chapter/:book/:chapter', (req, res) => {
 
 // Route to serve AdminPanel.html
 app.get('/AdminPanel.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'AdminPanel.html'));
+  res.sendFile(path.join(process.cwd(), 'AdminPanel.html'));
 });
 
 // Route to serve Bible verses with pre-generated meta tags
@@ -1059,7 +1059,7 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
   // SECURITY: Load KJV data on-demand for meta tag generation only
   let verseData = null;
   try {
-    const filePath = path.join(__dirname, 'data', 'kjv.json');
+    const filePath = path.join(process.cwd(), 'data', 'kjv.json');
     const rawData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     const verses = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.verses) ? rawData.verses : []);
     
@@ -1201,7 +1201,7 @@ app.get('/:book/:chapter/:verse?', (req, res) => {
 app.get('/script.js', (req, res) => {
   console.log(`🔍 Manually serving script.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  res.sendFile(path.join(__dirname, 'script.js'));
+  res.sendFile(path.join(process.cwd(), 'script.js'));
 });
 
 // Serve blog.js file
@@ -1214,21 +1214,21 @@ app.get('/blog.js', (req, res) => {
 app.get('/index.html', (req, res) => {
   console.log(`🔍 Manually serving index.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 // Serve privacy (clean URL)
 app.get('/privacy', (req, res) => {
   console.log(`🔍 Manually serving privacy (clean URL)`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'privacy.html'));
+  res.sendFile(path.join(process.cwd(), 'privacy.html'));
 });
 
 // Serve privacy.html
 app.get('/privacy.html', (req, res) => {
   console.log(`🔍 Manually serving privacy.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'privacy.html'));
+  res.sendFile(path.join(process.cwd(), 'privacy.html'));
 });
 
 // Serve terms (clean URL)
@@ -1242,21 +1242,21 @@ app.get('/terms', (req, res) => {
 app.get('/terms.html', (req, res) => {
   console.log(`🔍 Manually serving terms.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'terms.html'));
+  res.sendFile(path.join(process.cwd(), 'terms.html'));
 });
 
 // Serve blog (clean URL)
 app.get('/blog', (req, res) => {
   console.log(`🔍 Manually serving blog (clean URL)`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'blog.html'));
+  res.sendFile(path.join(process.cwd(), 'blog.html'));
 });
 
 // Serve blog.html
 app.get('/blog.html', (req, res) => {
   console.log(`🔍 Manually serving blog.html`);
   res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'blog.html'));
+  res.sendFile(path.join(process.cwd(), 'blog.html'));
 });
 
 app.get('/public/:file', (req, res) => {
@@ -1270,33 +1270,33 @@ app.get('/public/:file', (req, res) => {
     res.setHeader('Content-Type', 'image/jpeg');
   }
   
-  res.sendFile(path.join(__dirname, 'public', fileName));
+  res.sendFile(path.join(process.cwd(), 'public', fileName));
 });
 
 // Also handle direct requests to hero.png (in case it's referenced without /public/ prefix)
 app.get('/hero.png', (req, res) => {
   console.log(`🔍 Manually serving hero.png directly`);
   res.setHeader('Content-Type', 'image/png');
-  res.sendFile(path.join(__dirname, 'public', 'hero.png'));
+  res.sendFile(path.join(process.cwd(), 'public', 'hero.png'));
 });
 
 // Handle favicon.ico requests
 app.get('/favicon.ico', (req, res) => {
   console.log(`🔍 Manually serving favicon.ico`);
   res.setHeader('Content-Type', 'image/x-icon');
-  res.sendFile(path.join(__dirname, 'public', 'hero.png')); // Using hero.png as favicon
+  res.sendFile(path.join(process.cwd(), 'public', 'hero.png')); // Using hero.png as favicon
 });
 
 // Serve CSS files
 app.get('*.css', (req, res) => {
   console.log(`🔍 Manually serving CSS file: ${req.url}`);
   res.setHeader('Content-Type', 'text/css');
-  res.sendFile(path.join(__dirname, req.url));
+  res.sendFile(path.join(process.cwd(), req.url));
 });
 
 // Serve the main page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'index.html'));
 });
 
 // COMPREHENSIVE PROTECTION: Block ALL possible access to Bible translation files
@@ -1356,14 +1356,14 @@ app.listen(PORT, () => {
   console.log(`📊 Logging: ${SECURITY_CONFIG.LOGGING.SUCCESSFUL_REQUESTS ? 'Enabled' : 'Disabled'}`);
   console.log(`⏰ Rate limit: ${SECURITY_CONFIG.RATE_LIMIT.MAX_REQUESTS} requests per ${SECURITY_CONFIG.RATE_LIMIT.WINDOW_MS/1000}s`);
   console.log(`💥 Burst limit: ${SECURITY_CONFIG.RATE_LIMIT.MAX_BURST} requests per ${SECURITY_CONFIG.RATE_LIMIT.BURST_WINDOW_MS/1000}s`);
-  console.log(`📁 Current directory: ${__dirname}`);
+  console.log(`📁 Current directory: ${process.cwd()}`);
   console.log(`📁 Process working directory: ${process.cwd()}`);
-  console.log(`📁 Data directory check: ${fs.existsSync(path.join(__dirname, 'data')) ? 'EXISTS' : 'MISSING'}`);
-  console.log(`📁 KJV file check: ${fs.existsSync(path.join(__dirname, 'data', 'kjv.json')) ? 'EXISTS' : 'MISSING'}`);
+  console.log(`📁 Data directory check: ${fs.existsSync(path.join(process.cwd(), 'data')) ? 'EXISTS' : 'MISSING'}`);
+  console.log(`📁 KJV file check: ${fs.existsSync(path.join(process.cwd(), 'data', 'kjv.json')) ? 'EXISTS' : 'MISSING'}`);
   
   // List all files in data directory
   try {
-    const dataDir = path.join(__dirname, 'data');
+    const dataDir = path.join(process.cwd(), 'data');
     if (fs.existsSync(dataDir)) {
       const files = fs.readdirSync(dataDir);
       console.log(`📁 Data directory contents: ${files.join(', ')}`);
