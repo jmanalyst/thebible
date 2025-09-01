@@ -1246,11 +1246,11 @@ app.get('/terms.html', (req, res) => {
 });
 
 // Serve blog (clean URL)
-app.get('/blog', (req, res) => {
-  console.log(`🔍 Manually serving blog (clean URL)`);
-  res.setHeader('Content-Type', 'text/html');
-  res.sendFile(path.join(__dirname, 'blog.html'));
-});
+// app.get('/blog', (req, res) => {
+//   console.log(`🔍 Manually serving blog (clean URL)`);
+//   res.setHeader('Content-Type', 'text/html');
+//   res.sendFile(path.join(__dirname, 'blog.html'));
+// });
 
 // Serve blog.html
 app.get('/blog.html', (req, res) => {
