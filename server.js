@@ -1205,11 +1205,11 @@ app.get('/script.js', (req, res) => {
 });
 
 // Serve blog.js file
-// app.get('/blog.js', (req, res) => {
-//   console.log(`🔍 Manually serving blog.js`);
-//   res.setHeader('Content-Type', 'application/javascript');
-//   res.sendFile(path.join(__dirname, 'blog.js'));
-// });
+app.get('/blog.js', (req, res) => {
+  console.log(`🔍 Manually serving blog.js`);
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'blog.js'));
+});
 
 app.get('/index.html', (req, res) => {
   console.log(`🔍 Manually serving index.html`);
