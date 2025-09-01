@@ -1208,7 +1208,7 @@ app.get('/script.js', (req, res) => {
 app.get('/blog.js', (req, res) => {
   console.log(`🔍 Manually serving blog.js`);
   res.setHeader('Content-Type', 'application/javascript');
-  res.sendFile(path.join(__dirname, 'blog.js'));
+  res.sendFile(path.join(process.cwd(), 'blog.js'));
 });
 
 app.get('/index.html', (req, res) => {
