@@ -1211,6 +1211,13 @@ app.get('/blog.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'blog.js'));
 });
 
+// Serve blog-manager.js file (test)
+app.get('/blog-manager.js', (req, res) => {
+  console.log(`🔍 Manually serving blog-manager.js`);
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'blog-manager.js'));
+});
+
 app.get('/index.html', (req, res) => {
   console.log(`🔍 Manually serving index.html`);
   res.setHeader('Content-Type', 'text/html');
